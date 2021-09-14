@@ -1,16 +1,6 @@
 import ad4mClient from "../api/client";
+import { Message, Messages } from "../types";
 import { Expression, LinkExpression } from "@perspect3vism/ad4m";
-
-export interface Messages {
-  [x: string]: Message;
-}
-
-export interface Message {
-  id: string;
-  author: string;
-  timestamp: string;
-  expression: Expression;
-}
 
 export async function getExpression(link: any): Promise<Expression> {
   const address = link.data.target;
@@ -42,4 +32,17 @@ export function keyedExpressions(
     const id = expression[key as keyof Message];
     return { ...acc, [id]: expression };
   }, {});
+}
+
+export function sortExpressionsByTimestamp(
+  expressions: Messages,
+  order: "asc" | "desc"
+): Message[] {
+  return Object.values(expressions).sort((a, b) => {
+    if (order === "asc") {
+      return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+    } else {
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    }
+  });
 }

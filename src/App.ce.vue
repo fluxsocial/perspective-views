@@ -1,17 +1,31 @@
 <template>
   <div class="chat-view" ref="scrollContainer">
-    <main class="chat-view__messages" ref="messagesContine">
-      <div v-for="message in messages" :key="message.id">
-        <ChatMessage
-          :isReplying="replyMessageId === message.id"
-          :did="members[message.author]"
-          username="123"
-          :timestamp="message.timestamp"
-          :message="message.expression.body"
-          showAvatar
-          @replyClick="replyMessageId = message.id"
-        ></ChatMessage>
-      </div>
+    <main class="chat-view__messages" ref="messagesContainer">
+      <DynamicScroller
+        :items="sortedMessages"
+        :min-item-size="1"
+        ref="scrollContainer"
+      >
+        <template v-slot="{ item, index, active }">
+          <DynamicScrollerItem
+            v-if="item.expression.body"
+            :item="item"
+            :active="active"
+            :size-dependencies="[item.expression.body]"
+            :data-index="index"
+          >
+            <ChatMessage
+              :isReplying="replyMessageId === item.id"
+              :did="members[item.author]"
+              username="123"
+              :timestamp="item.timestamp"
+              :message="item.expression.body"
+              showAvatar
+              @replyClick="replyMessageId = item.id"
+            ></ChatMessage>
+          </DynamicScrollerItem>
+        </template>
+      </DynamicScroller>
     </main>
 
     <footer class="chat-view__footer">
@@ -36,9 +50,14 @@ import getMembers from "./api/getMembers";
 import { Messages } from "./types";
 import subscribeToLinks from "./api/subscribeToLinks";
 import generateHTML from "./components/generateHTML";
-import { getExpressionByLink } from "./helpers/expressionHelpers";
+import {
+  getExpressionByLink,
+  sortExpressionsByTimestamp,
+} from "./helpers/expressionHelpers";
 import { LinkExpression } from "@perspect3vism/ad4m";
 import { JSONContent } from "@tiptap/core";
+import { DynamicScroller, DynamicScrollerItem } from "vue-virtual-scroller";
+import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 
 const { neighbourhood } = defineProps({
   neighbourhood: String,
@@ -51,6 +70,7 @@ const EMPTY_SCHEMA = {
 
 const schema = ref<any>(EMPTY_SCHEMA);
 const scrollContainer = ref(null);
+const messagesContainer = ref(null);
 const messages = ref<Messages>({});
 const members = ref<Messages>({});
 const replyMessageId = ref<string | null>(null);
@@ -61,8 +81,12 @@ const replyMessage = computed(() => {
   } else return null;
 });
 
+const sortedMessages = computed(() => {
+  return sortExpressionsByTimestamp(messages.value, "asc");
+});
+
 function scrollToBottom() {
-  const el = scrollContainer.value as HTMLElement | null;
+  const el = messagesContainer.value as HTMLElement | null;
   if (el) {
     console.log(el);
     el.scrollTop = el.scrollHeight;
@@ -119,16 +143,16 @@ j-button.active {
 .chat-view {
   display: flex;
   flex-direction: column;
+  max-height: 100vh;
+  overflow-y: hidden;
 }
 
 .chat-view__messages {
   flex: 1;
+  overflow-y: auto;
 }
 
 .chat-view__footer {
-  position: sticky;
-  bottom: 0;
-  left: 0;
   background-color: var(--j-color-white);
   padding: var(--j-space-400) var(--j-space-500);
 }
@@ -151,16 +175,6 @@ j-button.active {
   width: 100%;
   padding: var(--j-space-200);
   border: 1px solid var(--j-border-color);
-  border-radius: var(--j-border-radius);
-}
-
-.chat-input__reply {
-  display: inline-block;
-  margin-bottom: var(--j-space-200);
-  background-color: var(--j-color-primary-50);
-  color: var(--j-color-primary-600);
-  font-size: var(--j-font-size-400);
-  padding: var(--j-space-300) var(--j-space-400);
   border-radius: var(--j-border-radius);
 }
 
