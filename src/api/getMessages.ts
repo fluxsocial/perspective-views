@@ -18,8 +18,8 @@ export default async function ({ neighbourhoodUuid, from, to }: Payload) {
       new LinkQuery({
         source: "sioc://chatchannel",
         predicate: "sioc://content_of",
-        fromDate: new Date("1/12/10"),
-        untilDate: new Date(),
+        fromDate: from || new Date("1/12/10"),
+        untilDate: to || new Date(),
       })
     );
 
@@ -27,6 +27,6 @@ export default async function ({ neighbourhoodUuid, from, to }: Payload) {
 
     return keyedExpressions(messages);
   } catch (e) {
-    console.log(e);
+    throw new Error(e);
   }
 }

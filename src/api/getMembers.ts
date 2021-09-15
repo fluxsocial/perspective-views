@@ -27,6 +27,6 @@ export default async function ({
 
     return keyedExpressions(profiles, "author");
   } catch (e) {
-    console.log(e);
+    throw new Error(e);
   }
 }
