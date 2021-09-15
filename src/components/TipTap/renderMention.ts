@@ -1,4 +1,4 @@
-import MentionList from "./MentionList.vue";
+import MentionList from "../MentionList.vue";
 import { VueRenderer } from "@tiptap/vue-3";
 import tippy from "tippy.js";
 

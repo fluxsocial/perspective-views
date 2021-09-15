@@ -14,14 +14,22 @@ import Link from "@tiptap/extension-link";
 import OrderedList from "@tiptap/extension-ordered-list";
 import Placeholder from "@tiptap/extension-placeholder";
 import Mention from "./Mention";
-import MentionList from "./MentionList.vue";
+import MentionList from "../MentionList.vue";
 
 export default function createHTML(message: JSONContent) {
   return generateHTML(message, [
     Document,
     Paragraph,
     Text,
+    LineBreak,
     Bold,
+    Italic,
+    Strike,
+    CodeBlock,
+    Link,
+    BulletList,
+    ListItem,
+    OrderedList,
     Mention("emoji").configure({
       renderLabel({ options, node }) {
         return node.attrs.label;
