@@ -1,11 +1,29 @@
 <template>
-  <div class="chat-view" ref="scrollContainer">
-    <main class="chat-view__messages" ref="messagesContainer">
-      <DynamicScroller
-        :items="sortedMessages"
-        :min-item-size="1"
-        ref="scrollContainer"
+  <div class="chat-view">
+    <div class="chat-view__load-more">
+      <j-button
+        variant="primary"
+        v-if="showNewMessagesButton"
+        @click="markAsRead"
       >
+        Show new messages
+        <j-icon name="arrow-down-short" size="xs" />
+      </j-button>
+    </div>
+    <main class="chat-view__messages" @scroll="onScroll" ref="scrollContainer">
+      <DynamicScroller :items="sortedMessages" :min-item-size="1">
+        <template #before>
+          <j-box px="500" py="500">
+            <j-flex a="center" j="center" gap="500">
+              <j-text color="ui-400" nomargin v-if="fetchingMessages">
+                🤫 Shhh.. Listening for gossip.
+              </j-text>
+              <j-button v-else size="sm" variant="subtle" @click="loadMore">
+                Look for older messages
+              </j-button>
+            </j-flex>
+          </j-box>
+        </template>
         <template v-slot="{ item, index, active }">
           <DynamicScrollerItem
             v-if="item.expression.body"
@@ -41,26 +59,31 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import ChatMessage from "./components/ChatMessage.vue";
 import ChatInput from "./components/ChatInput.vue";
-import getMessages from "./api/getMessages";
-import createMessage from "./api/createMessage";
-import getMembers from "./api/getMembers";
-import { Messages } from "./types";
-import subscribeToLinks from "./api/subscribeToLinks";
-import generateHTML from "./components/generateHTML";
-import {
-  getExpressionByLink,
-  sortExpressionsByTimestamp,
-} from "./helpers/expressionHelpers";
-import { LinkExpression } from "@perspect3vism/ad4m";
-import { JSONContent } from "@tiptap/core";
+import generateHTML from "./components/TipTap/generateHTML";
 import { DynamicScroller, DynamicScrollerItem } from "vue-virtual-scroller";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
+import { scrollToBottom, isAtBottom } from "./helpers/scrollHelpers";
 
-const { neighbourhood } = defineProps({
-  neighbourhood: String,
+import useMessages from "./hooks/useMessages";
+import useMembers from "./hooks/useMembers";
+import { JSONContent } from "@tiptap/core";
+
+const props = defineProps({
+  neighbourhoodUuid: {
+    required: true,
+    type: String,
+  },
+  languageAddress: {
+    required: true,
+    type: String,
+  },
+  neighbourhoodUrl: {
+    required: true,
+    type: String,
+  },
 });
 
 const EMPTY_SCHEMA = {
@@ -68,12 +91,10 @@ const EMPTY_SCHEMA = {
   content: [],
 };
 
-const schema = ref<any>(EMPTY_SCHEMA);
+const schema = ref<JSONContent>(EMPTY_SCHEMA);
 const scrollContainer = ref(null);
-const messagesContainer = ref(null);
-const messages = ref<Messages>({});
-const members = ref<Messages>({});
 const replyMessageId = ref<string | null>(null);
+const showNewMessagesButton = ref(false);
 
 const replyMessage = computed(() => {
   if (replyMessageId.value) {
@@ -81,51 +102,47 @@ const replyMessage = computed(() => {
   } else return null;
 });
 
-const sortedMessages = computed(() => {
-  return sortExpressionsByTimestamp(messages.value, "asc");
+const { messages, sortedMessages, createMessage, loadMore, fetchingMessages } =
+  useMessages({
+    neighbourhoodUuid: props.neighbourhoodUuid,
+    languageAddress: props.languageAddress,
+    onIncomingMessage: () => {
+      const scrolledToBottom = isAtBottom(scrollContainer.value);
+      if (scrolledToBottom) {
+        setTimeout(() => {
+          scrollToBottom(scrollContainer.value);
+        }, 100);
+      } else {
+        showNewMessagesButton.value = true;
+      }
+    },
+  });
+
+const { members } = useMembers({
+  neighbourhoodUuid: props.neighbourhoodUuid,
+  neighbourhoodUrl: props.neighbourhoodUrl,
 });
 
-function scrollToBottom() {
-  const el = messagesContainer.value as HTMLElement | null;
-  if (el) {
-    console.log(el);
-    el.scrollTop = el.scrollHeight;
+function onScroll(e) {
+  const scrolledToTop = e.target.scrollTop <= 20;
+  if (scrolledToTop) {
+    loadMore();
   }
 }
 
-onMounted(async () => {
-  const membersResult = await getMembers({
-    neighbourhoodUuid: "7e8dfe0e-eb4c-4615-a8da-2f150faaef8e",
-    neighbourhoodUrl:
-      "neighbourhood://QmckHenTt78Hqb77tCtXxk3ke8PPKwNHBjbx4tEqe9Adyx",
-  });
+function markAsRead() {
+  scrollToBottom(scrollContainer.value);
+  showNewMessagesButton.value = false;
+}
 
-  members.value = membersResult as any;
-
-  const messagesResult = await getMessages({
-    neighbourhoodUuid: "7e8dfe0e-eb4c-4615-a8da-2f150faaef8e",
-  });
-
-  messages.value = messagesResult as any;
-
-  subscribeToLinks({
-    neighbourhoodUuid: "7e8dfe0e-eb4c-4615-a8da-2f150faaef8e",
-    callback: async (link: LinkExpression) => {
-      const message = await getExpressionByLink(link);
-      messages.value = { ...messages.value, [message.id]: { ...message } };
-      scrollToBottom();
-    },
-  });
-});
-
-function sendMessage() {
-  createMessage({
-    neighbourhoodUuid: "7e8dfe0e-eb4c-4615-a8da-2f150faaef8e",
-    languageAddress: "QmYkgcLtTixVNJw6CLhiqJQeGwyN7rNWY2fC3pHWZ5Ba5x",
-    message: { background: [""], body: generateHTML(schema.value) },
-  });
+function resetEditor() {
   schema.value = EMPTY_SCHEMA;
   replyMessageId.value = null;
+}
+
+function sendMessage() {
+  createMessage({ background: [""], body: generateHTML(schema.value) });
+  resetEditor();
 }
 </script>
 
@@ -150,6 +167,17 @@ j-button.active {
 .chat-view__messages {
   flex: 1;
   overflow-y: auto;
+}
+
+.chat-view__load-more {
+  position: fixed;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  top: var(--j-space-200);
+  left: 0;
+  z-index: 100;
 }
 
 .chat-view__footer {

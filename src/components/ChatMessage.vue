@@ -77,7 +77,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import generateHTML from "./generateHTML";
+import generateHTML from "./TipTap/generateHTML";
 import { JSONContent } from "@tiptap/core";
 
 export default defineComponent({
