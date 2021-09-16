@@ -1,9 +1,7 @@
 import ad4mClient from "./client";
 import { LinkQuery } from "@perspect3vism/ad4m";
-import {
-  keyedExpressions,
-  getExpressionsByLinks,
-} from "../helpers/expressionHelpers";
+import { keyedExpressions, getExpressions } from "../helpers/expressionHelpers";
+import getMember from "./getMember";
 
 export interface Payload {
   neighbourhoodUuid: string;
@@ -23,9 +21,15 @@ export default async function ({
       })
     );
 
-    const profiles = await getExpressionsByLinks(expressionLinks);
+    const linkPromises = expressionLinks.map((link) =>
+      getMember({ link, neighbourhoodUuid })
+    );
 
-    return keyedExpressions(profiles, "author");
+    const members = await Promise.all(linkPromises);
+
+    return members.reduce((acc, member) => {
+      return { ...acc, [member.id]: member };
+    }, {});
   } catch (e) {
     throw new Error(e);
   }

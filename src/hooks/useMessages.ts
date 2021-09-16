@@ -1,18 +1,31 @@
 import { ref, watch, computed, onMounted } from "vue";
 import { LinkExpression } from "@perspect3vism/ad4m";
-import { Messages } from "../types";
+import { Messages, Message } from "../types";
 import createMessage from "../api/createMessage";
 import subscribeToLinks from "../api/subscribeToLinks";
 import {
   sortExpressionsByTimestamp,
-  getExpressionByLink,
+  getExpression,
 } from "../helpers/expressionHelpers";
 import getMessages from "../api/getMessages";
+import createReply from "../api/createReply";
+import getMessage from "../api/getMessage";
 
 interface Props {
   neighbourhoodUuid: string;
   languageAddress: string;
   onIncomingMessage: Function;
+}
+
+export function sortMessages(
+  messages: Messages,
+  order: "asc" | "desc"
+): Message[] {
+  return Object.values(messages).sort((a, b) => {
+    return order === "asc"
+      ? new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      : new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+  });
 }
 
 export default function useMessages({
@@ -22,20 +35,11 @@ export default function useMessages({
 }: Props) {
   const fetchingMessages = ref(false);
 
-  const previousMessages = JSON.parse(localStorage.getItem("messages") || "{}");
-  const messages = ref<Messages>(previousMessages);
+  const messages = ref<Messages>({});
 
   const sortedMessages = computed(() => {
     return sortExpressionsByTimestamp(messages.value, "asc");
   });
-
-  watch(
-    () => messages.value,
-    () => {
-      localStorage.setItem("messages", JSON.stringify(messages.value));
-    },
-    { deep: true }
-  );
 
   onMounted(async () => {
     fetchingMessages.value = true;
@@ -47,8 +51,12 @@ export default function useMessages({
     subscribeToLinks({
       neighbourhoodUuid,
       callback: async (link: LinkExpression) => {
-        const message = await getExpressionByLink(link);
-        messages.value = { ...messages.value, [message.id]: { ...message } };
+        const message = await getMessage({ link, neighbourhoodUuid });
+
+        messages.value = {
+          ...messages.value,
+          [message.id]: { ...message },
+        };
         onIncomingMessage(message);
       },
     });
@@ -69,7 +77,19 @@ export default function useMessages({
     messages,
     sortedMessages,
     createMessage: (message: Object) => {
-      return createMessage({ neighbourhoodUuid, languageAddress, message });
+      return createMessage({
+        neighbourhoodUuid,
+        languageAddress,
+        message: { background: [""], body: message },
+      });
+    },
+    createReply: (message: Object, replyUrl: string) => {
+      return createReply({
+        neighbourhoodUuid,
+        languageAddress,
+        message: { background: [""], body: message },
+        replyUrl,
+      });
     },
     loadMore,
   };

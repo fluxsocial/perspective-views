@@ -1,12 +1,22 @@
-import { Expression } from "@perspect3vism/ad4m";
-
+export interface Message {
+  id: string;
+  url: string;
+  author: string;
+  timestamp: string;
+  content: string;
+  replyUrl: string;
+}
 export interface Messages {
   [x: string]: Message;
 }
 
-export interface Message {
+export interface Profile {
   id: string;
+  url: string;
   author: string;
   timestamp: string;
-  expression: Expression;
+  username: string;
+}
+export interface Profiles {
+  [x: string]: Profile;
 }

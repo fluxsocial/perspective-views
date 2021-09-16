@@ -11,7 +11,11 @@
       </j-button>
     </div>
     <main class="chat-view__messages" @scroll="onScroll" ref="scrollContainer">
-      <DynamicScroller :items="sortedMessages" :min-item-size="1">
+      <DynamicScroller
+        :items="sortedMessages"
+        :min-item-size="1"
+        key-field="id"
+      >
         <template #before>
           <j-box px="500" py="500">
             <j-flex a="center" j="center" gap="500">
@@ -26,18 +30,19 @@
         </template>
         <template v-slot="{ item, index, active }">
           <DynamicScrollerItem
-            v-if="item.expression.body"
+            v-if="item.content"
             :item="item"
             :active="active"
-            :size-dependencies="[item.expression.body]"
+            :size-dependencies="[item.content]"
             :data-index="index"
           >
             <ChatMessage
+              :replyMessage="messages[item.replyUrl]"
               :isReplying="replyMessageId === item.id"
-              :did="members[item.author]"
-              username="123"
+              :did="item.author"
+              :username="item.author"
               :timestamp="item.timestamp"
-              :message="item.expression.body"
+              :message="item.content"
               showAvatar
               @replyClick="replyMessageId = item.id"
             ></ChatMessage>
@@ -49,8 +54,8 @@
     <footer class="chat-view__footer">
       <ChatInput
         :replyMessage="replyMessage"
-        :value="schema"
-        @change="(json) => (schema = json)"
+        :value="editorValue"
+        @change="(value) => (editorValue = value)"
         @send="sendMessage"
         @removeReply="replyMessageId = null"
       ></ChatInput>
@@ -91,7 +96,7 @@ const EMPTY_SCHEMA = {
   content: [],
 };
 
-const schema = ref<JSONContent>(EMPTY_SCHEMA);
+const editorValue = ref<string>("");
 const scrollContainer = ref(null);
 const replyMessageId = ref<string | null>(null);
 const showNewMessagesButton = ref(false);
@@ -102,24 +107,30 @@ const replyMessage = computed(() => {
   } else return null;
 });
 
-const { messages, sortedMessages, createMessage, loadMore, fetchingMessages } =
-  useMessages({
-    neighbourhoodUuid: props.neighbourhoodUuid,
-    languageAddress: props.languageAddress,
-    onIncomingMessage: () => {
-      const scrolledToBottom = isAtBottom(scrollContainer.value);
-      if (scrolledToBottom) {
-        setTimeout(() => {
-          scrollToBottom(scrollContainer.value);
-        }, 100);
-      } else {
-        showNewMessagesButton.value = true;
-      }
-    },
-  });
+const {
+  messages,
+  sortedMessages,
+  createMessage,
+  loadMore,
+  fetchingMessages,
+  createReply,
+} = useMessages({
+  neighbourhoodUuid: props.neighbourhoodUuid.replace("hack-", ""),
+  languageAddress: props.languageAddress,
+  onIncomingMessage: () => {
+    const scrolledToBottom = isAtBottom(scrollContainer.value);
+    if (scrolledToBottom) {
+      setTimeout(() => {
+        scrollToBottom(scrollContainer.value);
+      }, 100);
+    } else {
+      showNewMessagesButton.value = true;
+    }
+  },
+});
 
 const { members } = useMembers({
-  neighbourhoodUuid: props.neighbourhoodUuid,
+  neighbourhoodUuid: props.neighbourhoodUuid.replace("hack-", ""),
   neighbourhoodUrl: props.neighbourhoodUrl,
 });
 
@@ -136,12 +147,16 @@ function markAsRead() {
 }
 
 function resetEditor() {
-  schema.value = EMPTY_SCHEMA;
+  editorValue.value = "";
   replyMessageId.value = null;
 }
 
 function sendMessage() {
-  createMessage({ background: [""], body: generateHTML(schema.value) });
+  if (replyMessage.value) {
+    createReply(editorValue.value, replyMessage.value.url);
+  } else {
+    createMessage(editorValue.value);
+  }
   resetEditor();
 }
 </script>
@@ -194,7 +209,23 @@ j-button.active {
 
 .chat-input {
   display: flex;
+  position: relative;
   flex-direction: column;
+}
+
+.chat-input__reply {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: var(--j-space-200);
+  background-color: var(--j-color-primary-50);
+  color: var(--j-color-primary-600);
+  font-size: var(--j-font-size-400);
+  padding: var(--j-space-300) var(--j-space-400);
+  border-radius: var(--j-border-radius);
 }
 
 .chat-input__wsywig {
@@ -248,6 +279,12 @@ j-button.active {
   gap: var(--j-space-300);
   grid-template-columns: 70px 1fr;
   overflow: visible;
+}
+
+.message-item__reply {
+  display: flex;
+  gap: var(--j-space-500);
+  padding: 0 var(--j-space-700);
 }
 
 .message-item:hover {

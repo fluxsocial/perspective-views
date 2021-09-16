@@ -1,5 +1,12 @@
 <template>
-  <div class="chat-editor">
+  <div class="chat-input">
+    <div v-if="replyMessage" class="chat-input__reply">
+      <j-icon name="reply"></j-icon>
+      <span>Replying to {{ replyMessage.author }}</span>
+      <j-button variant="ghost" @click="emit('removeReply')"
+        ><j-icon name="x"></j-icon
+      ></j-button>
+    </div>
     <div class="chat-input__wsywig">
       <EditorContent class="chat-input__editor-wrapper" :editor="editor" />
       <div class="chat-input__toolbar">
@@ -21,7 +28,7 @@
         >
           <j-icon size="sm" name="type"></j-icon>
         </j-button>
-        <j-button @click="() => emit('send')" variant="primary" size="sm">
+        <j-button @click="sendMessage" variant="primary" size="sm">
           <j-icon name="arrow-right-short"></j-icon>
         </j-button>
       </div>
@@ -106,7 +113,7 @@ import { Message } from "../types";
 const emit = defineEmits(["change", "send", "removeReply"]);
 
 const props = defineProps({
-  value: Object as PropType<JSONContent>,
+  value: String,
   replyMessage: Object as PropType<Message>,
 });
 
@@ -154,7 +161,6 @@ const editor = useEditor({
         class: "emoji",
       },
       renderLabel({ options, node }) {
-        console.log({ options, node });
         return node.attrs.label ?? node.attrs.id;
       },
       suggestion: {
@@ -212,19 +218,18 @@ const editor = useEditor({
     }),
   ],
   onUpdate: (props) => {
-    const json = props.editor.getJSON() as any;
-    emit("change", json);
+    const html = props.editor.getHTML() as any;
+    emit("change", html);
   },
 });
 
-function onEmojiClick(event) {
+function onEmojiClick(event: CustomEvent) {
   if (editor.value) {
     const anchorPosition = editor.value.view.state.selection;
     editor.value
       .chain()
       .focus()
-      .insertContentAt(
-        anchorPosition,
+      .insertContentAt(anchorPosition, [
         {
           type: "emoji",
           attrs: {
@@ -236,8 +241,8 @@ function onEmojiClick(event) {
         {
           type: "text",
           text: " ",
-        }
-      )
+        },
+      ])
       .run();
   }
 }
@@ -245,19 +250,7 @@ function onEmojiClick(event) {
 watch(
   () => props.value,
   (newValue) => {
-    if (editor.value && newValue) {
-      editor.value?.commands.setContent(newValue);
-    }
-  }
-);
-
-watch(
-  () => props.replyMessage,
-  (newValue) => {
-    if (editor.value) {
-      console.log("what");
-      editor.value?.chain().setMessage();
-    }
+    editor.value?.commands.setContent(newValue);
   }
 );
 </script>
