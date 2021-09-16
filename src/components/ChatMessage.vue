@@ -1,7 +1,7 @@
 <template>
   <div class="message-item-wrapper" ref="messageWrapper">
     <div class="message-item__reply" v-if="replyMessage">
-      <j-icon size="sm" name="arrow-90deg-down"></j-icon>
+      <j-icon size="xs" name="arrow-90deg-down"></j-icon>
       <div v-html="replyMessage.content"></div>
     </div>
     <div

@@ -10,8 +10,10 @@
         <j-icon name="arrow-down-short" size="xs" />
       </j-button>
     </div>
-    <main class="chat-view__messages" @scroll="onScroll" ref="scrollContainer">
+    <main class="chat-view__messages">
       <DynamicScroller
+        @scroll="onScroll"
+        ref="scrollContainer"
         :items="sortedMessages"
         :min-item-size="1"
         key-field="id"
@@ -124,7 +126,7 @@ const {
     const scrolledToBottom = isAtBottom(scrollContainer.value);
     if (scrolledToBottom) {
       setTimeout(() => {
-        scrollToBottom(scrollContainer.value);
+        //scrollToBottom(scrollContainer.value);
       }, 100);
     } else {
       showNewMessagesButton.value = true;
@@ -177,15 +179,22 @@ j-button.active {
 }
 
 .chat-view {
+  height: 100vh;
+  overflow-y: hidden;
   display: flex;
   flex-direction: column;
-  max-height: 100vh;
-  overflow-y: hidden;
 }
 
 .chat-view__messages {
   flex: 1;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+
+.scroller {
+  overflow-y: scroll;
 }
 
 .chat-view__load-more {
@@ -287,6 +296,8 @@ j-button.active {
 
 .message-item__reply {
   display: flex;
+  align-items: center;
+  font-size: var(--j-font-size-300);
   gap: var(--j-space-500);
   padding: 0 var(--j-space-700);
 }
@@ -393,5 +404,77 @@ j-button.active {
 
 .message-item:hover .message-item__toolbar {
   visibility: visible;
+}
+
+/* RECYCLE SCROLLER */
+
+.vue-recycle-scroller {
+  position: relative;
+}
+.vue-recycle-scroller.direction-vertical:not(.page-mode) {
+  overflow-y: auto;
+}
+.vue-recycle-scroller.direction-horizontal:not(.page-mode) {
+  overflow-x: auto;
+}
+.vue-recycle-scroller.direction-horizontal {
+  display: flex;
+}
+.vue-recycle-scroller__slot {
+  flex: auto 0 0;
+}
+.vue-recycle-scroller__item-wrapper {
+  flex: 1;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+}
+.vue-recycle-scroller.ready .vue-recycle-scroller__item-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+.vue-recycle-scroller.direction-vertical .vue-recycle-scroller__item-wrapper {
+  width: 100%;
+}
+.vue-recycle-scroller.direction-horizontal .vue-recycle-scroller__item-wrapper {
+  height: 100%;
+}
+.vue-recycle-scroller.ready.direction-vertical
+  .vue-recycle-scroller__item-view {
+  width: 100%;
+}
+.vue-recycle-scroller.ready.direction-horizontal
+  .vue-recycle-scroller__item-view {
+  height: 100%;
+}
+
+/* RESIZE OBSERVER */
+
+.resize-observer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background-color: transparent;
+  pointer-events: none;
+  display: block;
+  overflow: hidden;
+  opacity: 0;
+}
+.resize-observer >>> object {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
 }
 </style>
