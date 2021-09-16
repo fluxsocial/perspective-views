@@ -43,7 +43,9 @@
               :username="item.author"
               :timestamp="item.timestamp"
               :message="item.content"
+              :reactions="item.reactions"
               showAvatar
+              @emojiClick="(emoji) => addReaction(item.url, emoji.unicode)"
               @replyClick="replyMessageId = item.id"
             ></ChatMessage>
           </DynamicScrollerItem>
@@ -96,7 +98,7 @@ const EMPTY_SCHEMA = {
   content: [],
 };
 
-const editorValue = ref<string>("");
+const editorValue = ref<JSONContent>(EMPTY_SCHEMA);
 const scrollContainer = ref(null);
 const replyMessageId = ref<string | null>(null);
 const showNewMessagesButton = ref(false);
@@ -111,6 +113,7 @@ const {
   messages,
   sortedMessages,
   createMessage,
+  addReaction,
   loadMore,
   fetchingMessages,
   createReply,
@@ -147,15 +150,16 @@ function markAsRead() {
 }
 
 function resetEditor() {
-  editorValue.value = "";
+  editorValue.value = EMPTY_SCHEMA;
   replyMessageId.value = null;
 }
 
 function sendMessage() {
+  const message = generateHTML(editorValue.value);
   if (replyMessage.value) {
-    createReply(editorValue.value, replyMessage.value.url);
+    createReply(message, replyMessage.value.url);
   } else {
-    createMessage(editorValue.value);
+    createMessage(message);
   }
   resetEditor();
 }
@@ -296,8 +300,7 @@ j-button.active {
 }
 
 .message-item--is-replying {
-  background-color: var(--j-color-primary-100) !important;
-  border-left: 3px solid var(--j-color-primary-500);
+  background-color: var(--j-color-primary-50) !important;
 }
 
 .message-item__left-column {
@@ -379,7 +382,8 @@ j-button.active {
   border-radius: var(--j-border-radius);
   background-color: var(--j-color-white);
   border: 2px solid var(--j-border-color);
-  display: none;
+  display: flex;
+  visibility: hidden;
   align-items: center;
   justify-content: center;
   position: absolute;
@@ -388,6 +392,6 @@ j-button.active {
 }
 
 .message-item:hover .message-item__toolbar {
-  display: flex;
+  visibility: visible;
 }
 </style>

@@ -113,7 +113,7 @@ import { Message } from "../types";
 const emit = defineEmits(["change", "send", "removeReply"]);
 
 const props = defineProps({
-  value: String,
+  value: Object,
   replyMessage: Object as PropType<Message>,
 });
 
@@ -218,8 +218,8 @@ const editor = useEditor({
     }),
   ],
   onUpdate: (props) => {
-    const html = props.editor.getHTML() as any;
-    emit("change", html);
+    const json = props.editor.getJSON() as any;
+    emit("change", json);
   },
 });
 

@@ -2,6 +2,7 @@ export interface Message {
   id: string;
   url: string;
   author: string;
+  reactions: Array<string>;
   timestamp: string;
   content: string;
   replyUrl: string;

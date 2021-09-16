@@ -10,6 +10,7 @@ import {
 import getMessages from "../api/getMessages";
 import createReply from "../api/createReply";
 import getMessage from "../api/getMessage";
+import createMessageReaction from "../api/createMessageReaction";
 
 interface Props {
   neighbourhoodUuid: string;
@@ -51,13 +52,31 @@ export default function useMessages({
     subscribeToLinks({
       neighbourhoodUuid,
       callback: async (link: LinkExpression) => {
-        const message = await getMessage({ link, neighbourhoodUuid });
+        //  TODO: This needs to be handlet less imperative
+        if (
+          link.data.source === "sioc://chatchannel" &&
+          link.data.predicate === "sioc://content_of"
+        ) {
+          const message = await getMessage({ link, neighbourhoodUuid });
 
-        messages.value = {
-          ...messages.value,
-          [message.id]: { ...message },
-        };
-        onIncomingMessage(message);
+          messages.value = {
+            ...messages.value,
+            [message.id]: { ...message },
+          };
+          onIncomingMessage(message);
+        }
+
+        if (link.data.predicate === "sioc://reaction_to") {
+          const id = link.data.source;
+          const message = messages.value[id];
+          messages.value = {
+            ...messages.value,
+            [id]: {
+              ...message,
+              reactions: [...message.reactions, link.data.target],
+            },
+          };
+        }
       },
     });
   });
@@ -89,6 +108,13 @@ export default function useMessages({
         languageAddress,
         message: { background: [""], body: message },
         replyUrl,
+      });
+    },
+    addReaction: (messageUrl: string, reaction: string) => {
+      return createMessageReaction({
+        neighbourhoodUuid,
+        messageUrl,
+        reaction,
       });
     },
     loadMore,
