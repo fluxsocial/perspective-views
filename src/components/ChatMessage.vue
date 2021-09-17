@@ -65,9 +65,15 @@
           v-html="message"
         ></div>
         <div class="message-item__reactions">
-          <span :key="i" v-for="(reaction, i) in reactions">
-            {{ reaction }}
-          </span>
+          <j-button
+            size="xs"
+            variant="subtle"
+            :key="i"
+            v-for="(reaction, i) in sortedReactions"
+          >
+            {{ reaction.content }}
+            <span>{{ reaction.count }}</span>
+          </j-button>
         </div>
       </div>
       <div class="message-item__toolbar" :class="{}">
@@ -91,11 +97,10 @@
 </template>
 
 <script lang="ts">
-import { JSONContent } from "@tiptap/core";
 import { defineComponent } from "vue";
 import genereateHTML from "../components/TipTap/generateHTML";
 import tippy from "tippy.js";
-import { h } from "vue";
+import { Reaction } from "../types";
 
 export default defineComponent({
   emits: ["mentionClick", "profileClick", "replyClick", "emojiClick"],
@@ -118,13 +123,13 @@ export default defineComponent({
   mounted() {
     const emojiPicker = document.createElement("emoji-picker");
 
-    emojiPicker.addEventListener("emoji-click", (event: CustomEvent) => {
+    emojiPicker.addEventListener("emoji-click", (event: any) => {
       this.$emit("emojiClick", event.detail);
     });
 
     emojiPicker.style.display = "block";
 
-    tippy(this.$refs.emojiButton, {
+    tippy(this.$refs.emojiButton as HTMLElement, {
       content: emojiPicker,
       trigger: "click",
       appendTo: document.body,
@@ -140,6 +145,20 @@ export default defineComponent({
   computed: {
     html() {
       return this.message;
+    },
+    sortedReactions(): Object {
+      const reactions = (this.reactions as Array<Reaction>) || [];
+      return reactions.reduce((acc: any, reaction: Reaction) => {
+        const previous = acc[reaction.content] || { authors: [], count: 0 };
+        return {
+          ...acc,
+          [reaction.content]: {
+            authors: [...previous.authors, reaction.author],
+            content: reaction.content,
+            count: previous.count + 1,
+          },
+        };
+      }, {});
     },
   },
   methods: {

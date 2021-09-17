@@ -1,8 +1,13 @@
+export interface Reaction {
+  author: string;
+  content: string;
+}
+
 export interface Message {
   id: string;
   url: string;
   author: string;
-  reactions: Array<string>;
+  reactions: Array<Reaction>;
   timestamp: string;
   content: string;
   replyUrl: string;

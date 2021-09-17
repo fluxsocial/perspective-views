@@ -193,6 +193,10 @@ j-button.active {
   overflow: hidden;
 }
 
+.message-item__reactions {
+  margin-top: var(--j-space-300);
+}
+
 .scroller {
   overflow-y: scroll;
 }

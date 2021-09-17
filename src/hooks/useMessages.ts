@@ -73,7 +73,10 @@ export default function useMessages({
             ...messages.value,
             [id]: {
               ...message,
-              reactions: [...message.reactions, link.data.target],
+              reactions: [
+                ...message.reactions,
+                { content: link.data.target, author: link.author },
+              ],
             },
           };
         }

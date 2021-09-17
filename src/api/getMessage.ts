@@ -33,7 +33,10 @@ export default async function ({ link, neighbourhoodUuid }: Payload) {
       timestamp: expression.timestamp,
       url: link.data.target,
       author: expression.author,
-      reactions: reactionLinks.map((link) => link.data.target),
+      reactions: reactionLinks.map((link) => ({
+        author: link.author,
+        content: link.data.target,
+      })),
       replyUrl: replyLinks[0] && replyLinks[0]?.data.target,
       content: expression.data.body,
     } as Message;
