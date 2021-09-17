@@ -14,14 +14,14 @@
           class="message-item__avatar"
           @click="handleProfileClick"
           v-if="showAvatar"
-          :hash="did"
-          :src="profileImg"
+          :hash="message.did"
+          :src="profile?.profilePicture"
         />
 
         <j-tooltip placement="top" v-else>
           <j-timestamp
             slot="title"
-            :value="timestamp"
+            :value="message.timestamp"
             datestyle="medium"
             timestyle="short"
           ></j-timestamp>
@@ -29,7 +29,7 @@
             class="message-item__timestamp"
             hour="numeric"
             minute="numeric"
-            :value="timestamp"
+            :value="message.timestamp"
           ></j-timestamp>
         </j-tooltip>
       </div>
@@ -38,34 +38,34 @@
           <j-text
             @click="handleProfileClick"
             slot="trigger"
-            :id="username"
             color="black"
             nomargin
             weight="500"
             class="message-item__username"
-            >{{ username }}
+            >{{ profile?.username }}
           </j-text>
           <j-tooltip placement="top">
             <j-timestamp
               slot="title"
-              :value="timestamp"
+              :value="message.timestamp"
               dateStyle="medium"
               timeStyle="short"
             ></j-timestamp>
             <j-timestamp
               class="message-item__timestamp"
               relative
-              :value="timestamp"
+              :value="message.timestamp"
             ></j-timestamp>
           </j-tooltip>
         </div>
         <div
           class="message-item__message"
           @click="onMessageClick"
-          v-html="message"
+          v-html="message.content"
         ></div>
         <div class="message-item__reactions">
           <j-button
+            @click="() => $emit('emojiClick', reaction.content)"
             size="xs"
             variant="subtle"
             :key="i"
@@ -100,54 +100,40 @@
 import { defineComponent } from "vue";
 import genereateHTML from "../components/TipTap/generateHTML";
 import tippy from "tippy.js";
-import { Reaction } from "../types";
+import getProfile from "../api/getProfile";
+import { Reaction, Message } from "../types";
 
 export default defineComponent({
   emits: ["mentionClick", "profileClick", "replyClick", "emojiClick"],
   props: {
-    did: String,
+    message: {
+      type: Object,
+      required: true,
+    },
     replyMessage: Object,
-    reactions: Array,
-    timestamp: String,
-    username: String,
-    message: String,
-    profileImg: String,
     showAvatar: Boolean,
     isReplying: Boolean,
   },
   data() {
     return {
+      profile: {} as any,
       toolbarOpen: false,
     };
   },
-  mounted() {
-    const emojiPicker = document.createElement("emoji-picker");
+  async mounted() {
+    this.createEmojiPicker();
 
-    emojiPicker.addEventListener("emoji-click", (event: any) => {
-      this.$emit("emojiClick", event.detail);
-    });
-
-    emojiPicker.style.display = "block";
-
-    tippy(this.$refs.emojiButton as HTMLElement, {
-      content: emojiPicker,
-      trigger: "click",
-      appendTo: document.body,
-      interactive: true,
-      onShow: () => {
-        this.toolbarOpen = true;
-      },
-      onHide: () => {
-        this.toolbarOpen = false;
-      },
+    this.profile = await getProfile({
+      did: this.message.author,
+      languageAddress: "QmTtP2WXQ8BXLeQ7FMnpmuDZvHttYTcJwuGMXVREBkFJPf",
     });
   },
   computed: {
     html() {
-      return this.message;
+      return this.message.content;
     },
     sortedReactions(): Object {
-      const reactions = (this.reactions as Array<Reaction>) || [];
+      const reactions = (this.message.reactions as Array<Reaction>) || [];
       return reactions.reduce((acc: any, reaction: Reaction) => {
         const previous = acc[reaction.content] || { authors: [], count: 0 };
         return {
@@ -162,11 +148,33 @@ export default defineComponent({
     },
   },
   methods: {
+    createEmojiPicker() {
+      const emojiPicker = document.createElement("emoji-picker");
+
+      emojiPicker.addEventListener("emoji-click", (event: any) => {
+        this.$emit("emojiClick", event.detail.unicode);
+      });
+
+      emojiPicker.style.display = "block";
+
+      tippy(this.$refs.emojiButton as HTMLElement, {
+        content: emojiPicker,
+        trigger: "click",
+        appendTo: document.body,
+        interactive: true,
+        onShow: () => {
+          this.toolbarOpen = true;
+        },
+        onHide: () => {
+          this.toolbarOpen = false;
+        },
+      });
+    },
     onMessageClick() {
       console.log("message click");
     },
     handleProfileClick() {
-      this.$emit("profileClick", this.did);
+      this.$emit("profileClick", this.message.did);
     },
   },
 });

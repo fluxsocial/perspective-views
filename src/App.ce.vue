@@ -1,5 +1,11 @@
 <template>
   <div class="chat-view">
+    <header class="chat-view__header">
+      <j-flex a="center" gap="400">
+        <j-icon name="hash"></j-icon>
+        {{ name }}
+      </j-flex>
+    </header>
     <div class="chat-view__load-more">
       <j-button
         variant="primary"
@@ -41,13 +47,9 @@
             <ChatMessage
               :replyMessage="messages[item.replyUrl]"
               :isReplying="replyMessageId === item.id"
-              :did="item.author"
-              :username="item.author"
-              :timestamp="item.timestamp"
-              :message="item.content"
-              :reactions="item.reactions"
+              :message="item"
               showAvatar
-              @emojiClick="(emoji) => addReaction(item.url, emoji.unicode)"
+              @emojiClick="(unicode) => addReaction(item.url, unicode)"
               @replyClick="replyMessageId = item.id"
             ></ChatMessage>
           </DynamicScrollerItem>
@@ -75,21 +77,15 @@ import generateHTML from "./components/TipTap/generateHTML";
 import { DynamicScroller, DynamicScrollerItem } from "vue-virtual-scroller";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 import { scrollToBottom, isAtBottom } from "./helpers/scrollHelpers";
+import getProfile from "./api/getProfile";
 
 import useMessages from "./hooks/useMessages";
 import useMembers from "./hooks/useMembers";
 import { JSONContent } from "@tiptap/core";
+import usePerspective from "./hooks/usePerspective";
 
 const props = defineProps({
-  neighbourhoodUuid: {
-    required: true,
-    type: String,
-  },
-  languageAddress: {
-    required: true,
-    type: String,
-  },
-  neighbourhoodUrl: {
+  perspectiveUuid: {
     required: true,
     type: String,
   },
@@ -111,6 +107,10 @@ const replyMessage = computed(() => {
   } else return null;
 });
 
+const { name, description } = usePerspective({
+  perspectiveUuid: props.perspectiveUuid.replace("hack-", ""),
+});
+
 const {
   messages,
   sortedMessages,
@@ -120,23 +120,18 @@ const {
   fetchingMessages,
   createReply,
 } = useMessages({
-  neighbourhoodUuid: props.neighbourhoodUuid.replace("hack-", ""),
-  languageAddress: props.languageAddress,
+  perspectiveUuid: props.perspectiveUuid.replace("hack-", ""),
+  languageAddress: "QmZjBh6UcsMsYQ6mp536MTeJhiWEHfpwBwXNKMqsLd1ZVe",
   onIncomingMessage: () => {
     const scrolledToBottom = isAtBottom(scrollContainer.value);
     if (scrolledToBottom) {
       setTimeout(() => {
-        //scrollToBottom(scrollContainer.value);
+        scrollContainer.value?.scrollToBottom();
       }, 100);
     } else {
       showNewMessagesButton.value = true;
     }
   },
-});
-
-const { members } = useMembers({
-  neighbourhoodUuid: props.neighbourhoodUuid.replace("hack-", ""),
-  neighbourhoodUrl: props.neighbourhoodUrl,
 });
 
 function onScroll(e) {
@@ -199,6 +194,12 @@ j-button.active {
 
 .scroller {
   overflow-y: scroll;
+}
+
+.chat-view__header {
+  padding: var(--j-space-500) var(--j-space-500);
+  background-color: var(--j-color-white);
+  border-bottom: 1px solid var(--j-border-color);
 }
 
 .chat-view__load-more {

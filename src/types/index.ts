@@ -22,6 +22,11 @@ export interface Profile {
   author: string;
   timestamp: string;
   username: string;
+  email: string;
+  givenName: string;
+  familyName: string;
+  thumbnailPicture: string;
+  profilePicture: string;
 }
 export interface Profiles {
   [x: string]: Profile;

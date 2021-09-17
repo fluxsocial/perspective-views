@@ -6,12 +6,6 @@ export interface Payload {
   callback: Function;
 }
 
-async function getExpression(link: any) {
-  const address = link.data.target;
-  const expression = await ad4mClient.expression.get(address);
-  return JSON.parse(expression.data);
-}
-
 export default async function ({ perspectiveUuid, callback }: Payload) {
   try {
     ad4mClient.perspective.addPerspectiveLinkAddedListener(
