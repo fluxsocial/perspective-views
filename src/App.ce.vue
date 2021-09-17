@@ -300,11 +300,23 @@ j-button.active {
 }
 
 .message-item__reply {
+  margin-top: var(--j-space-400);
+  margin-bottom: var(--j-space-200);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  overflow: hidden;
   font-size: var(--j-font-size-300);
   gap: var(--j-space-500);
   padding: 0 var(--j-space-700);
+  height: 20px;
+}
+
+.message-item__reply div p:first-of-type {
+  margin-top: 0;
+}
+
+.message-item__reply div p:last-of-type {
+  margin-bottom: 0;
 }
 
 .message-item:hover {

@@ -1,8 +1,15 @@
 <template>
   <div class="message-item-wrapper" ref="messageWrapper">
     <div class="message-item__reply" v-if="replyMessage">
-      <j-icon size="xs" name="arrow-90deg-down"></j-icon>
-      <div v-html="replyMessage.content"></div>
+      <j-icon
+        style="align-self: flex-end"
+        size="xs"
+        name="arrow-90deg-right"
+      ></j-icon>
+      <j-flex gap="300">
+        <span nomargin>{{ replyProfile?.username }}:</span>
+        <div style="flex: 1" v-html="replyMessage.content"></div>
+      </j-flex>
     </div>
     <div
       class="message-item"
@@ -117,16 +124,26 @@ export default defineComponent({
   data() {
     return {
       profile: {} as any,
+      replyProfile: {} as any,
       toolbarOpen: false,
     };
   },
   async mounted() {
     this.createEmojiPicker();
 
+    const profileLangAddress = "QmTtP2WXQ8BXLeQ7FMnpmuDZvHttYTcJwuGMXVREBkFJPf";
+
     this.profile = await getProfile({
       did: this.message.author,
-      languageAddress: "QmTtP2WXQ8BXLeQ7FMnpmuDZvHttYTcJwuGMXVREBkFJPf",
+      languageAddress: profileLangAddress,
     });
+
+    if (this.replyMessage) {
+      this.replyProfile = await getProfile({
+        did: this.replyMessage.author,
+        languageAddress: profileLangAddress,
+      });
+    }
   },
   computed: {
     html() {
