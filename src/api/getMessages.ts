@@ -4,15 +4,15 @@ import { keyedExpressions } from "../helpers/expressionHelpers";
 import getMessage from "./getMessage";
 
 export interface Payload {
-  neighbourhoodUuid: string;
+  perspectiveUuid: string;
   from?: Date;
   to?: Date;
 }
 
-export default async function ({ neighbourhoodUuid, from, to }: Payload) {
+export default async function ({ perspectiveUuid, from, to }: Payload) {
   try {
     const expressionLinks = await ad4mClient.perspective.queryLinks(
-      neighbourhoodUuid,
+      perspectiveUuid,
       new LinkQuery({
         source: "sioc://chatchannel",
         predicate: "sioc://content_of",
@@ -22,7 +22,7 @@ export default async function ({ neighbourhoodUuid, from, to }: Payload) {
     );
 
     const linkPromises = expressionLinks.map((link) =>
-      getMessage({ link, neighbourhoodUuid })
+      getMessage({ link, perspectiveUuid })
     );
 
     const messages = await Promise.all(linkPromises);

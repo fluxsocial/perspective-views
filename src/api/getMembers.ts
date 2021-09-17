@@ -4,17 +4,14 @@ import { keyedExpressions, getExpressions } from "../helpers/expressionHelpers";
 import getMember from "./getMember";
 
 export interface Payload {
-  neighbourhoodUuid: string;
+  perspectiveUuid: string;
   neighbourhoodUrl: string;
 }
 
-export default async function ({
-  neighbourhoodUuid,
-  neighbourhoodUrl,
-}: Payload) {
+export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
   try {
     const expressionLinks = await ad4mClient.perspective.queryLinks(
-      neighbourhoodUuid,
+      perspectiveUuid,
       new LinkQuery({
         source: `${neighbourhoodUrl!}://self`,
         predicate: "sioc://has_member",
@@ -22,7 +19,7 @@ export default async function ({
     );
 
     const linkPromises = expressionLinks.map((link) =>
-      getMember({ link, neighbourhoodUuid })
+      getMember({ link, perspectiveUuid })
     );
 
     const members = await Promise.all(linkPromises);

@@ -6,12 +6,12 @@ import subscribeToLinks from "../api/subscribeToLinks";
 import getMembers from "../api/getMembers";
 
 interface Props {
-  neighbourhoodUuid: string;
+  perspectiveUuid: string;
   neighbourhoodUrl: string;
 }
 
 export default function useMembers({
-  neighbourhoodUuid,
+  perspectiveUuid,
   neighbourhoodUrl,
 }: Props) {
   const previousMembers = JSON.parse(localStorage.getItem("members") || "{}");
@@ -27,7 +27,7 @@ export default function useMembers({
 
   onMounted(async () => {
     members.value = await getMembers({
-      neighbourhoodUuid,
+      perspectiveUuid,
       neighbourhoodUrl,
     });
   });

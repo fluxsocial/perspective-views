@@ -2,19 +2,19 @@ import ad4mClient from "./client";
 import { LinkQuery, Link } from "@perspect3vism/ad4m";
 
 export interface Payload {
-  neighbourhoodUuid: string;
+  perspectiveUuid: string;
   reaction: string;
   messageUrl: string;
 }
 
 export default async function ({
-  neighbourhoodUuid,
+  perspectiveUuid,
   messageUrl,
   reaction,
 }: Payload) {
   try {
     await ad4mClient.perspective.addLink(
-      neighbourhoodUuid,
+      perspectiveUuid,
       new Link({
         source: messageUrl,
         target: reaction,

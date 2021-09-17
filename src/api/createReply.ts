@@ -2,14 +2,14 @@ import ad4mClient from "./client";
 import { LinkQuery, Link } from "@perspect3vism/ad4m";
 
 export interface Payload {
-  neighbourhoodUuid: string;
+  perspectiveUuid: string;
   languageAddress: string;
   replyUrl: string;
   message: Object;
 }
 
 export default async function ({
-  neighbourhoodUuid,
+  perspectiveUuid,
   languageAddress,
   replyUrl,
   message,
@@ -18,7 +18,7 @@ export default async function ({
     const expUrl = await ad4mClient.expression.create(message, languageAddress);
 
     await ad4mClient.perspective.addLink(
-      neighbourhoodUuid,
+      perspectiveUuid,
       new Link({
         source: "sioc://chatchannel",
         target: expUrl,
@@ -27,7 +27,7 @@ export default async function ({
     );
 
     await ad4mClient.perspective.addLink(
-      neighbourhoodUuid,
+      perspectiveUuid,
       new Link({
         source: expUrl,
         target: replyUrl,

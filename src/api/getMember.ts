@@ -3,11 +3,11 @@ import { getExpression } from "../helpers/expressionHelpers";
 import { Profile } from "../types";
 
 export interface Payload {
-  neighbourhoodUuid: string;
+  perspectiveUuid: string;
   link: LinkExpression;
 }
 
-export default async function ({ link, neighbourhoodUuid }: Payload) {
+export default async function ({ link, perspectiveUuid }: Payload) {
   try {
     const expression = await getExpression(link);
 

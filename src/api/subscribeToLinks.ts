@@ -2,7 +2,7 @@ import ad4mClient from "./client";
 import { LinkQuery, Link } from "@perspect3vism/ad4m";
 
 export interface Payload {
-  neighbourhoodUuid: string;
+  perspectiveUuid: string;
   callback: Function;
 }
 
@@ -12,10 +12,10 @@ async function getExpression(link: any) {
   return JSON.parse(expression.data);
 }
 
-export default async function ({ neighbourhoodUuid, callback }: Payload) {
+export default async function ({ perspectiveUuid, callback }: Payload) {
   try {
     ad4mClient.perspective.addPerspectiveLinkAddedListener(
-      neighbourhoodUuid,
+      perspectiveUuid,
       (link: any) => {
         callback(link);
       }

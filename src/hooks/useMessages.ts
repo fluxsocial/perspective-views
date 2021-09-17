@@ -13,7 +13,7 @@ import getMessage from "../api/getMessage";
 import createMessageReaction from "../api/createMessageReaction";
 
 interface Props {
-  neighbourhoodUuid: string;
+  perspectiveUuid: string;
   languageAddress: string;
   onIncomingMessage: Function;
 }
@@ -30,7 +30,7 @@ export function sortMessages(
 }
 
 export default function useMessages({
-  neighbourhoodUuid,
+  perspectiveUuid,
   languageAddress,
   onIncomingMessage = () => null,
 }: Props) {
@@ -45,19 +45,19 @@ export default function useMessages({
   onMounted(async () => {
     fetchingMessages.value = true;
     messages.value = await getMessages({
-      neighbourhoodUuid,
+      perspectiveUuid,
     });
     fetchingMessages.value = false;
 
     subscribeToLinks({
-      neighbourhoodUuid,
+      perspectiveUuid,
       callback: async (link: LinkExpression) => {
         //  TODO: This needs to be handlet less imperative
         if (
           link.data.source === "sioc://chatchannel" &&
           link.data.predicate === "sioc://content_of"
         ) {
-          const message = await getMessage({ link, neighbourhoodUuid });
+          const message = await getMessage({ link, perspectiveUuid });
 
           messages.value = {
             ...messages.value,
@@ -88,7 +88,7 @@ export default function useMessages({
     fetchingMessages.value = true;
     const oldestMessage = sortedMessages.value[0];
     messages.value = await getMessages({
-      neighbourhoodUuid,
+      perspectiveUuid,
       from: new Date(oldestMessage.timestamp),
     });
     fetchingMessages.value = false;
@@ -100,14 +100,14 @@ export default function useMessages({
     sortedMessages,
     createMessage: (message: Object) => {
       return createMessage({
-        neighbourhoodUuid,
+        perspectiveUuid,
         languageAddress,
         message: { background: [""], body: message },
       });
     },
     createReply: (message: Object, replyUrl: string) => {
       return createReply({
-        neighbourhoodUuid,
+        perspectiveUuid,
         languageAddress,
         message: { background: [""], body: message },
         replyUrl,
@@ -115,7 +115,7 @@ export default function useMessages({
     },
     addReaction: (messageUrl: string, reaction: string) => {
       return createMessageReaction({
-        neighbourhoodUuid,
+        perspectiveUuid,
         messageUrl,
         reaction,
       });

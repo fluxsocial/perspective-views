@@ -4,16 +4,16 @@ import { getExpression } from "../helpers/expressionHelpers";
 import { Message } from "../types";
 
 export interface Payload {
-  neighbourhoodUuid: string;
+  perspectiveUuid: string;
   link: LinkExpression;
 }
 
-export default async function ({ link, neighbourhoodUuid }: Payload) {
+export default async function ({ link, perspectiveUuid }: Payload) {
   try {
     const expression = await getExpression(link);
 
     const replyLinks = await ad4mClient.perspective.queryLinks(
-      neighbourhoodUuid,
+      perspectiveUuid,
       new LinkQuery({
         source: link.data.target,
         predicate: "sioc://reply_to",
@@ -21,7 +21,7 @@ export default async function ({ link, neighbourhoodUuid }: Payload) {
     );
 
     const reactionLinks = await ad4mClient.perspective.queryLinks(
-      neighbourhoodUuid,
+      perspectiveUuid,
       new LinkQuery({
         source: link.data.target,
         predicate: "sioc://reaction_to",
