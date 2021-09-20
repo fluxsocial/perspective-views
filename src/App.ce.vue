@@ -110,7 +110,7 @@ const replyMessage = computed(() => {
 });
 
 const { name, description, languages } = usePerspective({
-  perspectiveUuid: props.perspectiveUuid.replace("hack-", ""),
+  perspectiveUuid: props.perspectiveUuid,
 });
 
 const {
@@ -122,7 +122,7 @@ const {
   fetchingMessages,
   createReply,
 } = useMessages({
-  perspectiveUuid: props.perspectiveUuid.replace("hack-", ""),
+  perspectiveUuid: props.perspectiveUuid,
   onIncomingMessage: () => {
     const scrolledToBottom = isAtBottom(scrollContainer.value);
     if (scrolledToBottom) {
