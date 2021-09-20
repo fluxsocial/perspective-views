@@ -113,6 +113,7 @@ import { Reaction, Message } from "../types";
 export default defineComponent({
   emits: ["mentionClick", "profileClick", "replyClick", "emojiClick"],
   props: {
+    profileLangAddress: String,
     message: {
       type: Object,
       required: true,
@@ -128,22 +129,25 @@ export default defineComponent({
       toolbarOpen: false,
     };
   },
+  watch: {
+    profileLangAddress: async function (val) {
+      if (val) {
+        this.profile = await getProfile({
+          did: this.message.author,
+          languageAddress: val,
+        });
+
+        if (this.replyMessage) {
+          this.replyProfile = await getProfile({
+            did: this.replyMessage.author,
+            languageAddress: val,
+          });
+        }
+      }
+    },
+  },
   async mounted() {
     this.createEmojiPicker();
-
-    const profileLangAddress = "QmTtP2WXQ8BXLeQ7FMnpmuDZvHttYTcJwuGMXVREBkFJPf";
-
-    this.profile = await getProfile({
-      did: this.message.author,
-      languageAddress: profileLangAddress,
-    });
-
-    if (this.replyMessage) {
-      this.replyProfile = await getProfile({
-        did: this.replyMessage.author,
-        languageAddress: profileLangAddress,
-      });
-    }
   },
   computed: {
     html() {

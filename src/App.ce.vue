@@ -45,6 +45,7 @@
             :data-index="index"
           >
             <ChatMessage
+              :profileLangAddress="languages[PROFILE_EXPRESSION]"
               :replyMessage="messages[item.replyUrl]"
               :isReplying="replyMessageId === item.id"
               :message="item"
@@ -71,15 +72,19 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { JSONContent } from "@tiptap/core";
+import { DynamicScroller, DynamicScrollerItem } from "vue-virtual-scroller";
+
+import { PROFILE_EXPRESSION } from "./constants/languages";
+
+import { scrollToBottom, isAtBottom } from "./helpers/scrollHelpers";
+
+import useMessages from "./hooks/useMessages";
+import usePerspective from "./hooks/usePerspective";
+
 import ChatMessage from "./components/ChatMessage.vue";
 import ChatInput from "./components/ChatInput.vue";
 import generateHTML from "./components/TipTap/generateHTML";
-import { DynamicScroller, DynamicScrollerItem } from "vue-virtual-scroller";
-import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
-import { scrollToBottom, isAtBottom } from "./helpers/scrollHelpers";
-import useMessages from "./hooks/useMessages";
-import { JSONContent } from "@tiptap/core";
-import usePerspective from "./hooks/usePerspective";
 
 const props = defineProps({
   perspectiveUuid: {
