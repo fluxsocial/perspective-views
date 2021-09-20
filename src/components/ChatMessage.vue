@@ -21,7 +21,7 @@
           class="message-item__avatar"
           @click="handleProfileClick"
           v-if="showAvatar"
-          :hash="message.did"
+          :hash="message.author"
           :src="profile?.profilePicture"
         />
 

@@ -1,3 +1,9 @@
+export interface NeighbourhoodMeta {
+  name: string;
+  description: string;
+  languages: { [x: string]: string };
+}
+
 export interface Reaction {
   author: string;
   content: string;

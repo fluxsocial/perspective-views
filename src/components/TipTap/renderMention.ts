@@ -20,14 +20,14 @@ export default function renderMention() {
 
       popup = tippy("body", {
         getReferenceClientRect: props.clientRect,
-        appendTo: () => document.body,
+        appendTo: document.body,
         content: component.element,
         showOnCreate: true,
         interactive: true,
         trigger: "manual",
         placement: "top",
         popperOptions: {
-          strategy: "fixed",
+          strategy: "absolute",
         },
       });
     },

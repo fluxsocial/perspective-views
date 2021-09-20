@@ -70,17 +70,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed } from "vue";
 import ChatMessage from "./components/ChatMessage.vue";
 import ChatInput from "./components/ChatInput.vue";
 import generateHTML from "./components/TipTap/generateHTML";
 import { DynamicScroller, DynamicScrollerItem } from "vue-virtual-scroller";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 import { scrollToBottom, isAtBottom } from "./helpers/scrollHelpers";
-import getProfile from "./api/getProfile";
-
 import useMessages from "./hooks/useMessages";
-import useMembers from "./hooks/useMembers";
 import { JSONContent } from "@tiptap/core";
 import usePerspective from "./hooks/usePerspective";
 
@@ -107,7 +104,7 @@ const replyMessage = computed(() => {
   } else return null;
 });
 
-const { name, description } = usePerspective({
+const { name, description, languages } = usePerspective({
   perspectiveUuid: props.perspectiveUuid.replace("hack-", ""),
 });
 
@@ -121,7 +118,6 @@ const {
   createReply,
 } = useMessages({
   perspectiveUuid: props.perspectiveUuid.replace("hack-", ""),
-  languageAddress: "QmZjBh6UcsMsYQ6mp536MTeJhiWEHfpwBwXNKMqsLd1ZVe",
   onIncomingMessage: () => {
     const scrolledToBottom = isAtBottom(scrollContainer.value);
     if (scrolledToBottom) {

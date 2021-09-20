@@ -3,18 +3,16 @@ import { LinkExpression } from "@perspect3vism/ad4m";
 import { Messages, Message } from "../types";
 import createMessage from "../api/createMessage";
 import subscribeToLinks from "../api/subscribeToLinks";
-import {
-  sortExpressionsByTimestamp,
-  getExpression,
-} from "../helpers/expressionHelpers";
+import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
 import getMessages from "../api/getMessages";
 import createReply from "../api/createReply";
 import getMessage from "../api/getMessage";
 import createMessageReaction from "../api/createMessageReaction";
+import getPerspectiveMeta from "../api/getPerspectiveMeta";
+import { SHORT_FORM_EXPRESSION } from "../constants/languages";
 
 interface Props {
   perspectiveUuid: string;
-  languageAddress: string;
   onIncomingMessage: Function;
 }
 
@@ -31,15 +29,21 @@ export function sortMessages(
 
 export default function useMessages({
   perspectiveUuid,
-  languageAddress,
   onIncomingMessage = () => null,
 }: Props) {
   const fetchingMessages = ref(false);
+
+  const languageAddress = ref("");
 
   const messages = ref<Messages>({});
 
   const sortedMessages = computed(() => {
     return sortExpressionsByTimestamp(messages.value, "asc");
+  });
+
+  onMounted(async () => {
+    const meta = await getPerspectiveMeta(perspectiveUuid);
+    languageAddress.value = meta.languages[SHORT_FORM_EXPRESSION];
   });
 
   onMounted(async () => {
@@ -55,7 +59,8 @@ export default function useMessages({
         //  TODO: This needs to be handlet less imperative
         if (
           link.data.source === "sioc://chatchannel" &&
-          link.data.predicate === "sioc://content_of"
+          link.data.predicate === "sioc://content_of" &&
+          link.proof.valid
         ) {
           const message = await getMessage({ link, perspectiveUuid });
 
@@ -66,7 +71,7 @@ export default function useMessages({
           onIncomingMessage(message);
         }
 
-        if (link.data.predicate === "sioc://reaction_to") {
+        if (link.data.predicate === "sioc://reaction_to" && link.proof.valid) {
           const id = link.data.source;
           const message = messages.value[id];
           messages.value = {
@@ -101,14 +106,14 @@ export default function useMessages({
     createMessage: (message: Object) => {
       return createMessage({
         perspectiveUuid,
-        languageAddress,
+        languageAddress: languageAddress.value,
         message: { background: [""], body: message },
       });
     },
     createReply: (message: Object, replyUrl: string) => {
       return createReply({
         perspectiveUuid,
-        languageAddress,
+        languageAddress: languageAddress.value,
         message: { background: [""], body: message },
         replyUrl,
       });
