@@ -1,4 +1,4 @@
-import { ref, watch, computed, onMounted } from "vue";
+import { ref, watch, computed, watchEffect, Ref } from "vue";
 import { LinkExpression } from "@perspect3vism/ad4m";
 import { Messages, Message } from "../types";
 import createMessage from "../api/createMessage";
@@ -11,11 +11,6 @@ import createMessageReaction from "../api/createMessageReaction";
 import getPerspectiveMeta from "../api/getPerspectiveMeta";
 import { SHORT_FORM_EXPRESSION } from "../constants/languages";
 
-interface Props {
-  perspectiveUuid: string;
-  onIncomingMessage: Function;
-}
-
 export function sortMessages(
   messages: Messages,
   order: "asc" | "desc"
@@ -25,6 +20,11 @@ export function sortMessages(
       ? new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
       : new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
   });
+}
+
+interface Props {
+  perspectiveUuid: any;
+  onIncomingMessage: Function;
 }
 
 export default function useMessages({
@@ -41,59 +41,69 @@ export default function useMessages({
     return sortExpressionsByTimestamp(messages.value, "asc");
   });
 
-  onMounted(async () => {
-    const meta = await getPerspectiveMeta(perspectiveUuid);
-    languageAddress.value = meta.languages[SHORT_FORM_EXPRESSION];
+  watchEffect(async () => {
+    if (perspectiveUuid.value) {
+      const meta = await getPerspectiveMeta(perspectiveUuid.value);
+      languageAddress.value = meta.languages[SHORT_FORM_EXPRESSION];
+    }
   });
 
-  onMounted(async () => {
-    fetchingMessages.value = true;
-    messages.value = await getMessages({
-      perspectiveUuid,
-    });
-    fetchingMessages.value = false;
+  watchEffect(async () => {
+    if (perspectiveUuid.value) {
+      fetchingMessages.value = true;
+      messages.value = await getMessages({
+        perspectiveUuid: perspectiveUuid.value,
+      });
+      fetchingMessages.value = false;
 
-    subscribeToLinks({
-      perspectiveUuid,
-      callback: async (link: LinkExpression) => {
-        //  TODO: This needs to be handlet less imperative
-        if (
-          link.data.source === "sioc://chatchannel" &&
-          link.data.predicate === "sioc://content_of" &&
-          link.proof.valid
-        ) {
-          const message = await getMessage({ link, perspectiveUuid });
+      subscribeToLinks({
+        perspectiveUuid: perspectiveUuid.value,
+        callback: async (link: LinkExpression) => {
+          //  TODO: This needs to be handlet less imperative
+          if (
+            link.data.source === "sioc://chatchannel" &&
+            link.data.predicate === "sioc://content_of" &&
+            link.proof.valid
+          ) {
+            const message = await getMessage({
+              link,
+              perspectiveUuid: perspectiveUuid.value,
+            });
 
-          messages.value = {
-            ...messages.value,
-            [message.id]: { ...message },
-          };
-          onIncomingMessage(message);
-        }
+            messages.value = {
+              ...messages.value,
+              [message.id]: { ...message },
+            };
+            onIncomingMessage(message);
+          }
 
-        if (link.data.predicate === "sioc://reaction_to" && link.proof.valid) {
-          const id = link.data.source;
-          const message = messages.value[id];
-          messages.value = {
-            ...messages.value,
-            [id]: {
-              ...message,
-              reactions: [
-                ...message.reactions,
-                { content: link.data.target, author: link.author },
-              ],
-            },
-          };
-        }
-      },
-    });
+          if (
+            link.data.predicate === "sioc://reaction_to" &&
+            link.proof.valid
+          ) {
+            const id = link.data.source;
+            const message = messages.value[id];
+            messages.value = {
+              ...messages.value,
+              [id]: {
+                ...message,
+                reactions: [
+                  ...message.reactions,
+                  { content: link.data.target, author: link.author },
+                ],
+              },
+            };
+          }
+        },
+      });
+    }
   });
 
   async function loadMore() {
     fetchingMessages.value = true;
     const oldestMessage = sortedMessages.value[0];
     messages.value = await getMessages({
-      perspectiveUuid,
+      perspectiveUuid: perspectiveUuid.value,
       from: new Date(oldestMessage.timestamp),
     });
     fetchingMessages.value = false;
@@ -105,14 +115,14 @@ export default function useMessages({
     sortedMessages,
     createMessage: (message: Object) => {
       return createMessage({
-        perspectiveUuid,
+        perspectiveUuid: perspectiveUuid.value,
         languageAddress: languageAddress.value,
         message: { background: [""], body: message },
       });
     },
     createReply: (message: Object, replyUrl: string) => {
       return createReply({
-        perspectiveUuid,
+        perspectiveUuid: perspectiveUuid.value,
         languageAddress: languageAddress.value,
         message: { background: [""], body: message },
         replyUrl,
@@ -120,7 +130,7 @@ export default function useMessages({
     },
     addReaction: (messageUrl: string, reaction: string) => {
       return createMessageReaction({
-        perspectiveUuid,
+        perspectiveUuid: perspectiveUuid.value,
         messageUrl,
         reaction,
       });

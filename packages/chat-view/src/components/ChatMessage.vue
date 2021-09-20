@@ -153,7 +153,9 @@ export default defineComponent({
     html() {
       return this.message.content;
     },
-    sortedReactions(): Object {
+    sortedReactions(): {
+      [x: string]: { authors: Array<string>; content: string; count: number };
+    } {
       const reactions = (this.message.reactions as Array<Reaction>) || [];
       return reactions.reduce((acc: any, reaction: Reaction) => {
         const previous = acc[reaction.content] || { authors: [], count: 0 };

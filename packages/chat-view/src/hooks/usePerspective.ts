@@ -1,14 +1,7 @@
-import { onMounted, ref } from "vue";
-import ad4mClient from "../api/client";
-import { Link, LinkExpression, LanguageMeta } from "@perspect3vism/ad4m";
-import {
-  getLanguageMeta,
-  getMetaFromLinks,
-  keyedLanguages,
-} from "../helpers/languageHelpers";
+import { watchEffect, ref } from "vue";
 import getPerspectiveMeta from "../api/getPerspectiveMeta";
 interface Props {
-  perspectiveUuid: string;
+  perspectiveUuid: any;
 }
 
 export default function usePerspective({ perspectiveUuid }: Props) {
@@ -17,12 +10,14 @@ export default function usePerspective({ perspectiveUuid }: Props) {
   const url = ref("");
   const languages = ref({});
 
-  onMounted(async () => {
-    const meta = await getPerspectiveMeta(perspectiveUuid);
+  watchEffect(async () => {
+    if (perspectiveUuid.value) {
+      const meta = await getPerspectiveMeta(perspectiveUuid.value);
 
-    name.value = meta.name;
-    description.value = meta.description;
-    languages.value = meta.languages;
+      name.value = meta.name;
+      description.value = meta.description;
+      languages.value = meta.languages;
+    }
   });
 
   return {

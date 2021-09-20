@@ -1,5 +1,6 @@
 <template>
-  <div class="chat-view">
+  <div v-if="!perspectiveUuid">You need to set a perspective-uuid first</div>
+  <div v-else class="chat-view">
     <header class="chat-view__header">
       <j-flex a="center" gap="400">
         <j-icon name="hash"></j-icon>
@@ -71,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch, toRefs } from "vue";
 import { JSONContent } from "@tiptap/core";
 import { DynamicScroller, DynamicScrollerItem } from "vue-virtual-scroller";
 
@@ -86,12 +87,15 @@ import ChatMessage from "./components/ChatMessage.vue";
 import ChatInput from "./components/ChatInput.vue";
 import generateHTML from "./components/TipTap/generateHTML";
 
-const props = defineProps({
+const staticProps = defineProps({
   perspectiveUuid: {
     required: true,
     type: String,
+    default: "",
   },
 });
+
+const { perspectiveUuid } = toRefs(staticProps);
 
 const EMPTY_SCHEMA = {
   type: "doc",
@@ -109,8 +113,8 @@ const replyMessage = computed(() => {
   } else return null;
 });
 
-const { name, description, languages } = usePerspective({
-  perspectiveUuid: props.perspectiveUuid,
+const { name, languages } = usePerspective({
+  perspectiveUuid,
 });
 
 const {
@@ -122,7 +126,7 @@ const {
   fetchingMessages,
   createReply,
 } = useMessages({
-  perspectiveUuid: props.perspectiveUuid,
+  perspectiveUuid,
   onIncomingMessage: () => {
     const scrolledToBottom = isAtBottom(scrollContainer.value);
     if (scrolledToBottom) {
@@ -135,7 +139,7 @@ const {
   },
 });
 
-function onScroll(e) {
+function onScroll(e: any) {
   const scrolledToTop = e.target.scrollTop <= 20;
   if (scrolledToTop) {
     loadMore();
@@ -174,8 +178,13 @@ j-button.active {
   color: var(--j-color-primary-500);
 }
 
+:host {
+  display: block;
+  height: 100%;
+}
+
 .chat-view {
-  height: 100vh;
+  height: 100%;
   overflow-y: hidden;
   display: flex;
   flex-direction: column;

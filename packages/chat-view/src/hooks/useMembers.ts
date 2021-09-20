@@ -14,11 +14,13 @@ export default function useMembers({ perspectiveUuid }: Props) {
   const members = ref<Messages>({});
 
   onMounted(async () => {
-    const perspective = await ad4mClient.perspective.byUUID(perspectiveUuid);
-    members.value = await getMembers({
-      perspectiveUuid,
-      neighbourhoodUrl: perspective?.sharedUrl || "",
-    });
+    if (perspectiveUuid) {
+      const perspective = await ad4mClient.perspective.byUUID(perspectiveUuid);
+      members.value = await getMembers({
+        perspectiveUuid,
+        neighbourhoodUrl: perspective?.sharedUrl || "",
+      });
+    }
   });
 
   return { members };

@@ -8,6 +8,17 @@
     <style>
       body {
         margin: 0;
+        height: 100vh;
+      }
+      header {
+        display: flex;
+        justify-content: center;
+        border-bottom: 1px solid var(--j-border-color);
+        height: var(--j-size-md);
+        gap: var(--j-space-300);
+      }
+      chat-view {
+        height: calc(100vh - var(--j-size-md));
       }
     </style>
     <link
@@ -17,9 +28,23 @@
     <script src="https://unpkg.com/@junto-foundation/junto-elements@latest"></script>
   </head>
   <body>
-    <chat-view
-      perspective-uuid="4db72d9e-50d7-4061-a032-007edd7cf0e9"
-    ></chat-view>
-    <script type="module" src="/src/main.ts"></script>
+    <header>
+      <j-input value="4db72d9e-50d7-4061-a032-007edd7cf0e9"></j-input>
+      <j-button>Get chat view</j-button>
+    </header>
+
+    <chat-view></chat-view>
+
+    <script type="module">
+      import App from "/src/main.ts";
+      customElements.define("chat-view", App);
+
+      document.querySelector("j-button").addEventListener("click", (e) => {
+        const value = document.querySelector("j-input").value;
+        document
+          .querySelector("chat-view")
+          .setAttribute("perspective-uuid", value);
+      });
+    </script>
   </body>
 </html>

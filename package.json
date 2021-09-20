@@ -1,0 +1,23 @@
+{
+  "name": "perspective-views",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "workspaces": [
+    "./packages/*"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/juntofoundation/chat-view.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/juntofoundation/chat-view/issues"
+  },
+  "homepage": "https://github.com/juntofoundation/chat-view#readme"
+}

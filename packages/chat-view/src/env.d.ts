@@ -8,3 +8,5 @@ declare module "*.vue" {
 }
 
 declare module "node-emoji/lib/emoji";
+
+declare module "vue-virtual-scroller";

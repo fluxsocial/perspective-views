@@ -1,8 +1,8 @@
-import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue";
+const vue = require("@vitejs/plugin-vue");
+const path = require("path");
+const { defineConfig } = require("vite");
 
-// https://vitejs.dev/config/
-export default defineConfig({
+module.exports = defineConfig({
   plugins: [
     vue({
       template: {
@@ -13,4 +13,12 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    lib: {
+      entry: path.resolve(__dirname, "src/main.ts"),
+      name: "MyLib",
+      fileName: (format) => `my-lib.${format}.js`,
+    },
+    rollupOptions: {},
+  },
 });

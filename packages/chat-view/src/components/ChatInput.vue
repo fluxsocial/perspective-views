@@ -40,7 +40,7 @@
         :class="{
           active: editor.isActive('bold'),
         }"
-        @click="() => editor.chain().toggleBold().focus().run()"
+        @click="() => editor?.chain().toggleBold().focus().run()"
       >
         <j-icon size="sm" name="type-bold"></j-icon>
       </j-button>
@@ -50,7 +50,7 @@
         :class="{
           active: editor.isActive('italic'),
         }"
-        @click="() => editor.chain().toggleItalic().focus().run()"
+        @click="() => editor?.chain().toggleItalic().focus().run()"
       >
         <j-icon size="sm" name="type-italic"></j-icon>
       </j-button>
@@ -60,7 +60,7 @@
         :class="{
           active: editor.isActive('strike'),
         }"
-        @click="() => editor.chain().toggleStrike().focus().run()"
+        @click="() => editor?.chain().toggleStrike().focus().run()"
       >
         <j-icon size="sm" name="type-strikethrough"></j-icon>
       </j-button>
@@ -70,7 +70,7 @@
         :class="{
           active: editor.isActive('bulletList'),
         }"
-        @click="() => editor.chain().focus().toggleBulletList().run()"
+        @click="() => editor?.chain().focus().toggleBulletList().run()"
       >
         <j-icon size="sm" name="list-ul"></j-icon>
       </j-button>
@@ -80,7 +80,7 @@
         :class="{
           active: editor.isActive('orderedList'),
         }"
-        @click="() => editor.chain().focus().toggleOrderedList().run()"
+        @click="() => editor?.chain().focus().toggleOrderedList().run()"
       >
         <j-icon size="sm" name="list-ol"></j-icon>
       </j-button>
@@ -113,7 +113,10 @@ import { Message } from "../types";
 const emit = defineEmits(["change", "send", "removeReply"]);
 
 const props = defineProps({
-  value: Object,
+  value: {
+    required: true,
+    type: Object,
+  },
   replyMessage: Object as PropType<Message>,
 });
 
@@ -250,6 +253,7 @@ function onEmojiClick(event: CustomEvent) {
 watch(
   () => props.value,
   (newValue) => {
+    /* @ts-ignore */
     editor.value?.commands.setContent(newValue);
   }
 );

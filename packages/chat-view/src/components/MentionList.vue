@@ -27,18 +27,18 @@ export default {
 
   data() {
     return {
-      selectedIndex: 0 as any,
+      selectedIndex: 0 as number,
     };
   },
 
   watch: {
-    items() {
+    items: function () {
       this.selectedIndex = 0;
     },
   },
 
   methods: {
-    onKeyDown({ event }) {
+    onKeyDown({ event }: { event: any }) {
       if (event.key === "ArrowUp") {
         this.upHandler();
         return true;
@@ -80,29 +80,3 @@ export default {
   },
 };
 </script>
-
-<style>
-.items {
-  position: relative;
-  border-radius: 0.25rem;
-  background: white;
-  color: rgba(black, 0.8);
-  overflow: hidden;
-  font-size: 0.9rem;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0px 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-.item {
-  display: block;
-  width: 100%;
-  text-align: left;
-  background: transparent;
-  border: none;
-  padding: 0.2rem 0.5rem;
-}
-.item.is-selected,
-.item:hover {
-  color: #a975ff;
-  background: rgba(#a975ff, 0.1);
-}
-</style>
