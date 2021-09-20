@@ -14,12 +14,6 @@ module.exports = defineConfig({
     }),
   ],
   build: {
-    outDir: "thing",
-    lib: {
-      entry: path.resolve(__dirname, "src/main.ts"),
-      name: "MyLib",
-      fileName: (format) => `my-lib.${format}.js`,
-    },
-    rollupOptions: {},
+    outDir: "docs",
   },
 });

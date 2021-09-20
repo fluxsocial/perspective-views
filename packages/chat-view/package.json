@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build-docs": "vite build --config vite.config.docs.ts",
     "serve": "vite preview"
   },
   "dependencies": {
