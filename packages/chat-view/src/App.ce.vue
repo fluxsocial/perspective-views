@@ -243,16 +243,14 @@ j-button.active {
 }
 
 .chat-input__reply {
-  width: fit-content;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  left: 0;
-  bottom: 100%;
+  justify-content: space-between;
   margin-bottom: var(--j-space-200);
   background-color: var(--j-color-primary-50);
   color: var(--j-color-primary-600);
   font-size: var(--j-font-size-400);
-  padding: 0 var(--j-space-400);
+  padding-left: var(--j-space-400);
   border-radius: var(--j-border-radius);
 }
 

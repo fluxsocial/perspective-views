@@ -27,16 +27,18 @@ export default async function getProfile({ did, languageAddress }: Payload) {
 
     const data = JSON.parse(expression.data);
 
-    const profile = parseProfile(data.profile);
+    const partialProfile = parseProfile(data.profile);
 
-    cache.set(url, profile);
-
-    return {
+    const profile = {
       did: did,
       timestamp: expression.timestamp,
       url: `${languageAddress}://${did}`,
-      ...profile,
-    } as Profile;
+      ...partialProfile,
+    };
+
+    cache.set(url, profile);
+
+    return profile as Profile;
   } catch (e: any) {
     throw new Error(e);
   }

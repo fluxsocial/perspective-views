@@ -9,7 +9,10 @@ import createReply from "../api/createReply";
 import getMessage from "../api/getMessage";
 import createMessageReaction from "../api/createMessageReaction";
 import getPerspectiveMeta from "../api/getPerspectiveMeta";
-import { SHORT_FORM_EXPRESSION } from "../constants/languages";
+import {
+  PROFILE_EXPRESSION,
+  SHORT_FORM_EXPRESSION,
+} from "../constants/languages";
 
 export function sortMessages(
   messages: Messages,
@@ -33,7 +36,8 @@ export default function useMessages({
 }: Props) {
   const fetchingMessages = ref(false);
 
-  const languageAddress = ref("");
+  const shortFormLangAddress = ref("");
+  const profileLangAddress = ref("");
 
   const messages = ref<Messages>({});
 
@@ -44,7 +48,8 @@ export default function useMessages({
   watchEffect(async () => {
     if (perspectiveUuid.value) {
       const meta = await getPerspectiveMeta(perspectiveUuid.value);
-      languageAddress.value = meta.languages[SHORT_FORM_EXPRESSION];
+      shortFormLangAddress.value = meta.languages[SHORT_FORM_EXPRESSION];
+      profileLangAddress.value = meta.languages[PROFILE_EXPRESSION];
     }
   });
 
@@ -54,6 +59,7 @@ export default function useMessages({
       messages.value = await getMessages({
         perspectiveUuid: perspectiveUuid.value,
       });
+
       fetchingMessages.value = false;
 
       subscribeToLinks({
@@ -68,6 +74,7 @@ export default function useMessages({
             const message = await getMessage({
               link,
               perspectiveUuid: perspectiveUuid.value,
+              profileLangAddress: profileLangAddress.value,
             });
 
             messages.value = {
@@ -116,14 +123,14 @@ export default function useMessages({
     createMessage: (message: Object) => {
       return createMessage({
         perspectiveUuid: perspectiveUuid.value,
-        languageAddress: languageAddress.value,
+        languageAddress: shortFormLangAddress.value,
         message: { background: [""], body: message },
       });
     },
     createReply: (message: Object, replyUrl: string) => {
       return createReply({
         perspectiveUuid: perspectiveUuid.value,
-        languageAddress: languageAddress.value,
+        languageAddress: shortFormLangAddress.value,
         message: { background: [""], body: message },
         replyUrl,
       });
