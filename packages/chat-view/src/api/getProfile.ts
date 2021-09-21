@@ -17,7 +17,9 @@ export default async function getProfile({ did, languageAddress }: Payload) {
 
     const cache = new TimeoutCache<Profile>(1000 * 60 * 5);
 
-    let cachedProfile = cache.get(url);
+    //  TODO: How do we handle localstorage
+    //  in web components and not create name clashes?
+    let cachedProfile = cache.get("chat-view" + url);
 
     if (cachedProfile) {
       return cachedProfile;
@@ -36,7 +38,9 @@ export default async function getProfile({ did, languageAddress }: Payload) {
       ...partialProfile,
     };
 
-    cache.set(url, profile);
+    cache.set("chat-view" + url, profile);
+
+    console.log({ profile, partialProfile });
 
     return profile as Profile;
   } catch (e: any) {
