@@ -49,7 +49,7 @@
               :replyMessage="messages[item.replyUrl]"
               :isReplying="replyMessageId === item.id"
               :message="item"
-              showAvatar
+              :showAvatar="showAvatar(index)"
               @emojiClick="(unicode) => addReaction(item.url, unicode)"
               @replyClick="replyMessageId = item.id"
             ></ChatMessage>
@@ -72,10 +72,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, toRefs } from "vue";
+import { differenceInMinutes, parseISO } from "date-fns";
 import { JSONContent } from "@tiptap/core";
 import { DynamicScroller, DynamicScrollerItem } from "vue-virtual-scroller";
-
-import { PROFILE_EXPRESSION } from "./constants/languages";
 
 import { scrollToBottom, isAtBottom } from "./helpers/scrollHelpers";
 
@@ -165,6 +164,23 @@ function sendMessage() {
     createMessage(message);
   }
   resetEditor();
+}
+
+function showAvatar(index: number): boolean {
+  const previousMessage = sortedMessages.value[index - 1];
+  const message = sortedMessages.value[index];
+
+  if (!previousMessage || !message) {
+    return true;
+  } else {
+    return previousMessage.author.did !== message.author.did
+      ? true
+      : previousMessage.author.did === message.author.did &&
+          differenceInMinutes(
+            parseISO(message.timestamp),
+            parseISO(previousMessage.timestamp)
+          ) >= 2;
+  }
 }
 </script>
 

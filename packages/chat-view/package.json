@@ -1,6 +1,6 @@
 {
   "name": "junto-plugin-chat-view",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "./dist/chat-view.umd.js",
   "module": "./dist/chat-view.es.js",
   "files": [
@@ -41,6 +41,7 @@
     "@tiptap/extension-text": "^2.0.0-beta.12",
     "@tiptap/html": "^2.0.0-beta.104",
     "@tiptap/vue-3": "^2.0.0-beta.58",
+    "date-fns": "^2.24.0",
     "emoji-picker-element": "^1.8.1",
     "node-emoji": "^1.11.0",
     "npm": "^7.23.0",
