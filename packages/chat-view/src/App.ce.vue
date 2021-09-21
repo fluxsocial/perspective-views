@@ -209,7 +209,6 @@ j-button.active {
 
 .chat-view__header {
   padding: var(--j-space-500) var(--j-space-500);
-  background-color: var(--j-color-white);
   border-bottom: 1px solid var(--j-border-color);
 }
 
@@ -225,7 +224,6 @@ j-button.active {
 }
 
 .chat-view__footer {
-  background-color: var(--j-color-white);
   padding: 0 var(--j-space-500) var(--j-space-400) var(--j-space-400);
 }
 
