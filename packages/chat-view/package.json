@@ -1,6 +1,6 @@
 {
   "name": "junto-plugin-chat-view",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "./dist/chat-view.umd.js",
   "module": "./dist/chat-view.es.js",
   "files": [
