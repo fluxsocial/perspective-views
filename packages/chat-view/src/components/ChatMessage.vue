@@ -83,10 +83,10 @@
           </j-button>
         </div>
       </div>
-      <div class="message-item__toolbar" :class="{}">
-        <j-tooltip placement="top" title="Add emoji">
+      <div class="message-item__toolbar">
+        <j-tooltip placement="top" title="Whaaaat">
           <j-button ref="emojiButton" variant="ghost" size="sm">
-            <j-icon size="sm" name="emoji-smile" />
+            <j-icon size="sm" name="emoji-smile"></j-icon>
           </j-button>
         </j-tooltip>
         <j-tooltip placement="top" title="Reply">
@@ -95,7 +95,7 @@
             variant="ghost"
             size="sm"
           >
-            <j-icon size="sm" name="reply" />
+            <j-icon size="sm" name="reply"></j-icon>
           </j-button>
         </j-tooltip>
       </div>
