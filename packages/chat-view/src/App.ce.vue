@@ -491,7 +491,7 @@ j-button.active {
   overflow: hidden;
   opacity: 0;
 }
-.resize-observer >>> object {
+.resize-observer object {
   display: block;
   position: absolute;
   top: 0;

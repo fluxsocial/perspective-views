@@ -17,7 +17,7 @@ module.exports = defineConfig({
     lib: {
       entry: path.resolve(__dirname, "src/main.ts"),
       name: "MyLib",
-      fileName: (format) => `my-lib.${format}.js`,
+      fileName: (format) => `chat-view.${format}.js`,
     },
     rollupOptions: {},
   },
