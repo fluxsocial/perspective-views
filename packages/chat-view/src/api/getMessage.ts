@@ -2,13 +2,19 @@ import ad4mClient from "./client";
 import { LinkExpression, LinkQuery } from "@perspect3vism/ad4m";
 import { getExpression } from "../helpers/expressionHelpers";
 import { Message } from "../types";
+import getProfile from "./getProfile";
 
 export interface Payload {
   perspectiveUuid: string;
+  profileLangAddress: string;
   link: LinkExpression;
 }
 
-export default async function ({ link, perspectiveUuid }: Payload) {
+export default async function ({
+  link,
+  perspectiveUuid,
+  profileLangAddress,
+}: Payload) {
   try {
     const expression = await getExpression(link);
 
@@ -28,11 +34,16 @@ export default async function ({ link, perspectiveUuid }: Payload) {
       })
     );
 
+    const author = await getProfile({
+      did: expression.author,
+      languageAddress: profileLangAddress,
+    });
+
     return {
       id: link.data.target,
       timestamp: expression.timestamp,
       url: link.data.target,
-      author: expression.author,
+      author: author,
       reactions: reactionLinks.map((link) => ({
         author: link.author,
         content: link.data.target,

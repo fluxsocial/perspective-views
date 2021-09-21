@@ -32,7 +32,7 @@ export default async function getProfile({ did, languageAddress }: Payload) {
     cache.set(url, profile);
 
     return {
-      id: did,
+      did: did,
       timestamp: expression.timestamp,
       url: `${languageAddress}://${did}`,
       ...profile,

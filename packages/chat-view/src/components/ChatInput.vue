@@ -1,8 +1,10 @@
 <template>
   <div class="chat-input">
     <div v-if="replyMessage" class="chat-input__reply">
-      <j-icon name="reply"></j-icon>
-      <span>Replying to {{ replyMessage.author }}</span>
+      <j-flex gap="400">
+        <j-icon size="sm" name="arrow-90deg-right"></j-icon>
+        <span>Replying to {{ replyMessage.author.username }}</span>
+      </j-flex>
       <j-button variant="ghost" @click="emit('removeReply')"
         ><j-icon name="x"></j-icon
       ></j-button>
@@ -109,6 +111,7 @@ import renderMention from "./TipTap/renderMention";
 import emojiList from "node-emoji/lib/emoji";
 import { watch, PropType, ref } from "vue";
 import { Message } from "../types";
+import getProfile from "../api/getProfile";
 
 const emit = defineEmits(["change", "send", "removeReply"]);
 
@@ -119,6 +122,8 @@ const props = defineProps({
   },
   replyMessage: Object as PropType<Message>,
 });
+
+const replyProfile = ref({});
 
 const showToolbar = ref(false);
 

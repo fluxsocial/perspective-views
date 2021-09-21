@@ -46,7 +46,6 @@
             :data-index="index"
           >
             <ChatMessage
-              :profileLangAddress="languages[PROFILE_EXPRESSION]"
               :replyMessage="messages[item.replyUrl]"
               :isReplying="replyMessageId === item.id"
               :message="item"
@@ -95,6 +94,8 @@ const staticProps = defineProps({
   },
 });
 
+// We need to convert this to a  ref so custom hooks can
+// react to changes. Yeah, Vue I don't know ..
 const { perspectiveUuid } = toRefs(staticProps);
 
 const EMPTY_SCHEMA = {
@@ -113,7 +114,7 @@ const replyMessage = computed(() => {
   } else return null;
 });
 
-const { name, languages } = usePerspective({
+const { name } = usePerspective({
   perspectiveUuid,
 });
 
@@ -225,7 +226,7 @@ j-button.active {
 
 .chat-view__footer {
   background-color: var(--j-color-white);
-  padding: var(--j-space-400) var(--j-space-500);
+  padding: 0 var(--j-space-500) var(--j-space-400) var(--j-space-400);
 }
 
 .mention {
@@ -245,14 +246,13 @@ j-button.active {
   width: fit-content;
   display: inline-flex;
   align-items: center;
-  position: absolute;
   left: 0;
   bottom: 100%;
   margin-bottom: var(--j-space-200);
   background-color: var(--j-color-primary-50);
   color: var(--j-color-primary-600);
   font-size: var(--j-font-size-400);
-  padding: var(--j-space-300) var(--j-space-400);
+  padding: 0 var(--j-space-400);
   border-radius: var(--j-border-radius);
 }
 

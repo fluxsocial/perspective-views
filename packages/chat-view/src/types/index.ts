@@ -12,7 +12,7 @@ export interface Reaction {
 export interface Message {
   id: string;
   url: string;
-  author: string;
+  author: Profile;
   reactions: Array<Reaction>;
   timestamp: string;
   content: string;
@@ -23,7 +23,7 @@ export interface Messages {
 }
 
 export interface Profile {
-  id: string;
+  did: string;
   url: string;
   author: string;
   timestamp: string;

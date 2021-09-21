@@ -1,7 +1,8 @@
 import ad4mClient from "./client";
 import { LinkQuery } from "@perspect3vism/ad4m";
-import { keyedExpressions } from "../helpers/expressionHelpers";
+import { PROFILE_EXPRESSION } from "../constants/languages";
 import getMessage from "./getMessage";
+import getPerspectiveMeta from "./getPerspectiveMeta";
 
 export interface Payload {
   perspectiveUuid: string;
@@ -11,6 +12,8 @@ export interface Payload {
 
 export default async function ({ perspectiveUuid, from, to }: Payload) {
   try {
+    const { languages } = await getPerspectiveMeta(perspectiveUuid);
+
     const expressionLinks = await ad4mClient.perspective.queryLinks(
       perspectiveUuid,
       new LinkQuery({
@@ -22,7 +25,11 @@ export default async function ({ perspectiveUuid, from, to }: Payload) {
     );
 
     const linkPromises = expressionLinks.map((link) =>
-      getMessage({ link, perspectiveUuid })
+      getMessage({
+        link,
+        perspectiveUuid,
+        profileLangAddress: languages[PROFILE_EXPRESSION],
+      })
     );
 
     const messages = await Promise.all(linkPromises);

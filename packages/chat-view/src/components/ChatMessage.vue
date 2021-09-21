@@ -7,7 +7,7 @@
         name="arrow-90deg-right"
       ></j-icon>
       <j-flex gap="300">
-        <span nomargin>{{ replyProfile?.username }}:</span>
+        <span nomargin>{{ replyMessage.author?.username }}:</span>
         <div style="flex: 1" v-html="replyMessage.content"></div>
       </j-flex>
     </div>
@@ -21,8 +21,8 @@
           class="message-item__avatar"
           @click="handleProfileClick"
           v-if="showAvatar"
-          :hash="message.author"
-          :src="profile?.profilePicture"
+          :hash="message.author.did"
+          :src="message.author?.profilePicture"
         />
 
         <j-tooltip placement="top" v-else>
@@ -49,7 +49,7 @@
             nomargin
             weight="500"
             class="message-item__username"
-            >{{ profile?.username }}
+            >{{ message.author.username }}
           </j-text>
           <j-tooltip placement="top">
             <j-timestamp
@@ -113,7 +113,6 @@ import { Reaction, Message } from "../types";
 export default defineComponent({
   emits: ["mentionClick", "profileClick", "replyClick", "emojiClick"],
   props: {
-    profileLangAddress: String,
     message: {
       type: Object,
       required: true,
@@ -128,23 +127,6 @@ export default defineComponent({
       replyProfile: {} as any,
       toolbarOpen: false,
     };
-  },
-  watch: {
-    profileLangAddress: async function (val) {
-      if (val) {
-        this.profile = await getProfile({
-          did: this.message.author,
-          languageAddress: val,
-        });
-
-        if (this.replyMessage) {
-          this.replyProfile = await getProfile({
-            did: this.replyMessage.author,
-            languageAddress: val,
-          });
-        }
-      }
-    },
   },
   async mounted() {
     this.createEmojiPicker();
