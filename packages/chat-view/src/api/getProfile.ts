@@ -40,8 +40,6 @@ export default async function getProfile({ did, languageAddress }: Payload) {
 
     cache.set("chat-view" + url, profile);
 
-    console.log({ profile, partialProfile });
-
     return profile as Profile;
   } catch (e: any) {
     throw new Error(e);

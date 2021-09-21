@@ -123,8 +123,6 @@ const props = defineProps({
   replyMessage: Object as PropType<Message>,
 });
 
-const replyProfile = ref({});
-
 const showToolbar = ref(false);
 
 async function sendMessage() {

@@ -83,11 +83,10 @@
           </j-button>
         </div>
       </div>
+
       <div class="message-item__toolbar">
-        <j-tooltip placement="top" title="Whaaaat">
-          <j-button ref="emojiButton" variant="ghost" size="sm">
-            <j-icon size="sm" name="emoji-smile"></j-icon>
-          </j-button>
+        <j-tooltip placement="top" title="Add reaction">
+          <j-button ref="emojiButton" variant="ghost" size="sm"> 😀 </j-button>
         </j-tooltip>
         <j-tooltip placement="top" title="Reply">
           <j-button
@@ -95,7 +94,7 @@
             variant="ghost"
             size="sm"
           >
-            <j-icon size="sm" name="reply"></j-icon>
+            ⤵️
           </j-button>
         </j-tooltip>
       </div>
@@ -105,10 +104,8 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import genereateHTML from "../components/TipTap/generateHTML";
 import tippy from "tippy.js";
-import getProfile from "../api/getProfile";
-import { Reaction, Message } from "../types";
+import { Reaction } from "../types";
 
 export default defineComponent({
   emits: ["mentionClick", "profileClick", "replyClick", "emojiClick"],
