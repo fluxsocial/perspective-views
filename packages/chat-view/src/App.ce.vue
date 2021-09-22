@@ -490,7 +490,7 @@ j-button.active {
   background-color: var(--j-color-white);
   border: 2px solid var(--j-border-color);
   display: flex;
-  visibility: hidden;
+  opacity: 0;
   align-items: center;
   justify-content: center;
   position: absolute;
@@ -499,7 +499,7 @@ j-button.active {
 }
 
 .message-item:hover .message-item__toolbar {
-  visibility: visible;
+  opacity: 1;
 }
 
 /* RECYCLE SCROLLER */
