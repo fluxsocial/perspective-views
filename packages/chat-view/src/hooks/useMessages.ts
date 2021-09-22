@@ -67,7 +67,6 @@ export default function useMessages({
       subscribeToLinks({
         perspectiveUuid: perspectiveUuid.value,
         removed: async (link: LinkExpression) => {
-          console.log("removed", link);
           if (link.data.predicate === "sioc://reaction_to") {
             const id = link.data.source;
             const message = messages.value[id];
