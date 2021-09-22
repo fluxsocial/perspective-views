@@ -106,14 +106,14 @@ const EMPTY_SCHEMA = {
 };
 
 const editorValue = ref<JSONContent>(EMPTY_SCHEMA);
-const scrollContainer = ref(null);
+const scrollContainer = ref<null | any>(null);
 const replyMessageId = ref<string | null>(null);
 const showNewMessagesButton = ref(false);
 
 const replyMessage = computed(() => {
   if (replyMessageId.value) {
     return messages.value[replyMessageId.value];
-  } else return null;
+  } else return undefined;
 });
 
 const { name } = usePerspective({
@@ -425,11 +425,11 @@ j-button.active {
 }
 
 .message-item__left-column .message-item__timestamp {
-  visibility: hidden;
+  opacity: 0;
 }
 
 .message-item:hover .message-item__left-column .message-item__timestamp {
-  visibility: visible;
+  opacity: 1;
 }
 
 .message-item__message-info {
