@@ -2,7 +2,7 @@
   <div class="chat-input">
     <div v-if="replyMessage" class="chat-input__reply">
       <j-flex gap="400">
-        <j-icon size="xs" name="arrow-90deg-right"></j-icon>
+        <j-icon size="xs" name="reply"></j-icon>
         <span>Replying to {{ replyMessage.author.username }}</span>
       </j-flex>
       <j-button variant="ghost" @click="emit('removeReply')">

@@ -7,8 +7,18 @@
         name="arrow-90deg-right"
       ></j-icon>
       <j-flex gap="300">
-        <span nomargin>{{ replyMessage.author?.username }}:</span>
-        <div style="flex: 1" v-html="replyMessage.content"></div>
+        <div>
+          <j-flex a="center" gap="200">
+            <j-avatar
+              style="--j-avatar-size: 15px"
+              :hash="replyMessage.author.did"
+              :src="replyMessage.author?.profilePicture"
+            ></j-avatar>
+            <span>{{ replyMessage.author?.username }}</span>
+          </j-flex>
+        </div>
+
+        <div v-html="replyMessage.content"></div>
       </j-flex>
     </div>
     <div
@@ -20,7 +30,7 @@
         <j-avatar
           class="message-item__avatar"
           @click="handleProfileClick"
-          v-if="showAvatar"
+          v-if="replyMessage || showAvatar"
           :hash="message.author.did"
           :src="message.author?.profilePicture"
         />
@@ -70,7 +80,7 @@
           @click="onMessageClick"
           v-html="message.content"
         ></div>
-        <div class="message-item__reactions">
+        <div class="message-item__reactions" v-if="message.reactions?.length">
           <button
             class="message-item__reaction"
             :class="{
@@ -109,7 +119,6 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import tippy from "tippy.js";
-import { Reaction } from "../types";
 import getMe from "../api/getMe";
 import { LinkExpression, Agent } from "@perspect3vism/ad4m";
 

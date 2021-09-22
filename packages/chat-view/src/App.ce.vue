@@ -195,6 +195,20 @@ function showAvatar(index: number): boolean {
   box-sizing: border-box;
 }
 
+emoji-picker {
+  --emoji-size: var(--j-font-size-500);
+  --background: var(--j-color-white);
+  --border-color: var(--j-border-color);
+  --indicator-color: #385ac1;
+  --input-border-color: var(--j-border-color);
+  --input-font-color: var(--j-color-black);
+  --input-placeholder-color: var(--j-color-ui-400);
+  --outline-color: var(--j-color-ui-500);
+  --category-font-color: var(--j-color-black);
+  --button-active-background: var(--j-color-ui-100);
+  --button-hover-background: var(--j-color-ui-50);
+}
+
 j-button.active {
   color: var(--j-color-primary-500);
 }
@@ -248,6 +262,9 @@ j-button.active {
 }
 
 .mention {
+  display: flex;
+  align-items: center;
+  gap: var(--j-space-200);
   border-radius: var(--j-border-radius);
   background-color: var(--j-color-primary-100);
   color: var(--j-color-primary-600);
@@ -316,9 +333,16 @@ j-button.active {
   display: inline;
 }
 
+.message-item-wrapper {
+  padding: var(--j-space-300);
+}
+
+.message-item-wrapper:hover {
+  background: hsla(var(--j-color-ui-hue), 10%, 50%, 0.06);
+}
+
 .message-item {
   position: relative;
-  padding: var(--j-space-300) 0;
   display: grid;
   gap: var(--j-space-300);
   grid-template-columns: 70px 1fr;
@@ -326,14 +350,13 @@ j-button.active {
 }
 
 .message-item__reply {
-  margin-top: var(--j-space-400);
   margin-bottom: var(--j-space-200);
   display: flex;
   align-items: flex-start;
   overflow: hidden;
   font-size: var(--j-font-size-300);
   gap: var(--j-space-500);
-  padding: 0 var(--j-space-700);
+  padding: 0 var(--j-space-800);
   height: 20px;
 }
 
@@ -371,17 +394,13 @@ j-button.active {
   border: 1px solid var(--j-color-primary-500);
 }
 
-.message-item:hover {
-  background: hsla(var(--j-color-ui-hue), 10%, 50%, 0.06);
-}
-
 .message-item__avatar {
   cursor: pointer;
 }
 
 .message-item--is-replying {
   border-left: 2px solid var(--j-color-primary-500);
-  background-color: var(--j-color-ui-50) !important;
+  background-color: var(--j-color-primary-50) !important;
 }
 
 .message-item__left-column {
