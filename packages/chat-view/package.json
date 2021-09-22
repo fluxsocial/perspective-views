@@ -1,6 +1,6 @@
 {
   "name": "junto-plugin-chat-view",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "main": "./dist/chat-view.umd.js",
   "module": "./dist/chat-view.es.js",
   "files": [
@@ -18,7 +18,7 @@
     "build": "vite build",
     "build-docs": "vite build --config vite.config.docs.ts",
     "serve": "vite preview",
-    "publish": "np --no-tests"
+    "release": "np --no-tests"
   },
   "dependencies": {
     "@apollo/client": "3.3.20",
