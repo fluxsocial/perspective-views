@@ -398,7 +398,7 @@ j-button.active {
   cursor: pointer;
 }
 
-.message-item--is-replying {
+.message-item-wrapper--is-replying {
   border-left: 2px solid var(--j-color-primary-500);
   background-color: var(--j-color-primary-50) !important;
 }

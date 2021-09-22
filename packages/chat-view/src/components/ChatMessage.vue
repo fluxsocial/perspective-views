@@ -1,5 +1,9 @@
 <template>
-  <div class="message-item-wrapper" ref="messageWrapper">
+  <div
+    class="message-item-wrapper"
+    :class="{ 'message-item-wrapper--is-replying': isReplying }"
+    ref="messageWrapper"
+  >
     <div class="message-item__reply" v-if="replyMessage">
       <j-icon
         style="align-self: flex-end"
@@ -21,11 +25,7 @@
         <div v-html="replyMessage.content"></div>
       </j-flex>
     </div>
-    <div
-      class="message-item"
-      :class="{ 'message-item--is-replying': isReplying }"
-      ref="messageItem"
-    >
+    <div class="message-item" ref="messageItem">
       <div class="message-item__left-column">
         <j-avatar
           class="message-item__avatar"

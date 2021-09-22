@@ -1,15 +1,15 @@
 {
   "name": "junto-plugin-chat-view",
   "version": "0.0.9",
-  "main": "./dist/chat-view.umd.js",
-  "module": "./dist/chat-view.es.js",
+  "main": "./dist/main.umd.js",
+  "module": "./dist/main.es.js",
   "files": [
     "dist"
   ],
   "exports": {
     ".": {
-      "import": "./dist/chat-view.es.js",
-      "require": "./dist/chat-view.umd.js"
+      "import": "./dist/main.es.js",
+      "require": "./dist/main.umd.js"
     }
   },
   "scripts": {
