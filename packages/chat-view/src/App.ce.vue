@@ -151,8 +151,12 @@ const {
 
 function onScroll(e: any) {
   const scrolledToTop = e.target.scrollTop <= 20;
+  const scrolledToBottom = isAtBottom(e.target);
   if (scrolledToTop) {
     loadMore();
+  }
+  if (scrolledToBottom) {
+    emit("seen-all-expressions");
   }
 }
 
