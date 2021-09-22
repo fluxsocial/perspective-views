@@ -51,7 +51,10 @@
         </j-tooltip>
       </div>
       <div class="message-item__right-column">
-        <div class="message-item__message-info" v-if="showAvatar">
+        <div
+          class="message-item__message-info"
+          v-if="replyMessage || showAvatar"
+        >
           <j-text
             @click="handleProfileClick"
             slot="trigger"
