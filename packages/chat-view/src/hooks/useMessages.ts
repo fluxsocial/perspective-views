@@ -1,5 +1,5 @@
 import { ref, watch, computed, watchEffect, Ref } from "vue";
-import { LinkExpression } from "@perspect3vism/ad4m";
+import { Ad4mClient, LinkExpression } from "@perspect3vism/ad4m";
 import { Messages, Message } from "../types";
 import createMessage from "../api/createMessage";
 import subscribeToLinks from "../api/subscribeToLinks";
@@ -13,6 +13,8 @@ import {
   PROFILE_EXPRESSION,
   SHORT_FORM_EXPRESSION,
 } from "../constants/languages";
+import deleteMessageReaction from "../api/deleteMessageReaction";
+import ad4mClient from "../api/client";
 
 export function sortMessages(
   messages: Messages,
@@ -64,7 +66,23 @@ export default function useMessages({
 
       subscribeToLinks({
         perspectiveUuid: perspectiveUuid.value,
-        callback: async (link: LinkExpression) => {
+        removed: async (link: LinkExpression) => {
+          console.log("removed", link);
+          if (link.data.predicate === "sioc://reaction_to") {
+            const id = link.data.source;
+            const message = messages.value[id];
+            messages.value = {
+              ...messages.value,
+              [id]: {
+                ...message,
+                reactions: message.reactions.filter(
+                  (reaction) => reaction.data.target !== link.data.target
+                ),
+              },
+            };
+          }
+        },
+        added: async (link: LinkExpression) => {
           //  TODO: This needs to be handlet less imperative
           if (
             link.data.source === "sioc://chatchannel" &&
@@ -94,10 +112,7 @@ export default function useMessages({
               ...messages.value,
               [id]: {
                 ...message,
-                reactions: [
-                  ...message.reactions,
-                  { content: link.data.target, author: link.author },
-                ],
+                reactions: [...message.reactions, { ...link }],
               },
             };
           }
@@ -140,6 +155,12 @@ export default function useMessages({
         perspectiveUuid: perspectiveUuid.value,
         messageUrl,
         reaction,
+      });
+    },
+    removeReaction: (linkExpression: LinkExpression) => {
+      return deleteMessageReaction({
+        perspectiveUuid: perspectiveUuid.value,
+        linkExpression,
       });
     },
     loadMore,

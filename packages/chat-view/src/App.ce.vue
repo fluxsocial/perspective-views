@@ -50,7 +50,10 @@
               :isReplying="replyMessageId === item.id"
               :message="item"
               :showAvatar="showAvatar(index)"
-              @emojiClick="(unicode) => addReaction(item.url, unicode)"
+              @addReaction="(unicode) => addReaction(item.url, unicode)"
+              @removeReaction="
+                (linkExpression) => removeReaction(linkExpression)
+              "
               @replyClick="replyMessageId = item.id"
             ></ChatMessage>
           </DynamicScrollerItem>
@@ -122,6 +125,7 @@ const {
   sortedMessages,
   createMessage,
   addReaction,
+  removeReaction,
   loadMore,
   fetchingMessages,
   createReply,

@@ -72,7 +72,7 @@
         ></div>
         <div class="message-item__reactions">
           <j-button
-            @click="() => $emit('emojiClick', reaction.content)"
+            @click="() => onEmojiClick(reaction.content)"
             size="xs"
             variant="subtle"
             :key="i"
@@ -106,9 +106,17 @@
 import { defineComponent } from "vue";
 import tippy from "tippy.js";
 import { Reaction } from "../types";
+import getMe from "../api/getMe";
+import { LinkExpression } from "@perspect3vism/ad4m";
 
 export default defineComponent({
-  emits: ["mentionClick", "profileClick", "replyClick", "emojiClick"],
+  emits: [
+    "mentionClick",
+    "profileClick",
+    "replyClick",
+    "addReaction",
+    "removeReaction",
+  ],
   props: {
     message: {
       type: Object,
@@ -135,14 +143,14 @@ export default defineComponent({
     sortedReactions(): {
       [x: string]: { authors: Array<string>; content: string; count: number };
     } {
-      const reactions = (this.message.reactions as Array<Reaction>) || [];
-      return reactions.reduce((acc: any, reaction: Reaction) => {
-        const previous = acc[reaction.content] || { authors: [], count: 0 };
+      const reactions = (this.message.reactions as Array<LinkExpression>) || [];
+      return reactions.reduce((acc: any, reaction: LinkExpression) => {
+        const previous = acc[reaction.data.target] || { authors: [], count: 0 };
         return {
           ...acc,
-          [reaction.content]: {
+          [reaction.data.target]: {
             authors: [...previous.authors, reaction.author],
-            content: reaction.content,
+            content: reaction.data.target,
             count: previous.count + 1,
           },
         };
@@ -153,9 +161,9 @@ export default defineComponent({
     createEmojiPicker() {
       const emojiPicker = document.createElement("emoji-picker");
 
-      emojiPicker.addEventListener("emoji-click", (event: any) => {
-        this.$emit("emojiClick", event.detail.unicode);
-      });
+      emojiPicker.addEventListener("emoji-click", (e: any) =>
+        this.onEmojiClick(e.detail.unicode)
+      );
 
       emojiPicker.style.display = "block";
 
@@ -172,9 +180,19 @@ export default defineComponent({
         },
       });
     },
-    onMessageClick() {
-      console.log("message click");
+    async onEmojiClick(unicode: string) {
+      const me = await getMe();
+      const alreadyMadeReaction = this.message.reactions.find(
+        (reaction: LinkExpression) =>
+          reaction.author === me.did && reaction.data.target === unicode
+      );
+      if (alreadyMadeReaction) {
+        this.$emit("removeReaction", alreadyMadeReaction);
+      } else {
+        this.$emit("addReaction", unicode);
+      }
     },
+    onMessageClick() {},
     handleProfileClick() {
       this.$emit("profileClick", this.message.did);
     },

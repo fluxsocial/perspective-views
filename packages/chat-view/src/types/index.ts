@@ -1,3 +1,5 @@
+import { LinkExpression } from "@perspect3vism/ad4m";
+
 export interface NeighbourhoodMeta {
   name: string;
   description: string;
@@ -7,13 +9,14 @@ export interface NeighbourhoodMeta {
 export interface Reaction {
   author: string;
   content: string;
+  linkUrl: string;
 }
 
 export interface Message {
   id: string;
   url: string;
   author: Profile;
-  reactions: Array<Reaction>;
+  reactions: Array<LinkExpression>;
   timestamp: string;
   content: string;
   replyUrl: string;

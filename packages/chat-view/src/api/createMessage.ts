@@ -13,7 +13,6 @@ export default async function ({
   message,
 }: Payload) {
   try {
-    console.log({ perspectiveUuid, languageAddress, message });
     const expUrl = await ad4mClient.expression.create(message, languageAddress);
 
     await ad4mClient.perspective.addLink(

@@ -16,8 +16,6 @@ export default function renderMention() {
         editor: props.editor,
       });
 
-      console.log({ props });
-
       popup = tippy("body", {
         getReferenceClientRect: props.clientRect,
         appendTo: document.body,

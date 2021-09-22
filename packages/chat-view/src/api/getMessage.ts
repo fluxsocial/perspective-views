@@ -44,10 +44,7 @@ export default async function ({
       timestamp: expression.timestamp,
       url: link.data.target,
       author: author,
-      reactions: reactionLinks.map((link) => ({
-        author: link.author,
-        content: link.data.target,
-      })),
+      reactions: reactionLinks,
       replyUrl: replyLinks[0] && replyLinks[0]?.data.target,
       content: expression.data.body,
     } as Message;
