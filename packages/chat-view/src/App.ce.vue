@@ -367,6 +367,10 @@ j-button.active {
   border: 1px solid var(--j-color-primary-500);
 }
 
+.message-item__reaction--me:hover {
+  border: 1px solid var(--j-color-primary-500);
+}
+
 .message-item:hover {
   background: hsla(var(--j-color-ui-hue), 10%, 50%, 0.06);
 }
