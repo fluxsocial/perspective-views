@@ -50,6 +50,7 @@
               :isReplying="replyMessageId === item.id"
               :message="item"
               :showAvatar="showAvatar(index)"
+              @profileClick="(did) => emit('agent-click', did)"
               @addReaction="(unicode) => addReaction(item.url, unicode)"
               @removeReaction="
                 (linkExpression) => removeReaction(linkExpression)
@@ -74,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, toRefs } from "vue";
+import { ref, computed, toRefs } from "vue";
 import { differenceInMinutes, parseISO } from "date-fns";
 import { JSONContent } from "@tiptap/core";
 import { DynamicScroller, DynamicScrollerItem } from "vue-virtual-scroller";
@@ -96,7 +97,7 @@ const staticProps = defineProps({
   },
 });
 
-const emit = defineEmits(["agent-click", "delete"]);
+const emit = defineEmits(["agent-click", "seen-all-expressions"]);
 
 // We need to convert this to a  ref so custom hooks can
 // react to changes. Yeah, Vue I don't know ..
@@ -138,6 +139,7 @@ const {
     if (scrolledToBottom) {
       setTimeout(() => {
         scrollContainer.value?.scrollToBottom();
+        emit("seen-all-expressions");
       }, 100);
     } else {
       showNewMessagesButton.value = true;
@@ -153,6 +155,7 @@ function onScroll(e: any) {
 }
 
 function markAsRead() {
+  emit("seen-all-expressions");
   scrollToBottom(scrollContainer.value);
   showNewMessagesButton.value = false;
 }

@@ -12,7 +12,11 @@
       ></j-icon>
       <j-flex gap="300">
         <div>
-          <j-flex a="center" gap="200">
+          <j-flex
+            a="center"
+            gap="200"
+            @click="() => handleProfileClick(replyMessage?.author.did)"
+          >
             <j-avatar
               style="--j-avatar-size: 15px"
               :hash="replyMessage.author.did"
@@ -29,7 +33,7 @@
       <div class="message-item__left-column">
         <j-avatar
           class="message-item__avatar"
-          @click="handleProfileClick"
+          @click="() => handleProfileClick(message.author.did)"
           v-if="replyMessage || showAvatar"
           :hash="message.author.did"
           :src="message.author?.profilePicture"
@@ -56,7 +60,7 @@
           v-if="replyMessage || showAvatar"
         >
           <j-text
-            @click="handleProfileClick"
+            @click="() => handleProfileClick(message.author.did)"
             slot="trigger"
             color="black"
             nomargin
@@ -215,8 +219,8 @@ export default defineComponent({
       }
     },
     onMessageClick() {},
-    handleProfileClick() {
-      this.$emit("profileClick", this.message.did);
+    handleProfileClick(did: string) {
+      this.$emit("profileClick", did);
     },
   },
 });
