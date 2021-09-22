@@ -1,6 +1,6 @@
 {
   "name": "junto-plugin-chat-view",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "main": "./dist/chat-view.umd.js",
   "module": "./dist/chat-view.es.js",
   "files": [
@@ -50,8 +50,7 @@
     "subscriptions-transport-ws": "^0.9.19",
     "tippy.js": "^6.3.1",
     "vue": "^3.2.12",
-    "vue-virtual-scroller": "^2.0.0-alpha.1",
-    "vue3-discordpicker": "^1.1.0"
+    "vue-virtual-scroller": "^2.0.0-alpha.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^1.6.1",
