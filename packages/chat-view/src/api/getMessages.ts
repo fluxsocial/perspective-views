@@ -3,6 +3,7 @@ import { LinkQuery } from "@perspect3vism/ad4m";
 import { PROFILE_EXPRESSION } from "../constants/languages";
 import getMessage from "./getMessage";
 import getPerspectiveMeta from "./getPerspectiveMeta";
+import { session } from "../helpers/storageHelpers";
 
 export interface Payload {
   perspectiveUuid: string;
@@ -34,9 +35,11 @@ export default async function ({ perspectiveUuid, from, to }: Payload) {
 
     const messages = await Promise.all(linkPromises);
 
-    return messages.reduce((acc, message) => {
+    const keyedMessages = messages.reduce((acc, message) => {
       return { ...acc, [message.id]: message };
     }, {});
+
+    return keyedMessages;
   } catch (e: any) {
     throw new Error(e);
   }

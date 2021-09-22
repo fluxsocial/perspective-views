@@ -1,28 +1,26 @@
-import { LinkExpression } from "@perspect3vism/ad4m";
-import { getExpression } from "../helpers/expressionHelpers";
 import { Profile } from "../types";
 import ad4mClient from "../api/client";
 import { parseProfile } from "../helpers/profileHelpers";
-import { TimeoutCache } from "../helpers/timeoutCache";
-import { UNREF } from "@vue/compiler-core";
+import { session } from "../helpers/storageHelpers";
 
 export interface Payload {
   did: string;
   languageAddress: string;
 }
 
-export default async function getProfile({ did, languageAddress }: Payload) {
+export default async function getProfile({
+  did,
+  languageAddress,
+}: Payload): Promise<Profile> {
   try {
     const url = `${languageAddress}://${did}`;
 
-    const cache = new TimeoutCache<Profile>(1000 * 60 * 5);
-
     //  TODO: How do we handle localstorage
     //  in web components and not create name clashes?
-    let cachedProfile = cache.get("chat-view" + url);
+    let cachedProfile = session.get(url);
 
     if (cachedProfile) {
-      return cachedProfile;
+      return cachedProfile as Profile;
     }
 
     const expression = await ad4mClient.expression.get(url);
@@ -38,9 +36,9 @@ export default async function getProfile({ did, languageAddress }: Payload) {
       ...partialProfile,
     };
 
-    cache.set("chat-view" + url, profile);
+    session.set(url, profile);
 
-    return profile as Profile;
+    return profile;
   } catch (e: any) {
     throw new Error(e);
   }

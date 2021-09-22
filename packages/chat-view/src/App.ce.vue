@@ -96,6 +96,8 @@ const staticProps = defineProps({
   },
 });
 
+const emit = defineEmits(["agent-click", "delete"]);
+
 // We need to convert this to a  ref so custom hooks can
 // react to changes. Yeah, Vue I don't know ..
 const { perspectiveUuid } = toRefs(staticProps);

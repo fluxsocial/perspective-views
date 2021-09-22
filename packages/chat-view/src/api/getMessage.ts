@@ -3,6 +3,7 @@ import { LinkExpression, LinkQuery } from "@perspect3vism/ad4m";
 import { getExpression } from "../helpers/expressionHelpers";
 import { Message } from "../types";
 import getProfile from "./getProfile";
+import { session } from "../helpers/storageHelpers";
 
 export interface Payload {
   perspectiveUuid: string;
@@ -14,7 +15,7 @@ export default async function ({
   link,
   perspectiveUuid,
   profileLangAddress,
-}: Payload) {
+}: Payload): Promise<Message> {
   try {
     const expression = await getExpression(link);
 
@@ -39,15 +40,17 @@ export default async function ({
       languageAddress: profileLangAddress,
     });
 
-    return {
+    const message = {
       id: link.data.target,
       timestamp: expression.timestamp,
       url: link.data.target,
-      author: author,
+      author,
       reactions: reactionLinks,
-      replyUrl: replyLinks[0] && replyLinks[0]?.data.target,
+      replyUrl: replyLinks[0]?.data.target,
       content: expression.data.body,
-    } as Message;
+    };
+
+    return message as Message;
   } catch (e: any) {
     throw new Error(e);
   }
