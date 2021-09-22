@@ -345,6 +345,28 @@ j-button.active {
   margin-bottom: 0;
 }
 
+.message-item__reaction {
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  margin-right: var(--j-space-300);
+  border-radius: var(--j-border-radius);
+  align-items: center;
+  gap: var(--j-space-300);
+  color: var(--j-color-ui-800);
+  background: var(--j-color-ui-50);
+}
+
+.message-item__reaction:hover {
+  border: 1px solid var(--j-color-ui-200);
+}
+
+.message-item__reaction--me {
+  background: var(--j-color-primary-50);
+  color: var(--j-color-primary-500);
+  border: 1px solid var(--j-color-primary-500);
+}
+
 .message-item:hover {
   background: hsla(var(--j-color-ui-hue), 10%, 50%, 0.06);
 }
@@ -354,7 +376,8 @@ j-button.active {
 }
 
 .message-item--is-replying {
-  background-color: var(--j-color-primary-50) !important;
+  border-left: 2px solid var(--j-color-primary-500);
+  background-color: var(--j-color-ui-50) !important;
 }
 
 .message-item__left-column {

@@ -71,16 +71,20 @@
           v-html="message.content"
         ></div>
         <div class="message-item__reactions">
-          <j-button
+          <button
+            class="message-item__reaction"
+            :class="{
+              'message-item__reaction--me': checkIfAgentMadeReaction(
+                reaction.content
+              ),
+            }"
             @click="() => onEmojiClick(reaction.content)"
-            size="xs"
-            variant="subtle"
             :key="i"
             v-for="(reaction, i) in sortedReactions"
           >
-            {{ reaction.content }}
+            <span>{{ reaction.content }}</span>
             <span>{{ reaction.count }}</span>
-          </j-button>
+          </button>
         </div>
       </div>
 
@@ -107,7 +111,7 @@ import { defineComponent } from "vue";
 import tippy from "tippy.js";
 import { Reaction } from "../types";
 import getMe from "../api/getMe";
-import { LinkExpression } from "@perspect3vism/ad4m";
+import { LinkExpression, Agent } from "@perspect3vism/ad4m";
 
 export default defineComponent({
   emits: [
@@ -128,12 +132,12 @@ export default defineComponent({
   },
   data() {
     return {
-      profile: {} as any,
-      replyProfile: {} as any,
+      me: null as Agent | null,
       toolbarOpen: false,
     };
   },
   async mounted() {
+    this.me = await getMe();
     this.createEmojiPicker();
   },
   computed: {
@@ -158,6 +162,12 @@ export default defineComponent({
     },
   },
   methods: {
+    checkIfAgentMadeReaction(unicode: string) {
+      return this.message.reactions.some(
+        (reaction: LinkExpression) =>
+          reaction.author === this.me?.did && reaction.data.target === unicode
+      );
+    },
     createEmojiPicker() {
       const emojiPicker = document.createElement("emoji-picker");
 
