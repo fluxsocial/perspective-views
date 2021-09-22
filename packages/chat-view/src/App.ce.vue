@@ -135,6 +135,8 @@ const {
 } = useMessages({
   perspectiveUuid,
   onIncomingMessage: () => {
+    // TODO: Scrolledtobottom always return true?
+    //  Might be something about the dynamic scroller thingy
     const scrolledToBottom = isAtBottom(scrollContainer.value);
     if (scrolledToBottom) {
       setTimeout(() => {
