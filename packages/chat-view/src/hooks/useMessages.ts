@@ -9,6 +9,7 @@ import createReply from "../api/createReply";
 import getMessage from "../api/getMessage";
 import createMessageReaction from "../api/createMessageReaction";
 import getPerspectiveMeta from "../api/getPerspectiveMeta";
+import { session } from "../helpers/storageHelpers";
 import {
   PROFILE_EXPRESSION,
   SHORT_FORM_EXPRESSION,
@@ -58,9 +59,18 @@ export default function useMessages({
   watchEffect(async () => {
     if (perspectiveUuid.value) {
       fetchingMessages.value = true;
+
+      // First return cached messages
+      const cachedMessages = session.get("messages");
+      if (cachedMessages) {
+        messages.value = cachedMessages as any;
+      }
+
       messages.value = await getMessages({
         perspectiveUuid: perspectiveUuid.value,
       });
+
+      session.set("messages", messages.value);
 
       fetchingMessages.value = false;
 
