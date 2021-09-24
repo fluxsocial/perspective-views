@@ -1,5 +1,5 @@
 import ad4mClient from "./client";
-import { LinkQuery, Link } from "@perspect3vism/ad4m";
+import { LinkExpression } from "@perspect3vism/ad4m";
 
 export interface Payload {
   perspectiveUuid: string;
@@ -11,14 +11,14 @@ export default async function ({ perspectiveUuid, added, removed }: Payload) {
   try {
     ad4mClient.perspective.addPerspectiveLinkAddedListener(
       perspectiveUuid,
-      (link: any) => {
-        added(link);
+      (link: LinkExpression) => {
+        added(link as LinkExpression);
       }
     );
     ad4mClient.perspective.addPerspectiveLinkRemovedListener(
       perspectiveUuid,
-      (link: any) => {
-        removed(link);
+      (link: LinkExpression) => {
+        removed(link as LinkExpression);
       }
     );
   } catch (e) {

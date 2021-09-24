@@ -110,8 +110,8 @@ import MessageExtension from "./TipTap/Message";
 import renderMention from "./TipTap/renderMention";
 import emojiList from "node-emoji/lib/emoji";
 import { watch, PropType, ref } from "vue";
-import { Message } from "../types";
-import getProfile from "../api/getProfile";
+import { Message } from "junto-utils/types";
+import getProfile from "junto-utils/api/getProfile";
 
 const emit = defineEmits(["change", "send", "removeReply"]);
 

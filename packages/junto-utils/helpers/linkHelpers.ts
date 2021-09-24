@@ -8,3 +8,12 @@ export const findLink = {
     link.data.predicate === "rdf://description",
   language: (link: LinkExpression) => link.data.predicate === "language",
 };
+
+export const linkIs = {
+  message: (link: LinkExpression) =>
+    link.data.source === "sioc://chatchannel" &&
+    link.data.predicate === "sioc://content_of" &&
+    link.proof.valid,
+  reaction: (link: LinkExpression) =>
+    link.data.predicate === "sioc://reaction_to" && link.proof.valid,
+};

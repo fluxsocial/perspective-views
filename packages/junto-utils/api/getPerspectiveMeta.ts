@@ -1,5 +1,5 @@
 import ad4mClient from "./client";
-import { findLink } from "../helpers/perspectiveHelpers";
+import { findLink } from "../helpers/linkHelpers";
 import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
 
 export default async function getPerspectiveMeta(uuid: string) {

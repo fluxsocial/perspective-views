@@ -1,9 +1,12 @@
-import { useEffect, useState } from "preact/hooks";
-import createMessage from "./api/createMessage";
-import getMessages from "./api/getMessages";
-import { sortExpressionsByTimestamp } from "./helpers/expressionHelpers";
-import getPerspectiveMeta from "./api/getPerspectiveMeta";
+import { useState, useContext, useRef, useEffect } from "preact/hooks";
 import VirtualList from "react-tiny-virtual-list";
+
+import {
+  ChatProvider,
+  ChatContext,
+  PerspectiveProvider,
+  PerspectiveContext,
+} from "junto-utils/react";
 
 const headerStyles = {
   display: "flex",
@@ -24,82 +27,66 @@ const footerStyles = {
   borderTop: "1px solid var(--j-border-color",
 };
 
-function usePerspective(id) {
-  const [meta, setMeta] = useState({
-    name: "",
-    description: "",
-    languages: {},
-  });
+const messageStyles = {
+  borderBottom: "1px solid var(--j-border-color)",
+  paddingTop: "var(--j-space-400)",
+  paddingLeft: "var(--j-space-500)",
+  paddingBottom: "var(--j-space-400)",
+  display: "flex",
+  boxSizing: "border-box",
+  gap: "var(--j-space-500)",
+  height: "100%",
+};
 
-  async function getMeta() {
-    const res = await getPerspectiveMeta(id);
-    setMeta(res);
+function MainComponent() {
+  const [inputValue, setInputValue] = useState("");
+  const [scrollToIndex, setScrollToIndex] = useState(undefined);
+
+  const scrollRef = useRef(null);
+
+  const {
+    state: { name },
+  } = useContext(PerspectiveContext);
+
+  const {
+    state: { messages },
+    methods: { sendMessage },
+  } = useContext(ChatContext);
+
+  function getMessageHeight(index) {
+    const message = messages[index];
+    const el = document.createElement("div");
+    el.innerHTML = message.content;
+    el.style.visibility = "hidden";
+    document.body.appendChild(el);
+    const height = el.clientHeight;
+    document.body.removeChild(el);
+    return height + 90;
   }
 
-  useEffect(() => {
-    getMeta();
-  }, []);
-
-  return meta;
-}
-
-export default function MyComponent({ perspectiveUuid = "" }) {
-  const [messages, setMessages] = useState({});
-
-  async function fetchMessages() {
-    const res = await getMessages({ perspectiveUuid });
-    console.log(res);
-    setMessages(res);
-  }
-
-  const sortedMessages = sortExpressionsByTimestamp(messages, "asc");
-
-  const { name, description, languages } = usePerspective(perspectiveUuid);
-
-  function sendMessage(e) {
-    if (e.key === "Enter") {
-      const value = e.target.value;
-      //createMessage({ perspectiveUuid });
+  function handleKeydown(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      sendMessage(e.target.value);
+      setInputValue("");
     }
   }
-
-  useEffect(() => {
-    fetchMessages();
-  }, []);
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <header style={headerStyles}># {name}</header>
       <main style={mainStyles}>
         <VirtualList
+          ref={scrollRef}
           width="100%"
           height="100%"
-          itemCount={sortedMessages.length}
-          itemSize={(i) => {
-            const message = sortedMessages[i];
-            const el = document.createElement("div");
-            el.innerHTML = message.content;
-            el.style.visibility = "hidden";
-            document.body.appendChild(el);
-            const height = el.clientHeight;
-            document.body.removeChild(el);
-            return height + 90;
-          }}
+          scrollToIndex={scrollToIndex}
+          scrollToAlignment="end"
+          itemCount={messages.length}
+          itemSize={getMessageHeight}
           overscanCount={10}
-          renderItem={({ index, style, t = sortedMessages[index] }) => (
+          renderItem={({ index, style, t = messages[index] }) => (
             <div id={t.id} tabIndex={index + 2} key={index} style={style}>
-              <div
-                style={{
-                  borderBottom: "1px solid var(--j-border-color)",
-                  paddingTop: "var(--j-space-400)",
-                  paddingLeft: "var(--j-space-500)",
-                  paddingBottom: "var(--j-space-400)",
-                  display: "flex",
-                  boxSizing: "border-box",
-                  gap: "var(--j-space-500)",
-                  height: "100%",
-                }}
-              >
+              <div style={messageStyles}>
                 <j-flex>
                   <j-avatar size="sm" hash={t.author.did}></j-avatar>
                 </j-flex>
@@ -116,11 +103,32 @@ export default function MyComponent({ perspectiveUuid = "" }) {
         />
       </main>
       <footer style={footerStyles}>
-        <j-input
+        <textarea
+          style={{
+            width: "100%",
+            boxSizing: "border-box",
+            border: "1px solid var(--j-border-color)",
+            fontFamily: "var(--j-font-family)",
+            fontSize: "inherit",
+            paddingTop: "var(--j-space-400)",
+            paddingLeft: "var(--j-space-500)",
+          }}
+          value={inputValue}
+          onInput={(e) => setInputValue(e.target.value)}
           placeholder="Write a message"
-          onKeydown={sendMessage}
-        ></j-input>
+          onKeydown={handleKeydown}
+        ></textarea>
       </footer>
     </div>
+  );
+}
+
+export default function App({ perspectiveUuid = "" }) {
+  return (
+    <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
+      <ChatProvider perspectiveUuid={perspectiveUuid}>
+        <MainComponent></MainComponent>
+      </ChatProvider>
+    </PerspectiveProvider>
   );
 }

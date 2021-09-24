@@ -80,10 +80,10 @@ import { differenceInMinutes, parseISO } from "date-fns";
 import { JSONContent } from "@tiptap/core";
 import { DynamicScroller, DynamicScrollerItem } from "vue-virtual-scroller";
 
-import { scrollToBottom, isAtBottom } from "./helpers/scrollHelpers";
+import { scrollToBottom, isAtBottom } from "junto-utils/helpers/scrollHelpers";
 
-import useMessages from "./hooks/useMessages";
-import usePerspective from "./hooks/usePerspective";
+import useMessages from "junto-utils/vue/useMessages";
+import usePerspective from "junto-utils/vue/usePerspective";
 
 import ChatMessage from "./components/ChatMessage.vue";
 import ChatInput from "./components/ChatInput.vue";

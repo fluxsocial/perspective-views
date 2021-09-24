@@ -126,7 +126,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import tippy from "tippy.js";
-import getMe from "../api/getMe";
+import getMe from "junto-utils/api/getMe";
 import { LinkExpression, Agent } from "@perspect3vism/ad4m";
 
 export default defineComponent({
