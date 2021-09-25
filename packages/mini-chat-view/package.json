@@ -16,7 +16,6 @@
   "dependencies": {
     "junto-utils": "file:../junto-utils",
     "preact": "^10.5.14",
-    "react-tiny-virtual-list": "^2.2.0",
     "react-window": "^1.8.6",
     "subscriptions-transport-ws": "^0.9.19"
   },

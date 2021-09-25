@@ -22,9 +22,11 @@ require("esbuild")
     entryPoints: ["./src/main.ts"],
     bundle: true,
     format: "esm",
+    minify: true,
+    outfile: "dist/main.js",
     watch: process.env.NODE_ENV === "dev" ? true : false,
     inject: ["./preact-shim.js"],
-    outfile: "dist/main.js",
+
     plugins: [preactCompatPlugin],
   })
   .catch(() => process.exit(1));

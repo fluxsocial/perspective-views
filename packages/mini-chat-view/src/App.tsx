@@ -1,5 +1,5 @@
 import { useState, useContext, useRef, useEffect } from "preact/hooks";
-import VirtualList from "react-tiny-virtual-list";
+import { VariableSizeList as List } from "react-window";
 
 import {
   ChatProvider,
@@ -19,7 +19,7 @@ const headerStyles = {
 
 const mainStyles = {
   flex: "1",
-  overflowY: "auto",
+  overflow: "hidden",
 };
 
 const footerStyles = {
@@ -38,11 +38,34 @@ const messageStyles = {
   height: "100%",
 };
 
+function MessageItem({ index, style }) {
+  const {
+    state: { messages },
+  } = useContext(ChatContext);
+
+  const message = messages[index];
+
+  return (
+    <div id={message.id} key={index} style={style}>
+      <div style={messageStyles}>
+        <j-flex>
+          <j-avatar size="sm" hash={message.author.did}></j-avatar>
+        </j-flex>
+        <div>
+          <j-flex gap="300">
+            <j-text>{message.author.username}</j-text>
+            <j-timestamp value={message.timestamp}></j-timestamp>
+          </j-flex>
+          <div dangerouslySetInnerHTML={{ __html: message.content }}></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MainComponent() {
   const [inputValue, setInputValue] = useState("");
-  const [scrollToIndex, setScrollToIndex] = useState(undefined);
-
-  const scrollRef = useRef(null);
+  const scroller = useRef();
 
   const {
     state: { name },
@@ -71,36 +94,26 @@ function MainComponent() {
     }
   }
 
+  useEffect(() => {
+    if (messages.length > 0 && scroller.current) {
+      scroller.current.scrollToItem(messages.length - 1);
+    }
+  }, [messages.length]);
+
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <header style={headerStyles}># {name}</header>
       <main style={mainStyles}>
-        <VirtualList
-          ref={scrollRef}
+        <List
+          ref={scroller}
           width="100%"
-          height="100%"
-          scrollToIndex={scrollToIndex}
-          scrollToAlignment="end"
+          height={800}
           itemCount={messages.length}
           itemSize={getMessageHeight}
           overscanCount={10}
-          renderItem={({ index, style, t = messages[index] }) => (
-            <div id={t.id} tabIndex={index + 2} key={index} style={style}>
-              <div style={messageStyles}>
-                <j-flex>
-                  <j-avatar size="sm" hash={t.author.did}></j-avatar>
-                </j-flex>
-                <div>
-                  <j-flex gap="300">
-                    <j-text>{t.author.username}</j-text>
-                    <j-timestamp value={t.timestamp}></j-timestamp>
-                  </j-flex>
-                  <div dangerouslySetInnerHTML={{ __html: t.content }}></div>
-                </div>
-              </div>
-            </div>
-          )}
-        />
+        >
+          {MessageItem}
+        </List>
       </main>
       <footer style={footerStyles}>
         <textarea
