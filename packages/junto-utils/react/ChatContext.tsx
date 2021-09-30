@@ -1,11 +1,14 @@
 import React, { createContext, useState, useEffect, useRef } from "react";
 import { Messages, Message } from "../types";
+import { Link, LinkExpression } from "@perspect3vism/ad4m";
 import getMessages from "../api/getMessages";
 import createMessage from "../api/createMessage";
 import subscribeToLinks from "../api/subscribeToLinks";
 import getPerspectiveMeta from "../api/getPerspectiveMeta";
 import getMessage from "../api/getMessage";
 import { linkIs } from "../helpers/linkHelpers";
+import deleteMessageReaction from "../api/deleteMessageReaction";
+import createMessageReaction from "../api/createMessageReaction";
 import {
   PROFILE_EXPRESSION,
   SHORT_FORM_EXPRESSION,
@@ -19,6 +22,8 @@ type State = {
 type ContextProps = {
   state: State;
   methods: {
+    removeReaction: (linkExpression: LinkExpression) => void;
+    addReaction: (messageUrl: string, reaction: string) => void;
     sendMessage: (message: string) => void;
   };
 };
@@ -28,6 +33,8 @@ const initialState: ContextProps = {
     keyedMessages: {},
   },
   methods: {
+    removeReaction: () => null,
+    addReaction: () => null,
     sendMessage: () => null,
   },
 };
@@ -57,6 +64,13 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }
   }, [profileHash]);
 
+  // Save every change to keyedMessages to localstorage
+  // This might be a it slow?
+  useEffect(() => {
+    console.log("setting new state");
+    sessionStorage.setItem("messages", JSON.stringify(state.keyedMessages));
+  }, [JSON.stringify(state.keyedMessages)]);
+
   async function fetchLanguages() {
     const { languages } = await getPerspectiveMeta(perspectiveUuid);
     setShortFormHash(languages[SHORT_FORM_EXPRESSION]);
@@ -64,32 +78,73 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   }
 
   function addMessage(oldState, message) {
-    const newMessages = {
-      ...oldState.keyedMessages,
-      [message.id]: { ...message },
-    };
     const newState = {
       ...oldState,
-      keyedMessages: newMessages,
+      keyedMessages: {
+        ...oldState.keyedMessages,
+        [message.id]: { ...message },
+      },
     };
-    sessionStorage.setItem("messages", JSON.stringify(newMessages));
     return newState;
   }
 
   async function handleLinkAdded(link) {
+    console.log("handle link added", link);
     if (linkIs.message(link)) {
-      console.log(profileHash);
       const message = await getMessage({
         link,
         perspectiveUuid: perspectiveUuid,
         profileLangAddress: profileHash,
       });
 
-      setState((oldVal) => addMessage(oldVal, message));
+      setState((oldState) => addMessage(oldState, message));
+    }
+
+    if (linkIs.reaction(link)) {
+      const id = link.data.source;
+
+      setState((oldState) => {
+        const message = oldState.keyedMessages[id];
+
+        return {
+          ...oldState,
+          keyedMessages: {
+            ...oldState.keyedMessages,
+            [id]: {
+              ...message,
+              reactions: [...message.reactions, { ...link }],
+            },
+          },
+        };
+      });
     }
   }
 
-  async function handleLinkRemoved(link) {}
+  async function handleLinkRemoved(link) {
+    console.log("handle link removed", link);
+    //TODO: link.proof.valid === false when we recive
+    // the remove link somehow. Ad4m bug?
+    if (link.data.predicate === "sioc://reaction_to") {
+      const id = link.data.source;
+
+      setState((oldState) => {
+        const message = oldState.keyedMessages[id];
+
+        return {
+          ...oldState,
+          keyedMessages: {
+            ...oldState.keyedMessages,
+            [id]: {
+              ...message,
+              reactions: message.reactions.filter(
+                (reaction) => reaction.data.target !== link.data.target
+              ),
+            },
+          },
+        };
+      });
+    }
+  }
 
   async function fetchMessages() {
     const cachedMessages = sessionStorage.getItem("messages");
@@ -105,14 +160,33 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       ...state,
       keyedMessages: res,
     });
-    sessionStorage.setItem("messages", JSON.stringify(res));
   }
 
-  function sendMessage(value) {
+  async function sendMessage(value) {
+    // TODO: Why is sendMessage initialized with old shortformhas value
+    const { languages } = await getPerspectiveMeta(perspectiveUuid);
+
     createMessage({
       perspectiveUuid,
-      languageAddress: shortFormHash,
+      languageAddress: languages[SHORT_FORM_EXPRESSION],
       message: { background: [""], body: value },
+    });
+  }
+
+  async function addReaction(messageUrl: string, reaction: string) {
+    console.log("addReaction");
+    createMessageReaction({
+      perspectiveUuid,
+      messageUrl,
+      reaction,
+    });
+  }
+
+  async function removeReaction(linkExpression: LinkExpression) {
+    console.log("removeReaction", linkExpression);
+    return deleteMessageReaction({
+      perspectiveUuid,
+      linkExpression,
     });
   }
 
@@ -122,6 +196,8 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
         state: { ...state, messages },
         methods: {
           sendMessage,
+          addReaction,
+          removeReaction,
         },
       }}
     >

@@ -10,6 +10,14 @@
         padding: 0;
         margin: 0;
       }
+      html {
+        box-sizing: border-box;
+      }
+      *,
+      *:before,
+      *:after {
+        box-sizing: inherit;
+      }
     </style>
     <link
       rel="stylesheet"
@@ -20,7 +28,7 @@
   <body>
     <mini-chat-view
       style="height: 100vh; display: block"
-      perspective-uuid="728aa60b-a96f-4315-9458-5b13a4da9357"
+      perspective-uuid="771f3b47-99ba-41e5-bd9c-209c03e09f0e"
     ></mini-chat-view>
     <script type="module">
       import MiniChatView from "./dist/main.js";
