@@ -1,11 +1,7 @@
 import { useState, useContext, useRef, useEffect } from "preact/hooks";
-import { VariableSizeList as List } from "react-window";
-import AutoSizer from "react-virtualized-auto-sizer";
 import { ChatContext } from "junto-utils/react";
-import useChatScroll from "../hooks/useChatViewScroll";
 import MessageItem from "./MessageItem";
 import { differenceInMinutes, parseISO } from "date-fns";
-import { ReactRenderer } from "@tiptap/react";
 
 import { Virtuoso } from "react-virtuoso";
 

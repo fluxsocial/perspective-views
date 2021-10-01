@@ -4,8 +4,7 @@ import TipTap from "./TipTap";
 
 const footerStyles = {
   background: "var(--j-color-white)",
-  padding: "var(--j-space-500)",
-  borderTop: "1px solid var(--j-border-color)",
+  padding: "0 var(--j-space-500) var(--j-space-400) var(--j-space-500)",
 };
 
 export default function Footer() {

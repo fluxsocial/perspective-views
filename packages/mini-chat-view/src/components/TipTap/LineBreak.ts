@@ -31,10 +31,10 @@ export default Node.create({
   group: "inline",
   selectable: false,
   parseHTML() {
-    return [{ tag: "p" }];
+    return [{ tag: "br" }];
   },
   renderHTML({ HTMLAttributes }) {
-    return ["p", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)];
+    return ["br", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)];
   },
   addCommands() {
     return {

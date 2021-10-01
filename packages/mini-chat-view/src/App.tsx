@@ -2,7 +2,11 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import MessageList from "./components/MessageList";
 
-import { ChatProvider, PerspectiveProvider } from "junto-utils/react";
+import {
+  ChatProvider,
+  PerspectiveProvider,
+  AgentProvider,
+} from "junto-utils/react";
 
 const containerStyles = {
   height: "100%",
@@ -35,10 +39,12 @@ function MainComponent() {
 
 export default function App({ perspectiveUuid = "" }) {
   return (
-    <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
-      <ChatProvider perspectiveUuid={perspectiveUuid}>
-        <MainComponent></MainComponent>
-      </ChatProvider>
-    </PerspectiveProvider>
+    <AgentProvider>
+      <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
+        <ChatProvider perspectiveUuid={perspectiveUuid}>
+          <MainComponent></MainComponent>
+        </ChatProvider>
+      </PerspectiveProvider>
+    </AgentProvider>
   );
 }
