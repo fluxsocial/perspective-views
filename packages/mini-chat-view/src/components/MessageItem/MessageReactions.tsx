@@ -34,6 +34,8 @@ export default function MessageReactions({ onEmojiClick, reactions = [] }) {
         return (
           <button
             style={{
+              background: "var(--j-color-white)",
+              color: "var(--j-color-black)",
               display: "flex",
               gap: "var(--j-space-200)",
               alignItems: "center",

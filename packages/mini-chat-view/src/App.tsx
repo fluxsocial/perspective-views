@@ -25,6 +25,20 @@ const style = `
   padding-bottom: 0;
   margin-bottom: 0;
 }
+
+emoji-picker {
+  --background: var(--j-color-white);
+  --border-color: #e0e0e0;
+  --indicator-color: #385ac1;
+  --input-border-color: #999;
+  --input-font-color: #111;
+  --input-placeholder-color: #999;
+  --outline-color: #999;
+  --category-font-color: #111;
+  --button-active-background: #e6e6e6;
+  --button-hover-background: #d9d9d9;
+}
+
 `;
 
 function MainComponent() {
