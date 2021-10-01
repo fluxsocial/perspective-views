@@ -43,8 +43,9 @@ export default function Tiptap({ value, onChange, onSend }) {
       Document.extend({
         addKeyboardShortcuts: () => {
           return {
-            Enter: () => {
-              onSend();
+            Enter: (props) => {
+              const value = props.editor.getHTML();
+              onSend(value);
               // Prevents us from getting a new paragraph if user pressed Enter
               return true;
             },
@@ -174,7 +175,7 @@ export default function Tiptap({ value, onChange, onSend }) {
           paddingTop: "var(--j-space-300)",
           paddingBottom: "var(--j-space-300)",
           borderRadius: "var(--j-border-radius)",
-          border: "1px solid var(--j-color-primary-500)",
+          border: "1px solid var(--j-border-color)",
           display: "flex",
           boxSizing: "border-box",
         }}

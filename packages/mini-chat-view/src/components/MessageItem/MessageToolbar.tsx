@@ -1,7 +1,7 @@
-import { useRef, useEffect, useCallback } from "preact/hooks";
+import { useRef, useEffect } from "preact/hooks";
 import tippy from "tippy.js";
 
-export default function MessageToolbar({ onEmojiClick }) {
+export default function MessageToolbar({ onReplyClick, onEmojiClick }) {
   const emojiButton = useRef();
   const emojiPicker = useRef(document.createElement("emoji-picker"));
 
@@ -61,7 +61,7 @@ export default function MessageToolbar({ onEmojiClick }) {
         </j-button>
       </j-tooltip>
       <j-tooltip placement="top" title="Reply">
-        <j-button onClick="onReplyClick" variant="ghost" size="sm">
+        <j-button onClick={onReplyClick} variant="ghost" size="sm">
           <j-icon size="sm" name="reply"></j-icon>
         </j-button>
       </j-tooltip>

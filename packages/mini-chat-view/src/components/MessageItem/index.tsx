@@ -2,10 +2,11 @@ import { useContext } from "preact/hooks";
 import { ChatContext } from "junto-utils/react";
 import { Reaction } from "junto-utils/types";
 import getMe from "junto-utils/api/getMe";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
 import MessageToolbar from "./MessageToolbar";
 import MessageReactions from "./MessageReactions";
+import UIContext from "../../context/UIContext";
 
 const Message = styled.div`
   padding-top: var(--j-space-400);
@@ -19,6 +20,15 @@ const Message = styled.div`
   &:hover {
     background: rgba(0, 0, 0, 0.02);
   }
+
+  ${(props) =>
+    props.isReplying &&
+    css`
+      background: var(--j-color-primary-50);
+      &:hover {
+        background: var(--j-color-primary-50);
+      }
+    `}
 
   & .timestamp-left {
     opacity: 0;
@@ -39,11 +49,20 @@ const Message = styled.div`
 
 export default function MessageItem({ index, style, showAvatar }) {
   const {
-    state: { messages },
+    state: { messages, keyedMessages },
     methods: { addReaction, removeReaction },
   } = useContext(ChatContext);
 
+  const {
+    state: { currentReply },
+    methods: { setCurrentReply },
+  } = useContext(UIContext);
+
   const message = messages[index];
+
+  function onReplyClick() {
+    setCurrentReply(message.url);
+  }
 
   async function onEmojiClick(unicode: string) {
     const me = await getMe();
@@ -61,7 +80,7 @@ export default function MessageItem({ index, style, showAvatar }) {
 
   return (
     <div id={message.id} key={index} style={style}>
-      <Message>
+      <Message isReplying={keyedMessages[currentReply]?.url === message.url}>
         <div>
           {showAvatar ? (
             <j-flex>
@@ -99,7 +118,10 @@ export default function MessageItem({ index, style, showAvatar }) {
           )}
         </div>
         <div className="toolbar">
-          <MessageToolbar onEmojiClick={onEmojiClick} />
+          <MessageToolbar
+            onReplyClick={onReplyClick}
+            onEmojiClick={onEmojiClick}
+          />
         </div>
       </Message>
     </div>

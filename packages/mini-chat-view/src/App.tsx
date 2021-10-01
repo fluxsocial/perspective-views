@@ -7,6 +7,7 @@ import {
   PerspectiveProvider,
   AgentProvider,
 } from "junto-utils/react";
+import { UIProvider } from "./context/UIContext";
 
 const containerStyles = {
   height: "100%",
@@ -39,12 +40,14 @@ function MainComponent() {
 
 export default function App({ perspectiveUuid = "" }) {
   return (
-    <AgentProvider>
-      <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
-        <ChatProvider perspectiveUuid={perspectiveUuid}>
-          <MainComponent></MainComponent>
-        </ChatProvider>
-      </PerspectiveProvider>
-    </AgentProvider>
+    <UIProvider>
+      <AgentProvider>
+        <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
+          <ChatProvider perspectiveUuid={perspectiveUuid}>
+            <MainComponent></MainComponent>
+          </ChatProvider>
+        </PerspectiveProvider>
+      </AgentProvider>
+    </UIProvider>
   );
 }
