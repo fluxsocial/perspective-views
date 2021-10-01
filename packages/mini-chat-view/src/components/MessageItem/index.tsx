@@ -1,4 +1,4 @@
-import { useContext } from "preact/hooks";
+import { useContext, useEffect } from "preact/hooks";
 import { ChatContext } from "junto-utils/react";
 import { Reaction } from "junto-utils/types";
 import getMe from "junto-utils/api/getMe";
@@ -8,6 +8,18 @@ import MessageToolbar from "./MessageToolbar";
 import MessageReactions from "./MessageReactions";
 import UIContext from "../../context/UIContext";
 
+const ReplyLine = styled.div`
+  display: block;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 70%;
+  height: 15px;
+  border-left: 2px solid var(--j-color-ui-200);
+  border-top: 2px solid var(--j-color-ui-200);
+  border-top-left-radius: var(--j-border-radius);
+`;
+
 const Message = styled.div`
   padding-top: var(--j-space-400);
   padding-left: var(--j-space-500);
@@ -16,6 +28,7 @@ const Message = styled.div`
   position: relative;
   grid-template-columns: 60px 1fr;
   column-gap: var(--j-space-500);
+  row-gap: var(--j-space-300);
 
   &:hover {
     background: rgba(0, 0, 0, 0.02);
@@ -78,35 +91,74 @@ export default function MessageItem({ index, style, showAvatar }) {
     }
   }
 
+  const replyMessage = keyedMessages[message.replyUrl];
+
   return (
     <div id={message.id} key={index} style={style}>
       <Message isReplying={keyedMessages[currentReply]?.url === message.url}>
+        {replyMessage && (
+          <>
+            <div style={{ position: "relative" }}>
+              <ReplyLine />
+            </div>
+            <j-flex gap="300" a="center">
+              <j-flex a="center" gap="300">
+                <j-avatar
+                  style="--j-avatar-size: 20px"
+                  hash={replyMessage.author.did}
+                ></j-avatar>
+                <j-text nomargin>{replyMessage.author.username}</j-text>
+              </j-flex>
+              <div
+                style="font-size: var(--j-font-size-400)"
+                dangerouslySetInnerHTML={{ __html: replyMessage.content }}
+              ></div>
+            </j-flex>
+          </>
+        )}
         <div>
-          {showAvatar ? (
+          {replyMessage || showAvatar ? (
             <j-flex>
               <j-avatar hash={message.author.did}></j-avatar>
             </j-flex>
           ) : (
-            <j-timestamp
-              className="timestamp-left"
-              style={{ fontSize: "var(--j-font-size-300)" }}
-              hour="numeric"
-              minute="numeric"
-              value={message.timestamp}
-            ></j-timestamp>
+            <j-tooltip>
+              <j-timestamp
+                slot="title"
+                value={message.timestamp}
+                dateStyle="medium"
+                timeStyle="short"
+              ></j-timestamp>
+              <j-timestamp
+                className="timestamp-left"
+                style={{ fontSize: "var(--j-font-size-300)" }}
+                hour="numeric"
+                minute="numeric"
+                value={message.timestamp}
+              ></j-timestamp>
+            </j-tooltip>
           )}
         </div>
         <div>
-          {showAvatar && (
+          {(replyMessage || showAvatar) && (
             <j-flex gap="300">
               <j-text>{message.author.username}</j-text>
-              <j-timestamp
-                style={{ fontSize: "var(--j-font-size-300)" }}
-                relative
-                value={message.timestamp}
-              ></j-timestamp>
+              <j-tooltip>
+                <j-timestamp
+                  slot="title"
+                  value={message.timestamp}
+                  dateStyle="medium"
+                  timeStyle="short"
+                ></j-timestamp>
+                <j-timestamp
+                  style={{ fontSize: "var(--j-font-size-300)" }}
+                  relative
+                  value={message.timestamp}
+                ></j-timestamp>
+              </j-tooltip>
             </j-flex>
           )}
+
           <div dangerouslySetInnerHTML={{ __html: message.content }}></div>
           {message.reactions.length > 0 && (
             <j-box pt="400">

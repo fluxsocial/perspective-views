@@ -16,7 +16,7 @@ export default function Footer() {
 
   const {
     state: { keyedMessages },
-    methods: { sendMessage },
+    methods: { sendMessage, sendReply },
   } = useContext(ChatContext);
 
   const {
@@ -24,13 +24,18 @@ export default function Footer() {
     methods: { setCurrentReply },
   } = useContext(UIContext);
 
-  function handleSendMessage(value) {
-    console.log(value);
-    sendMessage(value);
-    setInputValue("");
-  }
-
   const currentReplyMessage = keyedMessages[currentReply];
+
+  function handleSendMessage(value) {
+    if (currentReplyMessage) {
+      sendReply(value, currentReplyMessage.url);
+    } else {
+      sendMessage(value);
+    }
+
+    setInputValue("");
+    setCurrentReply("");
+  }
 
   return (
     <footer style={footerStyles}>

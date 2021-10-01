@@ -9,6 +9,7 @@ import getMessage from "../api/getMessage";
 import { linkIs } from "../helpers/linkHelpers";
 import deleteMessageReaction from "../api/deleteMessageReaction";
 import createMessageReaction from "../api/createMessageReaction";
+import createReply from "../api/createReply";
 import {
   PROFILE_EXPRESSION,
   SHORT_FORM_EXPRESSION,
@@ -22,6 +23,7 @@ type State = {
 type ContextProps = {
   state: State;
   methods: {
+    sendReply: (message: string, replyUrl: string) => void;
     removeReaction: (linkExpression: LinkExpression) => void;
     addReaction: (messageUrl: string, reaction: string) => void;
     sendMessage: (message: string) => void;
@@ -33,6 +35,7 @@ const initialState: ContextProps = {
     keyedMessages: {},
   },
   methods: {
+    sendReply: () => null,
     removeReaction: () => null,
     addReaction: () => null,
     sendMessage: () => null,
@@ -173,6 +176,15 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     });
   }
 
+  async function sendReply(message: string, replyUrl: string) {
+    return createReply({
+      perspectiveUuid: perspectiveUuid,
+      languageAddress: shortFormHash,
+      message: { background: [""], body: message },
+      replyUrl,
+    });
+  }
+
   async function addReaction(messageUrl: string, reaction: string) {
     console.log("addReaction");
     createMessageReaction({
@@ -197,6 +209,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
         methods: {
           sendMessage,
           addReaction,
+          sendReply,
           removeReaction,
         },
       }}

@@ -25,6 +25,12 @@ export default function Tiptap({ value, onChange, onSend }) {
 
   const emojiPicker = useRef();
 
+  // This is needed because React ugh.
+  const sendCB = useRef(onSend);
+  useEffect(() => {
+    sendCB.current = onSend;
+  }, [onSend]);
+
   useEffect(() => {
     if (emojiPicker.current) {
       emojiPicker.current.addEventListener("emoji-click", onEmojiClick);
@@ -45,7 +51,7 @@ export default function Tiptap({ value, onChange, onSend }) {
           return {
             Enter: (props) => {
               const value = props.editor.getHTML();
-              onSend(value);
+              sendCB.current(value);
               // Prevents us from getting a new paragraph if user pressed Enter
               return true;
             },
