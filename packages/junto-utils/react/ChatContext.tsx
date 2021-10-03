@@ -17,12 +17,14 @@ import {
 import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
 
 type State = {
+  isFetchingMessages: boolean;
   keyedMessages: Messages;
 };
 
 type ContextProps = {
   state: State;
   methods: {
+    loadMore: () => void;
     sendReply: (message: string, replyUrl: string) => void;
     removeReaction: (linkExpression: LinkExpression) => void;
     addReaction: (messageUrl: string, reaction: string) => void;
@@ -32,9 +34,11 @@ type ContextProps = {
 
 const initialState: ContextProps = {
   state: {
+    isFetchingMessages: false,
     keyedMessages: {},
   },
   methods: {
+    loadMore: () => null,
     sendReply: () => null,
     removeReaction: () => null,
     addReaction: () => null,
@@ -149,20 +153,35 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }
   }
 
-  async function fetchMessages() {
+  async function fetchMessages(payload?: { from?: Date }) {
+    setState((oldState) => ({
+      ...oldState,
+      isFetchingMessages: true,
+    }));
+
     const cachedMessages = sessionStorage.getItem("messages");
+
     if (cachedMessages) {
       const msgs = JSON.parse(cachedMessages);
-      setState({
-        ...state,
+      setState((oldState) => ({
+        ...oldState,
         keyedMessages: msgs,
-      });
+      }));
     }
-    const res = await getMessages({ perspectiveUuid });
-    setState({
-      ...state,
-      keyedMessages: res,
+    const res = await getMessages({
+      perspectiveUuid,
+      from: payload?.from,
     });
+
+    setState((oldState) => ({
+      ...oldState,
+      keyedMessages: res,
+    }));
+
+    setState((oldState) => ({
+      ...oldState,
+      isFetchingMessages: false,
+    }));
   }
 
   async function sendMessage(value) {
@@ -202,11 +221,19 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     });
   }
 
+  async function loadMore() {
+    const oldestMessage = messages[0];
+    fetchMessages({
+      from: new Date(oldestMessage.timestamp),
+    });
+  }
+
   return (
     <ChatContext.Provider
       value={{
         state: { ...state, messages },
         methods: {
+          loadMore,
           sendMessage,
           addReaction,
           sendReply,

@@ -52,15 +52,25 @@ const Message = styled.div`
   }
 
   & .toolbar {
+    position: absolute;
+    width: 100%;
     opacity: 0;
   }
 
   &:hover .toolbar {
     opacity: 1;
   }
+
+  & .message-item__content p:first-of-type {
+    margin-top: 0;
+  }
+
+  & .message-item__content p:last-of-type {
+    margin-bottom: 0;
+  }
 `;
 
-export default function MessageItem({ index, style, showAvatar }) {
+export default function MessageItem({ index, showAvatar }) {
   const {
     state: { messages, keyedMessages },
     methods: { addReaction, removeReaction },
@@ -72,6 +82,8 @@ export default function MessageItem({ index, style, showAvatar }) {
   } = useContext(UIContext);
 
   const message = messages[index];
+
+  if (!message) return null;
 
   function onReplyClick() {
     setCurrentReply(message.url);
@@ -91,10 +103,10 @@ export default function MessageItem({ index, style, showAvatar }) {
     }
   }
 
-  const replyMessage = keyedMessages[message.replyUrl];
+  const replyMessage = keyedMessages[message?.replyUrl];
 
   return (
-    <div id={message.id} key={index} style={style}>
+    <div key={index}>
       <Message isReplying={keyedMessages[currentReply]?.url === message.url}>
         {replyMessage && (
           <>
@@ -119,7 +131,10 @@ export default function MessageItem({ index, style, showAvatar }) {
         <div>
           {replyMessage || showAvatar ? (
             <j-flex>
-              <j-avatar hash={message.author.did}></j-avatar>
+              <j-avatar
+                src={message.author.profileImage}
+                hash={message.author.did}
+              ></j-avatar>
             </j-flex>
           ) : (
             <j-tooltip>
@@ -159,7 +174,10 @@ export default function MessageItem({ index, style, showAvatar }) {
             </j-flex>
           )}
 
-          <div dangerouslySetInnerHTML={{ __html: message.content }}></div>
+          <div
+            className="message-item__content"
+            dangerouslySetInnerHTML={{ __html: message.content }}
+          ></div>
           {message.reactions.length > 0 && (
             <j-box pt="400">
               <MessageReactions

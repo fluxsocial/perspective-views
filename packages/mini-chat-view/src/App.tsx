@@ -28,7 +28,7 @@ const style = `
 
 emoji-picker {
   --background: var(--j-color-white);
-  --border-color: #e0e0e0;
+  --border-color: var(--j-border-color);
   --indicator-color: #385ac1;
   --input-border-color: #999;
   --input-font-color: #111;

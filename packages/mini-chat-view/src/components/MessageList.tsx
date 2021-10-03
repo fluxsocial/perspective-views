@@ -15,7 +15,8 @@ export default function MessageList() {
   const scroller = useRef();
 
   const {
-    state: { messages },
+    state: { messages, isFetchingMessages },
+    methods: { loadMore },
   } = useContext(ChatContext);
 
   useEffect(() => {
@@ -49,10 +50,6 @@ export default function MessageList() {
     }
   }
 
-  function loadMore() {
-    console.log("loadmore");
-  }
-
   return (
     <main style={mainStyles}>
       {hasUnreadMessages && (
@@ -71,9 +68,27 @@ export default function MessageList() {
         </j-button>
       )}
       <Virtuoso
+        components={{
+          Header: () => (
+            <j-box py="500">
+              <j-flex a="center" j="center">
+                {isFetchingMessages ? (
+                  <j-flex a="center" gap="300">
+                    <span>Loading</span>
+                    <j-spinner size="xxs"></j-spinner>
+                  </j-flex>
+                ) : (
+                  <j-button size="sm" onClick={loadMore} variant="subtle">
+                    Load more
+                  </j-button>
+                )}
+              </j-flex>
+            </j-box>
+          ),
+        }}
         ref={scroller}
         startReached={loadMore}
-        overscan={10}
+        alignToBottom
         endReached={() => setHasUnreadMessages(false)}
         style={{ height: "100%" }}
         totalCount={messages.length}
