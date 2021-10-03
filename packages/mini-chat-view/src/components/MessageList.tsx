@@ -27,7 +27,6 @@ export default function MessageList() {
     if (scroller.current) {
       scroller.current.scrollToIndex({
         index: messages.length - 1,
-        behavior: "smooth",
       });
       setHasUnreadMessages(false);
     }
@@ -87,13 +86,17 @@ export default function MessageList() {
           ),
         }}
         ref={scroller}
-        startReached={loadMore}
         alignToBottom
+        startReached={() => console.log("start reached")}
         endReached={() => setHasUnreadMessages(false)}
         style={{ height: "100%" }}
+        overscan={10}
         totalCount={messages.length}
         itemContent={(index) => (
-          <MessageItem index={index} showAvatar={showAvatar(index)} />
+          <MessageItem
+            showAvatar={showAvatar(index)}
+            index={index}
+          ></MessageItem>
         )}
       />
     </main>
