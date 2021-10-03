@@ -32,8 +32,8 @@ export function AgentProvider({ children }: any) {
 
   async function fetchAgent() {
     const agent = await getMe();
-    console.log(agent);
-    setState({ ...state });
+
+    setState({ ...state, ...agent });
   }
 
   return (
