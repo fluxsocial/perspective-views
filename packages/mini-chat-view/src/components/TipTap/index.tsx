@@ -186,8 +186,10 @@ export default function Tiptap({ value, onChange, onSend }) {
           boxSizing: "border-box",
         }}
       >
-        <EditorContent style={{ width: "100%" }} editor={editor} />
-
+        <EditorContent
+          style={{ width: "100%", paddingTop: "var(--j-space-200)" }}
+          editor={editor}
+        />
         <j-flex>
           <j-popover placement="top">
             <j-button slot="trigger" variant="ghost" size="sm">
@@ -204,7 +206,11 @@ export default function Tiptap({ value, onChange, onSend }) {
           >
             <j-icon size="sm" name="type"></j-icon>
           </j-button>
-          <j-button onClick="sendMessage" variant="primary" size="sm">
+          <j-button
+            onClick={() => sendCB.current(editor.getHTML())}
+            variant="primary"
+            size="sm"
+          >
             <j-icon name="arrow-right-short"></j-icon>
           </j-button>
         </j-flex>
