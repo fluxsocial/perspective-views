@@ -224,7 +224,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   async function loadMore() {
     const oldestMessage = messages[0];
     fetchMessages({
-      from: new Date(oldestMessage.timestamp),
+      from: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
     });
   }
 
