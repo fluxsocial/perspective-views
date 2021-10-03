@@ -106,37 +106,57 @@ export default function MessageItem({ index, showAvatar }) {
   const replyMessage = keyedMessages[message?.replyUrl];
 
   return (
-    <div key={index}>
-      <Message isReplying={keyedMessages[currentReply]?.url === message.url}>
-        {replyMessage && (
-          <>
-            <div style={{ position: "relative" }}>
-              <ReplyLine />
-            </div>
-            <j-flex gap="300" a="center">
-              <j-flex a="center" gap="300">
-                <j-avatar
-                  style="--j-avatar-size: 20px"
-                  hash={replyMessage.author.did}
-                ></j-avatar>
-                <j-text nomargin>{replyMessage.author.username}</j-text>
-              </j-flex>
-              <div
-                style="font-size: var(--j-font-size-400)"
-                dangerouslySetInnerHTML={{ __html: replyMessage.content }}
-              ></div>
-            </j-flex>
-          </>
-        )}
-        <div>
-          {replyMessage || showAvatar ? (
-            <j-flex>
+    <Message isReplying={keyedMessages[currentReply]?.url === message.url}>
+      {replyMessage && (
+        <>
+          <div style={{ position: "relative" }}>
+            <ReplyLine />
+          </div>
+          <j-flex gap="300" a="center">
+            <j-flex a="center" gap="300">
               <j-avatar
-                src={message.author.profileImage}
-                hash={message.author.did}
+                style="--j-avatar-size: 20px"
+                hash={replyMessage.author.did}
               ></j-avatar>
+              <j-text nomargin>{replyMessage.author.username}</j-text>
             </j-flex>
-          ) : (
+            <div
+              style="font-size: var(--j-font-size-400)"
+              dangerouslySetInnerHTML={{ __html: replyMessage.content }}
+            ></div>
+          </j-flex>
+        </>
+      )}
+      <div>
+        {replyMessage || showAvatar ? (
+          <j-flex>
+            <j-avatar
+              src={message.author.profileImage}
+              hash={message.author.did}
+            ></j-avatar>
+          </j-flex>
+        ) : (
+          <j-tooltip>
+            <j-timestamp
+              slot="title"
+              value={message.timestamp}
+              dateStyle="medium"
+              timeStyle="short"
+            ></j-timestamp>
+            <j-timestamp
+              className="timestamp-left"
+              style={{ fontSize: "var(--j-font-size-300)" }}
+              hour="numeric"
+              minute="numeric"
+              value={message.timestamp}
+            ></j-timestamp>
+          </j-tooltip>
+        )}
+      </div>
+      <div>
+        {(replyMessage || showAvatar) && (
+          <j-flex gap="300">
+            <j-text>{message.author.username}</j-text>
             <j-tooltip>
               <j-timestamp
                 slot="title"
@@ -145,55 +165,33 @@ export default function MessageItem({ index, showAvatar }) {
                 timeStyle="short"
               ></j-timestamp>
               <j-timestamp
-                className="timestamp-left"
                 style={{ fontSize: "var(--j-font-size-300)" }}
-                hour="numeric"
-                minute="numeric"
+                relative
                 value={message.timestamp}
               ></j-timestamp>
             </j-tooltip>
-          )}
-        </div>
-        <div>
-          {(replyMessage || showAvatar) && (
-            <j-flex gap="300">
-              <j-text>{message.author.username}</j-text>
-              <j-tooltip>
-                <j-timestamp
-                  slot="title"
-                  value={message.timestamp}
-                  dateStyle="medium"
-                  timeStyle="short"
-                ></j-timestamp>
-                <j-timestamp
-                  style={{ fontSize: "var(--j-font-size-300)" }}
-                  relative
-                  value={message.timestamp}
-                ></j-timestamp>
-              </j-tooltip>
-            </j-flex>
-          )}
+          </j-flex>
+        )}
 
-          <div
-            className="message-item__content"
-            dangerouslySetInnerHTML={{ __html: message.content }}
-          ></div>
-          {message.reactions.length > 0 && (
-            <j-box pt="400">
-              <MessageReactions
-                onEmojiClick={onEmojiClick}
-                reactions={message.reactions}
-              />
-            </j-box>
-          )}
-        </div>
-        <div className="toolbar">
-          <MessageToolbar
-            onReplyClick={onReplyClick}
-            onEmojiClick={onEmojiClick}
-          />
-        </div>
-      </Message>
-    </div>
+        <div
+          className="message-item__content"
+          dangerouslySetInnerHTML={{ __html: message.content }}
+        ></div>
+        {message.reactions.length > 0 && (
+          <j-box pt="400">
+            <MessageReactions
+              onEmojiClick={onEmojiClick}
+              reactions={message.reactions}
+            />
+          </j-box>
+        )}
+      </div>
+      <div className="toolbar">
+        <MessageToolbar
+          onReplyClick={onReplyClick}
+          onEmojiClick={onEmojiClick}
+        />
+      </div>
+    </Message>
   );
 }
