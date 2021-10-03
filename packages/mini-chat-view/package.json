@@ -1,20 +1,31 @@
 {
-  "name": "mini-chat-view",
-  "version": "1.0.0",
+  "name": "junto-plugin-chat-view-simple",
+  "version": "0.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./dist/main.js",
+  "module": "./dist/main.js",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/main.js",
+      "require": "./dist/main.js"
+    }
+  },
   "scripts": {
+    "prepare": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "node esbuild.js",
     "dev": "NODE_ENV=dev run-p dev:**",
     "dev:build": "node esbuild.js",
-    "dev:serve": "npx live-server"
+    "dev:serve": "npx live-server",
+    "release": "np --no-tests"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@emotion/react": "^11.4.1",
     "@tiptap/core": "^2.0.0-beta.66",
     "@tiptap/extension-bold": "^2.0.0-beta.13",
     "@tiptap/extension-bullet-list": "^2.0.0-beta.14",
@@ -43,6 +54,7 @@
   },
   "devDependencies": {
     "esbuild": "^0.13.1",
+    "np": "^7.5.0",
     "npm-run-all": "^4.1.5"
   }
 }
