@@ -1,11 +1,22 @@
 import { FunctionalComponent, h } from 'preact';
 import Overlay from './overlay';
 import '../style/app.css'
+import { UIProvider } from '../context/UIContext';
+import {
+    PerspectiveProvider,
+    AgentProvider,
+} from "junto-utils/react";
 
-const App: FunctionalComponent = () => {
+const App: FunctionalComponent = ({ perspectiveUuid = "" }: any) => {
     return (
         <div id="preact_root">
-            <Overlay />
+            <UIProvider>
+                <AgentProvider>
+                    <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
+                        <Overlay />
+                    </PerspectiveProvider>
+                </AgentProvider>
+            </UIProvider>
         </div>
     );
 };
