@@ -1,0 +1,54 @@
+.overlay {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /* display: none;
+  opacity: 0; */
+  transition: all 0.2s;
+  padding: 20px;
+  color: rgb(212, 212, 212);
+}
+
+.overlay__top,
+.overlay__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.overlay__channelName {
+  display: flex;
+  align-items: center;
+}
+
+.overlay__channelName > div {
+  margin-left: 20px;
+  font-size: 20px;
+  user-select: none;
+}
+
+.overlay__callOptions {
+  display: flex;
+  align-items: center;
+}
+
+.overlay__btn {
+  margin-right: 20px;
+}
+
+.overlay__btn:nth-child(4) { 
+  margin-right: 0px;
+}
+
+j-button[color="red"]::part(base) {
+  background-color: red;
+}
+
+j-button[color="red"]::part(base):hover {
+  background-color: rgb(219, 0, 0);
+}

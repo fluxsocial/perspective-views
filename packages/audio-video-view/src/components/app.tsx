@@ -1,10 +1,11 @@
 import { FunctionalComponent, h } from 'preact';
-
+import Overlay from './overlay';
+import '../style/app.css'
 
 const App: FunctionalComponent = () => {
     return (
         <div id="preact_root">
-            <div>hello</div>
+            <Overlay />
         </div>
     );
 };
