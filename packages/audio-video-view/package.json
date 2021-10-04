@@ -27,7 +27,9 @@
     "junto-utils": "file:../junto-utils",
     "preact": "^10.3.1",
     "preact-render-to-string": "^5.1.4",
-    "preact-router": "^3.2.1"
+    "preact-router": "^3.2.1",
+    "styled-components": "^5.3.1",
+    "subscriptions-transport-ws": "^0.9.19"
   },
   "devDependencies": {
     "@types/enzyme": "^3.10.5",
