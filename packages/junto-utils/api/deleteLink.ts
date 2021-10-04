@@ -9,7 +9,8 @@ export interface Payload {
 export default async function ({ perspectiveUuid, linkExpression }: Payload) {
   try {
     await ad4mClient.perspective.removeLink(perspectiveUuid, linkExpression);
-  } catch (e: any) {
+  } catch (e) {
+    // @ts-ignore
     throw new Error(e);
   }
 }
