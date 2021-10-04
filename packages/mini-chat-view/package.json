@@ -1,26 +1,60 @@
 {
-  "name": "mini-chat-view",
-  "version": "1.0.0",
+  "name": "junto-plugin-chat-view-simple",
+  "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "./dist/main.js",
+  "module": "./dist/main.js",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/main.js",
+      "require": "./dist/main.js"
+    }
+  },
   "scripts": {
+    "prepare": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "node esbuild.js",
     "dev": "NODE_ENV=dev run-p dev:**",
     "dev:build": "node esbuild.js",
-    "dev:serve": "npx live-server"
+    "dev:serve": "npx live-server",
+    "release": "np --no-tests"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@tiptap/core": "^2.0.0-beta.66",
+    "@tiptap/extension-bold": "^2.0.0-beta.13",
+    "@tiptap/extension-bullet-list": "^2.0.0-beta.14",
+    "@tiptap/extension-code-block": "^2.0.0-beta.15",
+    "@tiptap/extension-document": "^2.0.0-beta.12",
+    "@tiptap/extension-hard-break": "^2.0.0-beta.14",
+    "@tiptap/extension-history": "^2.0.0-beta.13",
+    "@tiptap/extension-italic": "^2.0.0-beta.14",
+    "@tiptap/extension-link": "^2.0.0-beta.18",
+    "@tiptap/extension-list-item": "^2.0.0-beta.13",
+    "@tiptap/extension-mention": "^2.0.0-beta.72",
+    "@tiptap/extension-ordered-list": "^2.0.0-beta.14",
+    "@tiptap/extension-paragraph": "^2.0.0-beta.14",
+    "@tiptap/extension-placeholder": "^2.0.0-beta.19",
+    "@tiptap/extension-strike": "^2.0.0-beta.16",
+    "@tiptap/extension-text": "^2.0.0-beta.12",
+    "@tiptap/react": "^2.0.0-beta.38",
+    "date-fns": "^2.24.0",
+    "emoji-picker-element": "^1.8.2",
     "junto-utils": "file:../junto-utils",
+    "node-emoji": "^1.11.0",
     "preact": "^10.5.14",
-    "react-window": "^1.8.6",
-    "subscriptions-transport-ws": "^0.9.19"
+    "react-virtuoso": "^2.2.1",
+    "styled-components": "^5.3.1",
+    "tippy.js": "^6.3.1"
   },
   "devDependencies": {
     "esbuild": "^0.13.1",
+    "np": "^7.5.0",
     "npm-run-all": "^4.1.5"
   }
 }
