@@ -40,3 +40,12 @@ export interface Profile {
 export interface Profiles {
   [x: string]: Profile;
 }
+
+export interface AudioVideoExpression {
+  id: string,
+  url: string,
+  author: Profile,
+  sdp: any,
+  timestamp: string,
+  link: LinkExpression,
+}

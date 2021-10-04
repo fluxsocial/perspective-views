@@ -6,6 +6,7 @@ export const session = {
   },
   get(key: string): Object | Array<any> {
     const value = sessionStorage.getItem(key);
+    // @ts-ignore
     return JSON.parse(value);
   },
 };

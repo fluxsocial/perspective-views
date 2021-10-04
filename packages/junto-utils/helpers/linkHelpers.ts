@@ -16,4 +16,5 @@ export const linkIs = {
     link.proof.valid,
   reaction: (link: LinkExpression) =>
     link.data.predicate === "sioc://reaction_to" && link.proof.valid,
+  sdp: (link: LinkExpression) => link.data.predicate === 'sioc://sdp' && link.proof.valid,
 };

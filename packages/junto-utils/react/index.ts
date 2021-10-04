@@ -1,6 +1,7 @@
 import ChatContext, { ChatProvider } from "./ChatContext";
 import PerspectiveContext, { PerspectiveProvider } from "./PerspectiveContext";
 import AgentContext, { AgentProvider } from "./AgentContext";
+import AudioVideoContext, { AudioVideoProvider } from "./AudioVideoContext";
 
 export {
   ChatContext,
@@ -9,4 +10,6 @@ export {
   PerspectiveProvider,
   AgentProvider,
   AgentContext,
+  AudioVideoProvider,
+  AudioVideoContext
 };

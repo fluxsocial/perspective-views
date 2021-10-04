@@ -5,6 +5,7 @@ import { UIProvider } from '../context/UIContext';
 import {
     PerspectiveProvider,
     AgentProvider,
+    AudioVideoProvider,
 } from "junto-utils/react";
 
 const App: FunctionalComponent = ({ perspectiveUuid = "" }: any) => {
@@ -13,7 +14,9 @@ const App: FunctionalComponent = ({ perspectiveUuid = "" }: any) => {
             <UIProvider>
                 <AgentProvider>
                     <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
-                        <Overlay />
+                        <AudioVideoProvider perspectiveUuid={perspectiveUuid}>
+                            <Overlay />
+                        </AudioVideoProvider>
                     </PerspectiveProvider>
                 </AgentProvider>
             </UIProvider>
