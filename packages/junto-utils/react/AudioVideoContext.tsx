@@ -24,7 +24,6 @@ type ContextProps = {
     toggleVideo: () => Promise<void>;
     toggleAudio: () => Promise<void>;
     toggleScreenShare: () => Promise<void>;
-    toggleFullScreen: () => Promise<void>;
   }
 }
 
@@ -37,7 +36,6 @@ const initialState: ContextProps = {
     toggleAudio: async () => {},
     toggleVideo: async () => {},
     toggleScreenShare: async () => {},
-    toggleFullScreen: async () => {},
   }
 }
 
@@ -107,7 +105,8 @@ export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProvid
   async function toggleAudio() {}
 
   // NEED IMPLEMENTATION
-  async function toggleFullScreen() {}
+  async function toggleFullScreen() {
+  }
 
   // NEED IMPLEMENTATION
   async function toggleScreenShare() {}
@@ -137,8 +136,7 @@ export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProvid
           leaveChannel,
           toggleScreenShare,
           toggleAudio,
-          toggleVideo,
-          toggleFullScreen
+          toggleVideo
         }
       }}
     >

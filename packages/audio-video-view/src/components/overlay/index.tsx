@@ -3,6 +3,8 @@ import { useContext } from "preact/hooks";
 import { PerspectiveContext } from 'junto-utils/react';
 import '../../style/overlay.css';
 import UIContext from '../../context/UIContext';
+import screenfull from 'screenfull'
+
 
 export default function Overlay() {
   const { state } = useContext(PerspectiveContext);
@@ -10,7 +12,14 @@ export default function Overlay() {
   const { state: { viewType }, methods: {
     changeViewType
   } } = useContext(UIContext);
-  
+
+  const toggleFullScreen = () => {
+    if(screenfull.isEnabled) {
+      const ele = document.getElementById('preact_root');
+      screenfull.toggle(ele!);
+    }
+  }
+
   return (
     <div className="overlay">
       <div className="overlay__top">
@@ -71,7 +80,9 @@ export default function Overlay() {
             size="xl"
             circle
             square
-            className="overlay__btn">
+            className="overlay__btn"
+            onClick={toggleFullScreen}
+            >
             <j-icon name="fullscreen" size="md" slot="end"></j-icon>
           </j-button>
         </div>
