@@ -7,8 +7,10 @@ import {
     AgentProvider,
     AudioVideoProvider,
 } from "junto-utils/react";
+import Streams from './streams';
 
 const App: FunctionalComponent = ({ perspectiveUuid = "" }: any) => {
+
     return (
         <div id="preact_root">
             <UIProvider>
@@ -16,6 +18,7 @@ const App: FunctionalComponent = ({ perspectiveUuid = "" }: any) => {
                     <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
                         <AudioVideoProvider perspectiveUuid={perspectiveUuid}>
                             <Overlay />
+                            <Streams />
                         </AudioVideoProvider>
                     </PerspectiveProvider>
                 </AgentProvider>

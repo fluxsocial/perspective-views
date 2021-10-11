@@ -1,6 +1,6 @@
 import { h } from 'preact';
 import { useContext } from "preact/hooks";
-import { PerspectiveContext } from 'junto-utils/react';
+import { AudioVideoContext, PerspectiveContext } from 'junto-utils/react';
 import '../../style/overlay.css';
 import UIContext from '../../context/UIContext';
 import screenfull from 'screenfull'
@@ -8,6 +8,7 @@ import screenfull from 'screenfull'
 
 export default function Overlay() {
   const { state } = useContext(PerspectiveContext);
+  const { state: {audio, video}, methods: { toggleAudio, toggleVideo, toggleScreenShare } } = useContext(AudioVideoContext);
 
   const { state: { viewType }, methods: {
     changeViewType
@@ -45,7 +46,9 @@ export default function Overlay() {
             size="xl"
             circle
             square
-            className="overlay__btn">
+            className="overlay__btn"
+            onClick={toggleVideo}
+            >
             <j-icon name="camera" size="md" slot="end"></j-icon>
           </j-button>
           <j-button
@@ -53,7 +56,9 @@ export default function Overlay() {
             size="xl"
             circle
             square
-            className="overlay__btn">
+            className="overlay__btn"
+            onClick={toggleAudio}
+            >
             <j-icon name="mic" size="md" slot="end"></j-icon>
           </j-button>
           <j-button
@@ -61,7 +66,8 @@ export default function Overlay() {
             size="xl"
             circle
             square
-            className="overlay__btn">
+            className="overlay__btn"
+            onClick={toggleScreenShare}>
             <j-icon name="display" size="md" slot="end"></j-icon>
           </j-button>
           <j-button

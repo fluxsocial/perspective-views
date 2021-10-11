@@ -14,28 +14,38 @@ import deleteLink from "../api/deleteLink";
 import getMe from "../api/getMe";
 
 type State = {
-  sdp: {[x: string]: AudioVideoExpression}
+  sdp: {[x: string]: AudioVideoExpression},
+  audio: boolean,
+  video: boolean,
+  screenshare: boolean,
 }
 
 type ContextProps = {
   state: State,
+  stream: MediaStream,
   methods: {
     leaveChannel: () => Promise<void>;
     toggleVideo: () => Promise<void>;
     toggleAudio: () => Promise<void>;
     toggleScreenShare: () => Promise<void>;
+    startLocalStream: () => Promise<void>;
   }
 }
 
 const initialState: ContextProps = {
   state: {
-    sdp: {}
+    sdp: {},
+    audio: true,
+    video: false,
+    screenshare: false,
   },
+  stream: null,
   methods: {
     leaveChannel: async () => {},
     toggleAudio: async () => {},
     toggleVideo: async () => {},
     toggleScreenShare: async () => {},
+    startLocalStream: async () => {},
   }
 }
 
@@ -48,6 +58,7 @@ type AudioVideoProviderProps = {
 
 export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProviderProps) {
   const [state, setState] = useState<State>(initialState.state);
+  const localStreamRef = useRef<MediaStream>();
   const [audioVideoHash, setAudioVideoHash] = useState<string>();
   const [profileHash, setprofileHash] = useState<string>()
   
@@ -101,18 +112,70 @@ export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProvid
     }
   }
 
-  // NEED IMPLEMENTATION
-  async function toggleAudio() {}
-
-  // NEED IMPLEMENTATION
-  async function toggleFullScreen() {
+  async function toggleAudio() {
+    console.log('Local Stream audio toggle recieved - ', !state.audio);
+    let audioTrack = localStreamRef.current.getAudioTracks();
+    if (audioTrack.length === 0) {
+      await startLocalStream();
+      audioTrack = localStreamRef.current.getAudioTracks();
+    }
+    if(state.audio) {
+      localStreamRef.current.removeTrack(audioTrack[0])
+    } else {
+      localStreamRef.current.addTrack(audioTrack[0])
+    }
+    setState({...state, audio: !state.audio});
   }
 
   // NEED IMPLEMENTATION
-  async function toggleScreenShare() {}
+  async function toggleScreenShare() {
+    console.log('Local Stream audio toggle recieved - ', !state.audio);
 
-  // NEED IMPLEMENTATION
-  async function toggleVideo() {}
+    if(state.screenshare) {
+      localStreamRef.current.getTracks()[0].stop();
+      await startLocalStream();
+    } else {
+      let stream = await navigator.mediaDevices.getDisplayMedia();
+
+      localStreamRef.current = stream;
+      // @ts-ignore
+      window.localStream = stream;
+      localStreamRef.current.addTrack(stream.getTracks()[0])
+    }
+    setState({...state, screenshare: !state.screenshare});
+  }
+
+  async function toggleVideo() {
+    console.log('Local Stream video toggle recieved - ', !state.video);
+    let videoTrack = localStreamRef.current.getVideoTracks();
+    if (videoTrack.length === 0) {
+      await startLocalStream(false, true);
+      videoTrack = localStreamRef.current.getVideoTracks();
+    }
+    if(!state.video) {
+      localStreamRef.current.removeTrack(videoTrack[0])
+    } else {
+      localStreamRef.current.addTrack(videoTrack[0])
+    }
+    setState({...state, video: !state.video});
+  }
+
+  async function startLocalStream(audio = true, video = false) {
+    console.log('Local Stream recieved');
+
+    try {      
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio,
+        video,
+      });
+  
+      localStreamRef.current = stream;
+      // @ts-ignore
+      window.localStream = stream;
+    } catch (e) {
+      console.log(e);
+    }
+  }
 
   useEffect(() => {
     fetchSDPExpresions();
@@ -132,11 +195,13 @@ export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProvid
     <AudioVideoContext.Provider
       value={{
         state: {...state},
+        stream: localStreamRef.current,
         methods: {
           leaveChannel,
           toggleScreenShare,
           toggleAudio,
-          toggleVideo
+          toggleVideo,
+          startLocalStream
         }
       }}
     >
