@@ -9,7 +9,7 @@ import {
 } from "junto-utils/react";
 import Streams from './streams';
 
-const App: FunctionalComponent = ({ perspectiveUuid = "" }: any) => {
+const App: FunctionalComponent = ({ perspectiveUuid = "d39f9d7b-2bbd-4444-888d-a8e0c5f2b317" }: any) => {
 
     return (
         <div id="preact_root">

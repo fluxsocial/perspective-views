@@ -23,7 +23,7 @@ export default async function ({link, profileLangAddress}: Payload): Promise<Aud
       url: link.data.target,
       author,
       sdp: expression.data,
-      link
+      link,
     }
   } catch (e) {
     throw new Error(e);

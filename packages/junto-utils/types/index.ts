@@ -43,9 +43,11 @@ export interface Profiles {
 
 export interface AudioVideoExpression {
   id: string,
-  url: string,
+  url?: string,
   author: Profile,
   sdp: any,
   timestamp: string,
   link: LinkExpression,
+  connection?: RTCPeerConnection
+  stream?: readonly MediaStream[]
 }

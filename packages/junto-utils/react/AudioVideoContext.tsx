@@ -1,6 +1,6 @@
 // @ts-ignore
 import React, { createContext, useState, useEffect, useRef, useMemo } from "react";
-import { Language, LanguageMeta, Link, LinkExpression } from "@perspect3vism/ad4m";
+import { Language, LanguageMeta, Link, LinkExpression, LinkQuery } from "@perspect3vism/ad4m";
 import getPerspectiveMeta from "../api/getPerspectiveMeta";
 import subscribeToLinks from "../api/subscribeToLinks";
 import getSDP from "../api/getSDP";
@@ -12,6 +12,15 @@ import { linkIs } from "../helpers/linkHelpers";
 import { AudioVideoExpression } from "../types";
 import deleteLink from "../api/deleteLink";
 import getMe from "../api/getMe";
+import ad4mClient from "../api/client";
+import createSDP from "../api/createSDP";
+
+var peerConnectionConfig = {
+  'iceServers': [
+      {'urls': 'stun:stun.services.mozilla.com'},
+      {'urls': 'stun:stun.l.google.com:19302'},
+  ]
+};
 
 type State = {
   sdp: {[x: string]: AudioVideoExpression},
@@ -61,14 +70,31 @@ export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProvid
   const localStreamRef = useRef<MediaStream>();
   const [audioVideoHash, setAudioVideoHash] = useState<string>();
   const [profileHash, setprofileHash] = useState<string>()
+  const [profile, setProfile] = useState<any>();
   
   async function fetchLangs() {
     const { languages } = await getPerspectiveMeta(perspectiveUuid);
-    setAudioVideoHash(languages[AUDIO_VIDEO_FORM_EXPRESSION].address);
-    setprofileHash(languages[PROFILE_EXPRESSION].address)
+    console.log('languages', languages);
+    setAudioVideoHash(languages[AUDIO_VIDEO_FORM_EXPRESSION] as any);
+    setprofileHash(languages[PROFILE_EXPRESSION] as any);
   }
 
-  async function fetchSDPExpresions() {}
+  async function fetchSDPExpresions() {
+    await fetchLangs();
+
+    // getSDP();
+    const expressionLinks = await ad4mClient.perspective.queryLinks(
+      perspectiveUuid,
+      new LinkQuery({
+        source: `sioc://webrtcchannel`,
+        predicate: "sioc://content_of",
+      })
+    );
+
+    await createOffer();
+
+    console.log('links', expressionLinks)
+  }
 
   async function leaveChannel() {
     const me = await getMe();
@@ -178,8 +204,54 @@ export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProvid
   }
 
   useEffect(() => {
+
     fetchSDPExpresions();
+
   }, []);
+
+  async function createOffer() {
+    const profile = await getMe();
+    setProfile(profile);
+
+    console.log('sdp 1', state.sdp, profile);
+    try {
+      const sdps = {...state.sdp};
+      
+
+      if (!sdps[profile.did]) {
+        console.log('sdp 2');
+        const rtcConnection = new RTCPeerConnection(peerConnectionConfig);
+        let desc: RTCSessionDescriptionInit;
+        if (Object.keys(sdps).length === 0) {
+          desc = await rtcConnection.createOffer();
+        }
+        await rtcConnection.setLocalDescription(desc);
+        rtcConnection.ontrack = function(event) {
+          sdps[profile.did].stream = event.streams;
+        };
+        console.log('sdp 3', desc, audioVideoHash);
+
+        const sdpLink = await createSDP({perspectiveUuid, languageAddress: audioVideoHash, message: desc});
+
+        console.log('sdp 4', sdpLink);
+
+        sdps[profile.did] = {
+          id: sdpLink.data.target,
+          timestamp: Date.now().toString(),
+          url: sdpLink.data.target,
+          author: profile as any,
+          sdp: desc,
+          link: sdpLink,
+        }
+
+        console.log('sdp 5', sdps);
+
+        setState({...state, sdp: sdps})
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }
 
   useEffect(() => {
     if (profileHash) {
@@ -187,7 +259,9 @@ export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProvid
         perspectiveUuid,
         added: handleLinkAdded,
         removed: handleLinkRemoved,
-      })
+      });
+
+      fetchSDPExpresions();
     }
   }, [profileHash]);
 
