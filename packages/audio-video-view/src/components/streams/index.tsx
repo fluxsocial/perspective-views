@@ -16,6 +16,10 @@ function Stream({ stream }: StreamProps) {
     videoRef.current!.onloadedmetadata = (e) => {
       videoRef.current?.play()
     }
+
+    return () => {
+      videoRef.current?.pause();
+    }
   }, [videoRef.current, stream])
 
   return (
@@ -25,14 +29,13 @@ function Stream({ stream }: StreamProps) {
 
 export default function Streams() {
   const {state: { sdp }, stream, methods: { startLocalStream }} = useContext(AudioVideoContext);
-  const streamRefs = useRef(Array(Object.keys(sdp)).map(e => null));
 
   useEffect(() => {
     startLocalStream();
   }, [])
 
 
-  console.log('stream', sdp, streamRefs)
+  console.log('stream', sdp)
 
   return (
     <div>
