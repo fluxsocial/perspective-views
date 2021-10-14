@@ -8,7 +8,7 @@ import screenfull from 'screenfull'
 
 export default function Overlay() {
   const { state } = useContext(PerspectiveContext);
-  const { state: {audio, video}, methods: { toggleAudio, toggleVideo, toggleScreenShare } } = useContext(AudioVideoContext);
+  const { state: {audio, video}, methods: { toggleAudio, toggleVideo, toggleScreenShare, leaveChannel } } = useContext(AudioVideoContext);
 
   const { state: { viewType }, methods: {
     changeViewType
@@ -76,7 +76,8 @@ export default function Overlay() {
             circle
             square
             className="overlay__btn"
-            color="red">
+            color="red"
+            onClick={leaveChannel}>
             <j-icon name="telephone-x" size="md" slot="end"></j-icon>
           </j-button>
         </div>
