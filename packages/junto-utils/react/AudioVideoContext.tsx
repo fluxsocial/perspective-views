@@ -7,6 +7,7 @@ import getSDP from "../api/getSDP";
 import {
   PROFILE_EXPRESSION,
   AUDIO_VIDEO_FORM_EXPRESSION,
+  ICE_EXPRESSION_OFFICIAL,
 } from "../constants/languages";
 import { linkIs } from "../helpers/linkHelpers";
 import { AudioVideoExpression } from "../types";
@@ -70,19 +71,30 @@ export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProvid
   const localStreamRef = useRef<MediaStream>();
   const [audioVideoHash, setAudioVideoHash] = useState<string>();
   const [profileHash, setprofileHash] = useState<string>()
+  const [iceCandidateHash, seticeCandidateHash] = useState<string>()
   const [profile, setProfile] = useState<any>();
+  const [links, setLinks] = useState([]);
   
+  // Get's all the the required languages
   async function fetchLangs() {
     const { languages } = await getPerspectiveMeta(perspectiveUuid);
-    console.log('languages', languages);
+
     setAudioVideoHash(languages[AUDIO_VIDEO_FORM_EXPRESSION] as any);
     setprofileHash(languages[PROFILE_EXPRESSION] as any);
+    seticeCandidateHash(languages[ICE_EXPRESSION_OFFICIAL] as any);
+
+    return {
+      sdpHash: languages[AUDIO_VIDEO_FORM_EXPRESSION] as any,
+      proHash: languages[PROFILE_EXPRESSION] as any,
+      iceHash: languages[ICE_EXPRESSION_OFFICIAL] as any,
+    }
   }
 
+  // Fetches all the sdp links & expressions
   async function fetchSDPExpresions() {
-    await fetchLangs();
+    // Get Profile Hash
+    const { proHash } = await fetchLangs();
 
-    // getSDP();
     const expressionLinks = await ad4mClient.perspective.queryLinks(
       perspectiveUuid,
       new LinkQuery({
@@ -91,21 +103,45 @@ export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProvid
       })
     );
 
-    await createOffer();
-
     console.log('links', expressionLinks)
+
+    setLinks(expressionLinks);
+
+    // Check if there's any sdp links if not create a new offfer sdp
+    // else create a new answer sdp
+    if (expressionLinks.length === 0) {
+      await createOffer();
+    } else {
+      let sdps: {[x:string]: AudioVideoExpression} = {};
+  
+      // Fetches all the sdp expressions
+      for (const link of expressionLinks) {
+        const exp = await getSDP({link, profileLangAddress: proHash, perspectiveUuid});
+        
+        sdps[exp.author.did] = exp;
+      }
+      
+      setState({...state, sdp: sdps});
+
+      const profile = await getMe();
+
+      for (const sdp of Object.values(sdps)) {
+        if (profile.did !== sdp.author.did) {
+          await createAnswer(sdp.sdp, sdps);
+        }
+      }
+    }
   }
 
+  // Leave channel - delete all the links for the current user
   async function leaveChannel() {
     const me = await getMe();
-    
-    const link = Object.values(state.sdp).find((exp) => exp.author.did === me.did);
+    console.log('leaving channel', me)
 
-    if (link) {      
-      deleteLink({
-        perspectiveUuid,
-        linkExpression: link.link
-      })
+    for (const link of links) {
+      if (link.author === me.did) {
+        deleteLink({perspectiveUuid, linkExpression: link})
+      }
     }
   }
 
@@ -194,7 +230,7 @@ export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProvid
         audio,
         video,
       });
-  
+
       localStreamRef.current = stream;
       // @ts-ignore
       window.localStream = stream;
@@ -204,36 +240,44 @@ export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProvid
   }
 
   useEffect(() => {
-
     fetchSDPExpresions();
-
+    
+    return () => {
+      for (const link of links) {
+        if (link.author === profile.did) {
+          deleteLink({perspectiveUuid, linkExpression: link})
+        }
+      }
+    }
   }, []);
 
   async function createOffer() {
+    // Get's the SDP language hash
+    const { sdpHash } = await fetchLangs();
+
     const profile = await getMe();
+
     setProfile(profile);
 
-    console.log('sdp 1', state.sdp, profile);
     try {
       const sdps = {...state.sdp};
-      
 
+      // Only create offer sdps if not part of the network
       if (!sdps[profile.did]) {
-        console.log('sdp 2');
         const rtcConnection = new RTCPeerConnection(peerConnectionConfig);
-        let desc: RTCSessionDescriptionInit;
-        if (Object.keys(sdps).length === 0) {
-          desc = await rtcConnection.createOffer();
-        }
+        let desc = await rtcConnection.createOffer();
         await rtcConnection.setLocalDescription(desc);
+
+        console.log('tracked 1')
+
+        // Add the stream after the stream has been initialized
         rtcConnection.ontrack = function(event) {
-          sdps[profile.did].stream = event.streams;
+          console.log('tracked')
+          sdps[profile.did].stream = event.streams[0];
         };
-        console.log('sdp 3', desc, audioVideoHash);
 
-        const sdpLink = await createSDP({perspectiveUuid, languageAddress: audioVideoHash, message: desc});
-
-        console.log('sdp 4', sdpLink);
+        // Creates the sdp expression with local descriptions
+        const sdpLink = await createSDP({perspectiveUuid, languageAddress: sdpHash, message: desc});
 
         sdps[profile.did] = {
           id: sdpLink.data.target,
@@ -242,12 +286,65 @@ export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProvid
           author: profile as any,
           sdp: desc,
           link: sdpLink,
+          connection: rtcConnection
         }
-
-        console.log('sdp 5', sdps);
 
         setState({...state, sdp: sdps})
       }
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  async function createAnswer(sdp: RTCSessionDescriptionInit, tempSDPs: {[x: string]: AudioVideoExpression}) {
+    // Get's the SDP expression hash
+    const { sdpHash } = await fetchLangs();
+
+    const profile = await getMe();
+
+    setProfile(profile);
+
+    try {
+        const sdps = {...tempSDPs};
+
+        // Create a new RTC connection with remote description/ peer's
+        const rtcConnection = new RTCPeerConnection(peerConnectionConfig);
+        await rtcConnection.setRemoteDescription(new RTCSessionDescription(sdp))
+
+        // Add the streams when starts receiving one from other peer's
+        rtcConnection.ontrack = (event) => {
+          const sdps = {...tempSDPs};
+          sdps[profile.did] = {...sdps[profile.did], stream: event.streams[0]};
+        }
+
+        if (!localStreamRef.current) {
+          await startLocalStream();
+        }
+
+        // Pass the get current active tracks to the streams for other peer's to view
+        for (const track of localStreamRef.current.getTracks()) {
+          rtcConnection.addTrack(track);
+        }
+
+        // If the sdp type is offer create a answer description and broadcast it to other peer's
+        if (sdp.type === 'offer') {
+          const desc = await rtcConnection.createAnswer();
+          await rtcConnection.setLocalDescription(desc);
+
+          const sdpLink = await createSDP({perspectiveUuid, languageAddress: sdpHash, message: desc});
+          
+          sdps[profile.did] = {
+            id: sdpLink.data.target,
+            timestamp: Date.now().toString(),
+            url: sdpLink.data.target,
+            author: profile as any,
+            sdp: desc,
+            link: sdpLink,
+            connection: rtcConnection
+          }
+  
+          setState({...state, sdp: sdps})
+        }
     } catch (e) {
       console.log(e);
     }
@@ -260,8 +357,6 @@ export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProvid
         added: handleLinkAdded,
         removed: handleLinkRemoved,
       });
-
-      fetchSDPExpresions();
     }
   }, [profileHash]);
 

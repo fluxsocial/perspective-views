@@ -19,9 +19,7 @@ function Stream({ stream }: StreamProps) {
   }, [videoRef.current, stream])
 
   return (
-    <div>
-      <video ref={videoRef} height={360} width={640} />
-    </div>
+    <video ref={videoRef} height={360} width={640} />
   )
 }
 
@@ -34,12 +32,12 @@ export default function Streams() {
   }, [])
 
 
-  console.log('stream', stream)
+  console.log('stream', sdp, streamRefs)
 
   return (
     <div>
       <Stream stream={stream} />
-      {}
+      {Object.values(sdp).map(e => e.stream && <Stream stream={e.stream} />)}
     </div>
   )
 }

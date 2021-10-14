@@ -12,6 +12,7 @@ export default async function ({
   languageAddress,
   message,
 }: Payload) {
+  console.log('called')
   try {
     const expUrl = await ad4mClient.expression.create(message, languageAddress);
 

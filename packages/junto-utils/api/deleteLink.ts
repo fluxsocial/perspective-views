@@ -8,8 +8,10 @@ export interface Payload {
 
 export default async function ({ perspectiveUuid, linkExpression }: Payload) {
   try {
-    await ad4mClient.perspective.removeLink(perspectiveUuid, linkExpression);
+    const test = await ad4mClient.perspective.removeLink(perspectiveUuid, linkExpression);
+    console.log('err 0', test)
   } catch (e) {
+    console.log('err', e)
     // @ts-ignore
     throw new Error(e);
   }

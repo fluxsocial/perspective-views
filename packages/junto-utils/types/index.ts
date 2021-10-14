@@ -49,5 +49,5 @@ export interface AudioVideoExpression {
   timestamp: string,
   link: LinkExpression,
   connection?: RTCPeerConnection
-  stream?: readonly MediaStream[]
+  stream?: MediaStream
 }
