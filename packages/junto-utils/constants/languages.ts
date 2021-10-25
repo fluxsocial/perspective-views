@@ -2,7 +2,7 @@ export const AUDIO_VIDEO_FORM_EXPRESSION =
   "QmZcBnibiYAqe7Nq3qrEwjgGmg7dknkExXB4KzzUhniavQ";
 
 export const ICE_EXPRESSION_OFFICIAL = 
-  "QmSwqKKMaWXd1UW3eyBU9gBk7wz82cwg8CB8wsH94cDJpj"
+  "QmR32JfovdzHBexh78hp1jykh6FBxgnGqo2XCvkRD2XkEW"
 
 export const SHORT_FORM_EXPRESSION =
   "QmVDh4jd75BgPgiV6Lttjm7xQ8JQBkQJtqwBcPn4xZyXgP";
