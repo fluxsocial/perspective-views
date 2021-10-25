@@ -1,7 +1,7 @@
 .overlay {
   height: 100%;
   width: 100%;
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   display: flex;
@@ -12,6 +12,7 @@
   transition: all 0.2s;
   padding: 20px;
   color: rgb(212, 212, 212);
+  z-index: 1000;
 }
 
 .overlay__top,

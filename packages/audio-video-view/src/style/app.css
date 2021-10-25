@@ -1,7 +1,6 @@
 #preact_root {
-  height: 100%;
-  width: 100%;
   background-color: black;
+  /* height: inherit; */
 }
 
 #preact_root:hover > .overlay {
