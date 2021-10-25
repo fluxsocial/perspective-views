@@ -15,6 +15,10 @@ import deleteLink from "../api/deleteLink";
 import getMe from "../api/getMe";
 import ad4mClient from "../api/client";
 import createSDP from "../api/createSDP";
+import createIceCandidate from "../api/createIceCandidate";
+// @ts-ignore
+import io from 'socket.io-client';
+import getProfile from "../api/getProfile";
 
 var peerConnectionConfig = {
   'iceServers': [
@@ -24,7 +28,7 @@ var peerConnectionConfig = {
 };
 
 type State = {
-  sdp: {[x: string]: AudioVideoExpression},
+  clients: {[x: string]: AudioVideoExpression},
   audio: boolean,
   video: boolean,
   screenshare: boolean,
@@ -32,30 +36,26 @@ type State = {
 
 type ContextProps = {
   state: State,
-  stream: MediaStream,
   methods: {
     leaveChannel: () => Promise<void>;
     toggleVideo: () => Promise<void>;
     toggleAudio: () => Promise<void>;
     toggleScreenShare: () => Promise<void>;
-    startLocalStream: () => Promise<void>;
   }
 }
 
 const initialState: ContextProps = {
   state: {
-    sdp: {},
+    clients: {},
     audio: true,
     video: false,
     screenshare: false,
   },
-  stream: null,
   methods: {
     leaveChannel: async () => {},
     toggleAudio: async () => {},
     toggleVideo: async () => {},
     toggleScreenShare: async () => {},
-    startLocalStream: async () => {},
   }
 }
 
@@ -66,14 +66,15 @@ type AudioVideoProviderProps = {
   children: any
 }
 
+let socketId: string;
+let socket: any;
+
 export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProviderProps) {
   const [state, setState] = useState<State>(initialState.state);
-  const localStreamRef = useRef<MediaStream>();
+  const localSteamRef = useRef<MediaStream>();
   const [audioVideoHash, setAudioVideoHash] = useState<string>();
   const [profileHash, setprofileHash] = useState<string>()
   const [iceCandidateHash, seticeCandidateHash] = useState<string>()
-  const [profile, setProfile] = useState<any>();
-  const [links, setLinks] = useState([]);
   
   // Get's all the the required languages
   async function fetchLangs() {
@@ -90,140 +91,141 @@ export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProvid
     }
   }
 
-  // Fetches all the sdp links & expressions
-  async function fetchSDPExpresions() {
-    // Get Profile Hash
+  async function startCall() {
     const { proHash } = await fetchLangs();
+    const me = await getMe();
 
-    const expressionLinks = await ad4mClient.perspective.queryLinks(
-      perspectiveUuid,
-      new LinkQuery({
-        source: `sioc://webrtcchannel`,
-        predicate: "sioc://content_of",
-      })
-    );
+    let stream = await navigator.mediaDevices.getDisplayMedia();
 
-    console.log('links', expressionLinks)
+    localSteamRef.current = stream;
 
-    setLinks(expressionLinks);
+    socket = io.connect('localhost:3000', {
+      query: {
+        did: me.did
+      }
+    });
 
-    // Check if there's any sdp links if not create a new offfer sdp
-    // else create a new answer sdp
-    if (expressionLinks.length === 0) {
-      await createOffer();
-    } else {
-      let sdps: {[x:string]: AudioVideoExpression} = {};
+    socket.on('signal', (fromId: string, event: any) => gotMessageFromServer(fromId, event, socket));
+
+    socket.on('connect', function() {
+      socketId = socket.id;
+
+      socket.on('user-left', (userId: string) => {
+        console.log('deleting', userId);
+        delete state.clients[userId];
+        setState({...state});
+        console.log('User deleted')
+      });
+
+      socket.on('user-joined', async (id: string, did: string, count: number, clients: any) => {
+        for (const socketIdList of clients) {          
+          if (!state.clients[socketIdList]) {
+            const author = await getProfile({ did: did, languageAddress: proHash });
   
-      // Fetches all the sdp expressions
-      for (const link of expressionLinks) {
-        const exp = await getSDP({link, profileLangAddress: proHash, perspectiveUuid});
-        
-        sdps[exp.author.did] = exp;
-      }
-      
-      setState({...state, sdp: sdps});
-
-      const profile = await getMe();
-
-      for (const sdp of Object.values(sdps)) {
-        if (profile.did !== sdp.author.did) {
-          await createAnswer(sdp.sdp, sdps);
+            state.clients[socketIdList] = {
+              id: socketIdList,
+              connection: new RTCPeerConnection(peerConnectionConfig),
+              stream,
+              mute: false,
+              timestamp: new Date(Date.now()),
+              author
+            }
+  
+            //Wait for their ice candidate       
+            state.clients[socketIdList].connection.onicecandidate = function(event){
+              if (event.candidate != null) {
+                console.log('SENDING ICE');
+                socket.emit('signal', socketIdList, JSON.stringify({'ice': event.candidate}));
+              }
+            }
+  
+            //Wait for their video stream
+            state.clients[socketIdList].connection.ontrack = function(event: any){
+              console.log('Got track', event)
+              gotRemoteStream(event, socketIdList)
+            }    
+  
+            //Add the local video stream
+            stream.getTracks().forEach(s => {
+              console.log('adding track', s);
+              state.clients[socketIdList].connection.addTrack(s, stream);    
+            });
+  
+            setState({...state});
+          }
         }
-      }
-    }
+
+        if(count >= 2){
+          console.log('kkkk', id, state.clients[id]);
+          state.clients[id].connection.createOffer().then(function(description: any){
+              state.clients[id].connection.setLocalDescription(description).then(function() {
+                  socket.emit('signal', id, JSON.stringify({'sdp': state.clients[id].connection.localDescription}));
+                }).catch(e => console.log(e));        
+          });
+        }
+      });
+    });
   }
+
+  function gotRemoteStream(event: any, id: any) {
+    state.clients[id].stream = event.streams[0];
+    setState({...state})
+  }
+
+function gotMessageFromServer(fromId: string, message: any, socket: any) {
+    var signal = JSON.parse(message)
+
+    console.log('signal', signal);
+
+    //Make sure it's not coming from yourself
+    if(fromId != socketId) {
+        if(signal.sdp){            
+            state.clients[fromId].connection.setRemoteDescription(new RTCSessionDescription(signal.sdp)).then(function() {                
+                if(signal.sdp.type == 'offer') {
+                    state.clients[fromId].connection.createAnswer().then(function(description: any){
+                        state.clients[fromId].connection.setLocalDescription(description).then(function() {
+                          socket.emit('signal', fromId, JSON.stringify({'sdp': state.clients[fromId].connection.localDescription}));
+                        }).catch((e: any) => console.log(e));        
+                    }).catch((e: any) => console.log(e));
+                }
+            }).catch((e: any) => console.log(e));
+        }
+    
+        if(signal.ice) {
+          console.log('log ice', signal.ice)
+          state.clients[fromId].connection.addIceCandidate(new RTCIceCandidate(signal.ice)).catch((e: any) => console.log(e));
+        }                
+    }
+}
 
   // Leave channel - delete all the links for the current user
   async function leaveChannel() {
-    const me = await getMe();
-    console.log('leaving channel', me)
+    console.log(state.clients, socketId)
+    state.clients[socketId].connection.getSenders().forEach((s: any) => {
+      state.clients[socketId].connection.removeTrack(s);
+    });
+    state.clients[socketId].connection.close();
+    state.clients[socketId].stream.getTracks().forEach(t => t.stop())
+    delete state.clients[socketId];
 
-    for (const link of links) {
-      if (link.author === me.did) {
-        deleteLink({perspectiveUuid, linkExpression: link})
-      }
-    }
-  }
-
-  async function handleLinkAdded(link: LinkExpression) {
-    if (linkIs.sdp(link) && profileHash) {
-      const sdp = await getSDP({
-        link,
-        perspectiveUuid,
-        profileLangAddress: profileHash,
-      });
-
-      setState((oldState: any) => ({...oldState, sdp: {...oldState.sdp, [sdp.id]: sdp}}));
-    }
-  }
-
-  async function handleLinkRemoved(link: LinkExpression) {
-    if (linkIs.sdp(link)) {
-      const id = link.data.target;
-
-      const sdps = {
-        ...state.sdp
-      };
-
-      delete sdps[id];
-
-      setState((oldState: any) => ({
-        ...oldState, 
-        sdp: sdps
-      }));
-    }
+    socket.disconnect();
+    
+    setState({...state, clients: {}});
   }
 
   async function toggleAudio() {
-    console.log('Local Stream audio toggle recieved - ', !state.audio);
-    let audioTrack = localStreamRef.current.getAudioTracks();
-    if (audioTrack.length === 0) {
-      await startLocalStream();
-      audioTrack = localStreamRef.current.getAudioTracks();
-    }
-    if(state.audio) {
-      localStreamRef.current.removeTrack(audioTrack[0])
-    } else {
-      localStreamRef.current.addTrack(audioTrack[0])
-    }
-    setState({...state, audio: !state.audio});
-  }
-
-  // NEED IMPLEMENTATION
-  async function toggleScreenShare() {
-    console.log('Local Stream audio toggle recieved - ', !state.audio);
-
-    if(state.screenshare) {
-      localStreamRef.current.getTracks()[0].stop();
-      await startLocalStream();
-    } else {
-      let stream = await navigator.mediaDevices.getDisplayMedia();
-
-      localStreamRef.current = stream;
-      // @ts-ignore
-      window.localStream = stream;
-      localStreamRef.current.addTrack(stream.getTracks()[0])
-    }
-    setState({...state, screenshare: !state.screenshare});
+    await toggleAudioVideo({ audio: true })
   }
 
   async function toggleVideo() {
-    console.log('Local Stream video toggle recieved - ', !state.video);
-    let videoTrack = localStreamRef.current.getVideoTracks();
-    if (videoTrack.length === 0) {
-      await startLocalStream(false, true);
-      videoTrack = localStreamRef.current.getVideoTracks();
-    }
-    if(!state.video) {
-      localStreamRef.current.removeTrack(videoTrack[0])
-    } else {
-      localStreamRef.current.addTrack(videoTrack[0])
-    }
-    setState({...state, video: !state.video});
+    await toggleAudioVideo({ audio: true, video: true })
   }
 
-  async function startLocalStream(audio = true, video = false) {
-    console.log('Local Stream recieved');
+  async function toggleAudioVideo({
+    audio = true,
+    video = false
+  }) {
+    console.log('Audio Stream recieved');
 
     try {      
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -231,146 +233,65 @@ export function AudioVideoProvider({perspectiveUuid, children}: AudioVideoProvid
         video,
       });
 
-      localStreamRef.current = stream;
-      // @ts-ignore
-      window.localStream = stream;
+      for (const client of Object.values(state.clients)) {
+        client.connection.getSenders().forEach((s: any) => {
+          client.connection.removeTrack(s);
+        });
+
+        stream.getTracks().forEach(t => {
+          client.connection.addTrack(t);
+        })
+      }
     } catch (e) {
       console.log(e);
     }
+    setState({...state, audio: !state.audio});
+  }
+
+  // NEED IMPLEMENTATION
+  async function toggleScreenShare() {
+    console.log('Local Stream audio toggle recieved - ', !state.audio);
+    
+    try {
+      let stream = await navigator.mediaDevices.getDisplayMedia();
+
+      for (const client of Object.values(state.clients)) {
+        client.connection.getSenders().forEach((s: any) => {
+          client.connection.removeTrack(s);
+        });
+
+        stream.getTracks().forEach(t => {
+          client.connection.addTrack(t);
+        })
+      }
+    } catch (e) {
+
+    }
+
+    setState({...state, screenshare: !state.screenshare});
   }
 
   useEffect(() => {
-    fetchSDPExpresions();
-    
+    startCall();
+
     return () => {
-      for (const link of links) {
-        if (link.author === profile.did) {
-          deleteLink({perspectiveUuid, linkExpression: link})
-        }
+      for (const sdp of Object.values(state.clients)) {
+        sdp.connection.close();
+        sdp.stream.getTracks().forEach(t => t.stop())
       }
+      socket.disconnect();
     }
   }, []);
-
-  async function createOffer() {
-    // Get's the SDP language hash
-    const { sdpHash } = await fetchLangs();
-
-    const profile = await getMe();
-
-    setProfile(profile);
-
-    try {
-      const sdps = {...state.sdp};
-
-      // Only create offer sdps if not part of the network
-      if (!sdps[profile.did]) {
-        const rtcConnection = new RTCPeerConnection(peerConnectionConfig);
-        let desc = await rtcConnection.createOffer();
-        await rtcConnection.setLocalDescription(desc);
-
-        console.log('tracked 1')
-
-        // Add the stream after the stream has been initialized
-        rtcConnection.ontrack = function(event) {
-          console.log('tracked')
-          sdps[profile.did].stream = event.streams[0];
-        };
-
-        // Creates the sdp expression with local descriptions
-        const sdpLink = await createSDP({perspectiveUuid, languageAddress: sdpHash, message: desc});
-
-        sdps[profile.did] = {
-          id: sdpLink.data.target,
-          timestamp: Date.now().toString(),
-          url: sdpLink.data.target,
-          author: profile as any,
-          sdp: desc,
-          link: sdpLink,
-          connection: rtcConnection
-        }
-
-        setState({...state, sdp: sdps})
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  async function createAnswer(sdp: RTCSessionDescriptionInit, tempSDPs: {[x: string]: AudioVideoExpression}) {
-    // Get's the SDP expression hash
-    const { sdpHash } = await fetchLangs();
-
-    const profile = await getMe();
-
-    setProfile(profile);
-
-    try {
-        const sdps = {...tempSDPs};
-
-        // Create a new RTC connection with remote description/ peer's
-        const rtcConnection = new RTCPeerConnection(peerConnectionConfig);
-        await rtcConnection.setRemoteDescription(new RTCSessionDescription(sdp))
-
-        // Add the streams when starts receiving one from other peer's
-        rtcConnection.ontrack = (event) => {
-          const sdps = {...tempSDPs};
-          sdps[profile.did] = {...sdps[profile.did], stream: event.streams[0]};
-        }
-
-        if (!localStreamRef.current) {
-          await startLocalStream();
-        }
-
-        // Pass the get current active tracks to the streams for other peer's to view
-        for (const track of localStreamRef.current.getTracks()) {
-          rtcConnection.addTrack(track);
-        }
-
-        // If the sdp type is offer create a answer description and broadcast it to other peer's
-        if (sdp.type === 'offer') {
-          const desc = await rtcConnection.createAnswer();
-          await rtcConnection.setLocalDescription(desc);
-
-          const sdpLink = await createSDP({perspectiveUuid, languageAddress: sdpHash, message: desc});
-          
-          sdps[profile.did] = {
-            id: sdpLink.data.target,
-            timestamp: Date.now().toString(),
-            url: sdpLink.data.target,
-            author: profile as any,
-            sdp: desc,
-            link: sdpLink,
-            connection: rtcConnection
-          }
-  
-          setState({...state, sdp: sdps})
-        }
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  useEffect(() => {
-    if (profileHash) {
-      subscribeToLinks({
-        perspectiveUuid,
-        added: handleLinkAdded,
-        removed: handleLinkRemoved,
-      });
-    }
-  }, [profileHash]);
 
   return (
     <AudioVideoContext.Provider
       value={{
         state: {...state},
-        stream: localStreamRef.current,
         methods: {
           leaveChannel,
           toggleScreenShare,
           toggleAudio,
-          toggleVideo,
-          startLocalStream
+          toggleVideo
         }
       }}
     >

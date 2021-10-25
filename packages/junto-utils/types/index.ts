@@ -42,12 +42,12 @@ export interface Profiles {
 }
 
 export interface AudioVideoExpression {
-  id: string,
-  url?: string,
-  author: Profile,
-  sdp: any,
-  timestamp: string,
-  link: LinkExpression,
+  id: string, // socketid
+  url?: string, // neighbourhood url
+  author?: Profile, // user profile data
+  timestamp: Date, // timestamp the connection was established
+  link?: LinkExpression,
   connection?: RTCPeerConnection
-  stream?: MediaStream
+  stream?: MediaStream,
+  mute: boolean,
 }
