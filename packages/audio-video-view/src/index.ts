@@ -9,6 +9,7 @@ declare module 'preact/src/jsx' {
       'j-icon': React.DetailedHTMLProps<any, any>;
       'j-button': React.DetailedHTMLProps<any, any>;
       'j-text': React.DetailedHTMLProps<any, any>;
+      'j-avatar': React.DetailedHTMLProps<any, any>;
     }
   }
 }

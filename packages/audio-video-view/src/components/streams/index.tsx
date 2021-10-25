@@ -1,12 +1,14 @@
 import { AudioVideoContext } from 'junto-utils/react';
+import { Profile } from 'junto-utils/types';
 import { FunctionalComponent, h } from 'preact';
 import { useRef, useEffect, useContext } from "preact/hooks";
 
 type StreamProps = {
   stream: MediaStream
+  author: Profile | undefined
 }
 
-function Stream({ stream }: StreamProps) {
+function Stream({ stream, author }: StreamProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -23,24 +25,27 @@ function Stream({ stream }: StreamProps) {
   }, [videoRef.current, stream])
 
   return (
-    <video ref={videoRef} height={360} width={640} />
+    <div className="stream">
+      <video ref={videoRef} height={360} width={630} />
+      <div className="stream__lower">
+        <j-avatar
+          src={author?.thumbnailPicture}
+          hash={author?.did}
+        ></j-avatar>
+        <j-text>{author?.username}</j-text>
+      </div>
+    </div>
   )
 }
 
 export default function Streams() {
-  const {state: { sdp }, stream, methods: { startLocalStream }} = useContext(AudioVideoContext);
+  const {state: { clients } } = useContext(AudioVideoContext);
 
-  useEffect(() => {
-    startLocalStream();
-  }, [])
-
-
-  console.log('stream', sdp)
+  console.log('stream', clients)
 
   return (
-    <div>
-      <Stream stream={stream} />
-      {Object.values(sdp).map(e => e.stream && <Stream stream={e.stream} />)}
+    <div className="streams">
+      {Object.values(clients).map(e => e.stream && <Stream author={e.author} stream={e.stream} />)}
     </div>
   )
 }
