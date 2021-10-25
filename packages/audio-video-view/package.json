@@ -29,6 +29,7 @@
     "preact-render-to-string": "^5.1.4",
     "preact-router": "^3.2.1",
     "screenfull": "^5.1.0",
+    "socket.io-client": "^4.3.2",
     "styled-components": "^5.3.1",
     "subscriptions-transport-ws": "^0.9.19"
   },
@@ -44,6 +45,7 @@
     "jest": "^26.2.2",
     "jest-preset-preact": "^4.0.2",
     "preact-cli": "^3.0.0",
+    "process": "^0.11.10",
     "sirv-cli": "^1.0.0-next.3",
     "typescript": "^3.7.5"
   },
