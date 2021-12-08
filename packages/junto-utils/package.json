@@ -10,8 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@apollo/client": "3.3.20",
-    "@perspect3vism/ad4m": "^0.1.16",
+    "@apollo/client": "3.4.17",
+    "@perspect3vism/ad4m": "^0.1.21",
     "subscriptions-transport-ws": "^0.9.19"
   },
   "peerDependencies": {
