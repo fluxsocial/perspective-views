@@ -1,8 +1,8 @@
 export const SHORT_FORM_EXPRESSION =
-  "QmVDh4jd75BgPgiV6Lttjm7xQ8JQBkQJtqwBcPn4xZyXgP";
+  "QmVUzUeNYin7CQp9oAdVvRyPYLN4mcPxEQ39TJr3Xi28uW";
 
 export const PROFILE_EXPRESSION =
-  "QmSuJWiQFYWba6siE1fcKcP3yTYE7BssGg22UKShWGMVgp";
+  "Qmbm1Qukn2HbjiUzbYMwioJkvqJtCwLdRxqqzuBGFNX9c2";
 
 export const GROUP_EXPRESSION =
-  "Qmd7Wssoo9kwzdqJBE5aSE7YyVJ4TmD5mqX7L8yffR8MU7";
+  "QmbHzPQZBcSUBkKExJzM46QVdveenZSPTH5Pe3hQzrJJ2t";
