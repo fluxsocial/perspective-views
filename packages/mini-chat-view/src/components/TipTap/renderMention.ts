@@ -31,7 +31,6 @@ export default function renderMention() {
       });
     },
     onKeyDown(props) {
-      console.log(reactRenderer);
       return reactRenderer.ref?.onKeyDown(props);
     },
     onExit() {

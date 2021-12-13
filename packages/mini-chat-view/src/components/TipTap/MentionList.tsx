@@ -1,62 +1,91 @@
-import { useState } from "preact/hooks";
+import { Component } from "preact";
 
-export default function MentionList({ items, command }) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+type MentionListProps = {
+  items: any[],
+  command: (item: any) => {}
+};
+type MentionListState = {
+  selectedIndex: number
+};
 
-  function onKeyDown({ event }) {
-    console.log("onkeydown");
+export default class MentionList extends Component<MentionListProps, MentionListState> {
+  constructor() {
+    super();
+    this.state = {
+      selectedIndex: 0,
+    };
+    this.selectItem = this.selectItem.bind(this);
+  }
 
+  onKeyDown({ event }) {
     if (event.key === "ArrowUp") {
-      upHandler();
+      this.upHandler();
       return true;
     }
 
     if (event.key === "ArrowDown") {
-      downHandler();
+      this.downHandler();
       return true;
     }
 
     if (event.key === "Enter") {
-      enterHandler();
+      this.enterHandler();
       return true;
     }
 
     return false;
   }
 
-  function upHandler() {
-    setSelectedIndex((selectedIndex + items.length - 1) % items.length);
+  upHandler() {
+    this.setState({
+      selectedIndex:
+        (this.state.selectedIndex + this.props.items.length - 1) %
+        this.props.items.length,
+    });
   }
 
-  function downHandler() {
-    setSelectedIndex((selectedIndex + 1) % items.length);
+  downHandler() {
+    this.setState({
+      selectedIndex: (this.state.selectedIndex + 1) % this.props.items.length,
+    });
   }
 
-  function enterHandler() {
-    selectItem(selectedIndex);
+  enterHandler() {
+    this.selectItem(this.state.selectedIndex);
   }
 
-  function selectItem(index) {
-    const item = items[index];
+  selectItem(index) {
+    const item = this.props.items[index];
 
     if (item) {
-      command({ id: item.id, label: item.label });
+      this.props.command(item);
     }
   }
 
-  return (
-    <div>
-      <j-menu>
-        {items.map((item, index) => (
-          <j-menu-item
-            active={index === selectedIndex}
-            key={index}
-            onClick={() => selectItem(index)}
-          >
-            {item.label}
-          </j-menu-item>
-        ))}
-      </j-menu>
-    </div>
-  );
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.items.length !== this.props.items.length) {
+      this.setState({ selectedIndex: 0 });
+    }
+  }
+
+  render() {
+    const { items } = this.props;
+    const { selectedIndex } = this.state;
+
+    return (
+      <div>
+        <j-menu>
+          {items.map((item, index) => (
+            <j-menu-item
+              active={index === selectedIndex}
+              key={index}
+              onClick={() => this.selectItem(index)}
+            >
+              {item.label}
+            </j-menu-item>
+          ))}
+        </j-menu>
+      </div>
+    );
+  }
 }
