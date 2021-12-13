@@ -73,6 +73,14 @@ const Message = styled.div`
   & .message-item__content p:last-of-type {
     margin-bottom: 0;
   }
+
+  & .mention {
+    cursor: pointer;
+    padding: 2px var(--j-space-200);
+    border-radius: var(--j-border-radius);
+    background: var(--j-color-primary-100);
+    color: var(--j-color-primary-700);
+  }
 `;
 
 export default function MessageItem({ index, showAvatar }) {
