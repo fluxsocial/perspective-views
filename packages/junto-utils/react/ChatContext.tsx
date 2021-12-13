@@ -59,7 +59,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   useEffect(() => {
     fetchLanguages();
     fetchMessages();
-  }, []);
+  }, [perspectiveUuid]);
 
   useEffect(() => {
     if (profileHash) {

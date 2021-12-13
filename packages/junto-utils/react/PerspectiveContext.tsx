@@ -28,7 +28,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
 
   useEffect(() => {
     fetchMeta();
-  }, []);
+  }, [perspectiveUuid]);
 
   async function fetchMeta() {
     const meta = await getPerspectiveMeta(perspectiveUuid);
