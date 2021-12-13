@@ -11,7 +11,8 @@ const footerStyles = {
     "var(--j-space-400) var(--j-space-500) var(--j-space-400) var(--j-space-500)",
 };
 
-export default function Footer() {
+export default function Footer({members = [], channels = []}) {
+  console.log('test 103', members, channels)
   const [inputValue, setInputValue] = useState("");
 
   const {
@@ -68,6 +69,8 @@ export default function Footer() {
         value={inputValue}
         onChange={setInputValue}
         onSend={handleSendMessage}
+        members={members} 
+        channels={channels}
       ></TipTap>
     </footer>
   );

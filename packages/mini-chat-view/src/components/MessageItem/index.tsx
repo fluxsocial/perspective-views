@@ -1,5 +1,5 @@
-import { useContext, useEffect } from "preact/hooks";
-import { ChatContext } from "junto-utils/react";
+import { useContext, useEffect, useRef } from "preact/hooks";
+import { ChatContext, useEventEmitter } from "junto-utils/react";
 import { Reaction } from "junto-utils/types";
 import getMe from "junto-utils/api/getMe";
 import styled, { css } from "styled-components";
@@ -51,13 +51,18 @@ const Message = styled.div`
     opacity: 1;
   }
 
-  & .toolbar {
+  & .chat-view-toolbar {
     position: absolute;
-    width: 100%;
     opacity: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 40px;
+    background: none;
+    -webkit-app-region: drag;
   }
 
-  &:hover .toolbar {
+  &:hover .chat-view-toolbar {
     opacity: 1;
   }
 
@@ -71,6 +76,8 @@ const Message = styled.div`
 `;
 
 export default function MessageItem({ index, showAvatar }) {
+  const messageRef = useRef<any>(null);
+  const bus = useEventEmitter();
   const {
     state: { messages, keyedMessages },
     methods: { addReaction, removeReaction },
@@ -80,6 +87,7 @@ export default function MessageItem({ index, showAvatar }) {
     state: { currentReply },
     methods: { setCurrentReply },
   } = useContext(UIContext);
+
 
   const message = messages[index];
 
@@ -104,6 +112,43 @@ export default function MessageItem({ index, showAvatar }) {
   }
 
   const replyMessage = keyedMessages[message?.replyUrl];
+
+  useEffect(() => {
+    const mentionElements = (messageRef.current as any).querySelectorAll(
+      ".mention"
+    );
+    const emojiElements = (messageRef.current as any).querySelectorAll(
+      ".emoji"
+    );
+
+    for (const ele of emojiElements) {
+      const emoji = ele as HTMLElement;
+
+      if (emoji.parentNode?.nodeName !== "J-TOOLTIP") {
+        var wrapper = document.createElement("j-tooltip");
+        wrapper.title = `:${emoji.dataset.id}:`;
+        wrapper.classList.add("emojitoolip");
+        (wrapper as any).placement = "top";
+        emoji.parentNode?.insertBefore(wrapper, emoji);
+        wrapper.appendChild(emoji);
+
+        if (emoji.parentNode?.nextSibling?.textContent?.trim().length === 0) {
+          emoji.parentNode?.nextSibling.remove();
+        }
+      }
+    }
+
+    for (const ele of mentionElements) {
+      const mention = ele as HTMLElement;
+      mention.onclick = () => {
+        if (mention.innerText.startsWith('#')) {
+          bus.current.dispatchEvent("pv-channel-click", {id: mention.dataset.id})
+        } else {
+          bus.current.dispatchEvent("pv-member-click", {did: message.author.did})
+        }
+      };
+    }
+  }, [messageRef])
 
   return (
     <Message isReplying={keyedMessages[currentReply]?.url === message.url}>
@@ -133,6 +178,9 @@ export default function MessageItem({ index, showAvatar }) {
             <j-avatar
               src={message.author.profileImage}
               hash={message.author.did}
+              onClick={() => {
+                bus.current.dispatchEvent("pv-member-click", {did: message.author.did})
+              }}
             ></j-avatar>
           </j-flex>
         ) : (
@@ -174,6 +222,7 @@ export default function MessageItem({ index, showAvatar }) {
         )}
 
         <div
+          ref={messageRef}
           className="message-item__content"
           dangerouslySetInnerHTML={{ __html: message.content }}
         ></div>
@@ -186,7 +235,7 @@ export default function MessageItem({ index, showAvatar }) {
           </j-box>
         )}
       </div>
-      <div className="toolbar">
+      <div className="chat-view-toolbar">
         <MessageToolbar
           onReplyClick={onReplyClick}
           onEmojiClick={onEmojiClick}

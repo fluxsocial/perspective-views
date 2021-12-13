@@ -20,7 +20,7 @@ import renderMention from "./renderMention";
 import emojiList from "node-emoji/lib/emoji";
 import { useEffect } from "preact/hooks";
 
-export default function Tiptap({ value, onChange, onSend }) {
+export default function Tiptap({ value, onChange, onSend, members = [], channels = [] }) {
   const [showToolbar, setShowToolbar] = useState(false);
 
   const emojiPicker = useRef();
@@ -79,7 +79,7 @@ export default function Tiptap({ value, onChange, onSend }) {
         },
         suggestion: {
           char: ":",
-          items: (query) => {
+          items: ({query}) => {
             const formattedEmojiList = Object.entries(emojiList.emoji).map(
               ([id, label]) => ({ id, label })
             );
@@ -96,15 +96,12 @@ export default function Tiptap({ value, onChange, onSend }) {
           class: "mention",
         },
         renderLabel({ options, node }) {
-          return node.attrs.label ?? node.attrs.id;
+          return `${options.suggestion.char}${node.attrs.label ?? node.attrs.id}`;
         },
         suggestion: {
           char: "#",
-          items: (query) => {
-            return [
-              { id: "123", label: "Music" },
-              { id: "1234", label: "Travel" },
-            ]
+          items: ({query}) => {
+            return channels
               .filter((item) =>
                 item.label.toLowerCase().startsWith(query.toLowerCase())
               )
@@ -118,15 +115,12 @@ export default function Tiptap({ value, onChange, onSend }) {
           class: "mention",
         },
         renderLabel({ options, node }) {
-          return node.attrs.label ?? node.attrs.id;
+          return `${options.suggestion.char}${node.attrs.label ?? node.attrs.id}`;
         },
         suggestion: {
           char: "@",
-          items: (query) => {
-            return [
-              { id: "123", label: "josh" },
-              { id: "1234", label: "leif" },
-            ]
+          items: ({query}) => {
+            return members
               .filter((item) =>
                 item.label.toLowerCase().startsWith(query.toLowerCase())
               )
@@ -140,7 +134,7 @@ export default function Tiptap({ value, onChange, onSend }) {
       const value = props.editor.getJSON() as any;
       onChange(value);
     },
-  });
+  }, [members,  channels]);
 
   useEffect(() => {
     if (editor) {
