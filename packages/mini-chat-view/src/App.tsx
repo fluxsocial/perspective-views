@@ -43,7 +43,6 @@ emoji-picker {
 `;
 
 function MainComponent({ members = [], channels = [] }) {
-  console.log('test 101', members, channels)
   return (
     <div style={containerStyles}>
       <style>{style}</style>
@@ -54,8 +53,11 @@ function MainComponent({ members = [], channels = [] }) {
   );
 }
 
-export default function App({ perspectiveUuid = "", members = "[]", channels = "[]" }) {
-  console.log('test 100', members, channels)
+export default function App({
+  perspectiveUuid = "",
+  members = "[]",
+  channels = "[]",
+}) {
   const membersMarshaled = JSON.parse(members);
   const channelsMarshaled = JSON.parse(channels);
   return (
@@ -63,7 +65,10 @@ export default function App({ perspectiveUuid = "", members = "[]", channels = "
       <AgentProvider>
         <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
           <ChatProvider perspectiveUuid={perspectiveUuid}>
-            <MainComponent members={membersMarshaled} channels={channelsMarshaled} ></MainComponent>
+            <MainComponent
+              members={membersMarshaled}
+              channels={channelsMarshaled}
+            ></MainComponent>
           </ChatProvider>
         </PerspectiveProvider>
       </AgentProvider>
