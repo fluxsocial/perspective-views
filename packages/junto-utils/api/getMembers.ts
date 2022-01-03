@@ -18,13 +18,13 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
     );
 
     const linkPromises = expressionLinks.map((link) =>
-      getMember({ did: link.data.target, languageAddress: link.data.source })
+      getMember({ did: link.author, languageAddress: link.data.target.split("://")[0] })
     );
 
     const members = await Promise.all(linkPromises);
-
+    
     return members.reduce((acc, member) => {
-      return { ...acc, [member.id]: member };
+      return { ...acc, [member.did]: member };
     }, {});
   } catch (e) {
     throw new Error(e);
