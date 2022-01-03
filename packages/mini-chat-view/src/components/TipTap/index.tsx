@@ -27,9 +27,17 @@ export default function Tiptap({ value, onChange, onSend, members = [], channels
 
   // This is needed because React ugh.
   const sendCB = useRef(onSend);
+  const membersCB = useRef(members)
+  const channelsCB = useRef(channels)
   useEffect(() => {
     sendCB.current = onSend;
   }, [onSend]);
+  useEffect(() => {
+    membersCB.current = members;
+  }, [members]);
+  useEffect(() => {
+    channelsCB.current = channels;
+  }, [channels]);
 
   useEffect(() => {
     if (emojiPicker.current) {
@@ -101,7 +109,7 @@ export default function Tiptap({ value, onChange, onSend, members = [], channels
         suggestion: {
           char: "#",
           items: ({query}) => {
-            return channels
+            return channelsCB.current
               .filter((item) =>
                 item.label.toLowerCase().startsWith(query.toLowerCase())
               )
@@ -120,7 +128,7 @@ export default function Tiptap({ value, onChange, onSend, members = [], channels
         suggestion: {
           char: "@",
           items: ({query}) => {
-            return members
+            return membersCB.current
               .filter((item) =>
                 item.label.toLowerCase().startsWith(query.toLowerCase())
               )
@@ -134,7 +142,7 @@ export default function Tiptap({ value, onChange, onSend, members = [], channels
       const value = props.editor.getJSON() as any;
       onChange(value);
     },
-  }, [members,  channels]);
+  }, [membersCB, channelsCB]);
 
   useEffect(() => {
     if (editor) {
