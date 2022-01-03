@@ -9,8 +9,8 @@ type State = {
   description: string;
   languages: Array<any>;
   url: string;
-  members: {[x: string]: any};
-  channels: {[x: string]: any};
+  members: { [x: string]: any };
+  channels: { [x: string]: any };
 };
 
 type ContextProps = {
@@ -25,7 +25,7 @@ const initialState: ContextProps = {
     url: "",
     languages: [],
     members: {},
-    channels: {}
+    channels: {},
   },
   methods: {},
 };
@@ -38,61 +38,78 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
   const channelInterval = useRef();
 
   useEffect(() => {
-    console.log('arr 0', state.url)
+    console.log("arr 0", state.url);
     fetchMeta();
   }, [perspectiveUuid]);
 
   useEffect(() => {
-    console.log('arr 1', state.url)
+    console.log("arr 1", state.url);
     channelInterval.current = fetchChannels();
     memberInterval.current = fetchMembers();
 
     return () => {
       clearInterval(memberInterval.current);
       clearInterval(channelInterval.current);
-    }
-  }, [state.url])
-
+    };
+  }, [state.url]);
 
   const fetchMembers = async () => {
     if (state.url) {
-      const members = await getMembers({perspectiveUuid, neighbourhoodUrl: state.url})
-      console.log('members', members)
-  
-      setState((prev, curr) => ({...prev, members }))
-  
-      return setInterval(async() => {
-        console.log(state.url)
-        const members = await getMembers({perspectiveUuid, neighbourhoodUrl: state.url})
-        console.log('members', members)
-  
-        setState((prev, curr) => ({...prev, members }))
-      }, 5000);
-    }
-  }
+      const members = await getMembers({
+        perspectiveUuid,
+        neighbourhoodUrl: state.url,
+      });
+      console.log("members", members);
 
-  
+      setState((prev, curr) => ({ ...prev, members }));
+
+      return setInterval(async () => {
+        console.log(state.url);
+        const members = await getMembers({
+          perspectiveUuid,
+          neighbourhoodUrl: state.url,
+        });
+        console.log("members", members);
+
+        setState((prev, curr) => ({ ...prev, members }));
+      }, 20000);
+    }
+  };
+
   const fetchChannels = async () => {
     if (state.url) {
-      const channels = await getChannels({perspectiveUuid, neighbourhoodUrl: state.url})
-      console.log('channels', state, channels)
-  
-      setState((prev, curr) => ({...prev, channels }))
-  
-      return setInterval(async() => {
-        console.log(state.url)
-        const channels = await getChannels({perspectiveUuid, neighbourhoodUrl: state.url})
-        console.log('channels', state, channels)
-  
-        setState((prev, curr) => ({...prev, channels }))
-      }, 5000);
+      const channels = await getChannels({
+        perspectiveUuid,
+        neighbourhoodUrl: state.url,
+      });
+      console.log("channels", state, channels);
+
+      setState((prev, curr) => ({ ...prev, channels }));
+
+      return setInterval(async () => {
+        console.log(state.url);
+        const channels = await getChannels({
+          perspectiveUuid,
+          neighbourhoodUrl: state.url,
+        });
+        console.log("channels", state, channels);
+
+        setState((prev, curr) => ({ ...prev, channels }));
+      }, 10000);
     }
-  }
-  
+  };
+
   async function fetchMeta() {
     const meta = await getPerspectiveMeta(perspectiveUuid);
-    console.log('meta', meta);
-    setState({ ...state, name: meta.name, description: meta.description, url: meta.url, members: {}, channels: {} });
+    console.log("meta", meta);
+    setState({
+      ...state,
+      name: meta.name,
+      description: meta.description,
+      url: meta.url,
+      members: {},
+      channels: {},
+    });
   }
 
   return (
