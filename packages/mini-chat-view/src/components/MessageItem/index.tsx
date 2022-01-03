@@ -1,89 +1,39 @@
-import { useContext, useEffect, useRef } from "preact/hooks";
+import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import { ChatContext, useEventEmitter } from "junto-utils/react";
 import { Reaction } from "junto-utils/types";
 import getMe from "junto-utils/api/getMe";
 import styled, { css } from "styled-components";
+import tippy from "tippy.js";
 
 import MessageToolbar from "./MessageToolbar";
 import MessageReactions from "./MessageReactions";
 import UIContext from "../../context/UIContext";
 
-const ReplyLine = styled.div`
-  display: block;
-  position: absolute;
-  top: 50%;
-  right: 0;
-  width: 70%;
-  height: 15px;
-  border-left: 2px solid var(--j-color-ui-200);
-  border-top: 2px solid var(--j-color-ui-200);
-  border-top-left-radius: var(--j-border-radius);
-`;
+const replyLineStyles = {
+  display: "block",
+  position: "absolute",
+  top: "50%",
+  right: "0",
+  width: "70%",
+  height: "15px",
+  borderLeft: "2px solid var(--j-color-ui-200)",
+  borderTop: "2px solid var(--j-color-ui-200)",
+  borderTopLeftRadius: "var(--j-border-radius)",
+};
 
-const Message = styled.div`
-  padding-top: var(--j-space-400);
-  padding-left: var(--j-space-500);
-  padding-bottom: var(--j-space-400);
-  display: grid;
-  position: relative;
-  grid-template-columns: 60px 1fr;
-  column-gap: var(--j-space-500);
-  row-gap: var(--j-space-300);
+const messageStyles = {
+  paddingTop: "var(--j-space-400)",
+  paddingLeft: "var(--j-space-500)",
+  paddingBottom: "var(--j-space-400)",
+  display: "grid",
+  position: "relative",
+  gridTemplateColumns: "60px 1fr",
+  columnGap: "var(--j-space-500)",
+  rowGap: "var(--j-space-300)",
+};
 
-  &:hover {
-    background: rgba(0, 0, 0, 0.02);
-  }
-
-  ${(props) =>
-    props.isReplying &&
-    css`
-      background: var(--j-color-primary-50);
-      &:hover {
-        background: var(--j-color-primary-50);
-      }
-    `}
-
-  & .timestamp-left {
-    opacity: 0;
-  }
-
-  &:hover .timestamp-left {
-    opacity: 1;
-  }
-
-  & .chat-view-toolbar {
-    position: absolute;
-    opacity: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
-    height: 40px;
-    background: none;
-    -webkit-app-region: drag;
-  }
-
-  &:hover .chat-view-toolbar {
-    opacity: 1;
-  }
-
-  & .message-item__content p:first-of-type {
-    margin-top: 0;
-  }
-
-  & .message-item__content p:last-of-type {
-    margin-bottom: 0;
-  }
-
-  & .mention {
-    cursor: pointer;
-    padding: 2px var(--j-space-200);
-    border-radius: var(--j-border-radius);
-    background: var(--j-color-primary-100);
-    color: var(--j-color-primary-700);
-  }
-`;
-
-export default function MessageItem({ index, showAvatar }) {
+export default function MessageItem({ index, showAvatar, onOpenEmojiPicker }) {
+  const [showToolbar, setShowToolbar] = useState(false);
   const messageRef = useRef<any>(null);
   const bus = useEventEmitter();
   const {
@@ -95,7 +45,6 @@ export default function MessageItem({ index, showAvatar }) {
     state: { currentReply },
     methods: { setCurrentReply },
   } = useContext(UIContext);
-
 
   const message = messages[index];
 
@@ -121,6 +70,7 @@ export default function MessageItem({ index, showAvatar }) {
 
   const replyMessage = keyedMessages[message?.replyUrl];
 
+  /*
   useEffect(() => {
     const mentionElements = (messageRef.current as any).querySelectorAll(
       ".mention"
@@ -149,84 +99,92 @@ export default function MessageItem({ index, showAvatar }) {
     for (const ele of mentionElements) {
       const mention = ele as HTMLElement;
       mention.onclick = () => {
-        if (mention.innerText.startsWith('#')) {
-          bus.current.dispatchEvent("pv-channel-click", {id: mention.dataset.id})
+        if (mention.innerText.startsWith("#")) {
+          bus.current.dispatchEvent("pv-channel-click", {
+            id: mention.dataset.id,
+          });
         } else {
-          bus.current.dispatchEvent("pv-member-click", {did: message.author.did})
+          bus.current.dispatchEvent("pv-member-click", {
+            did: message.author.did,
+          });
         }
       };
     }
-  }, [messageRef])
+  }, [messageRef]);
+  */
 
   return (
-    <Message isReplying={keyedMessages[currentReply]?.url === message.url}>
+    <div
+      onMouseOver={() => setShowToolbar(true)}
+      onMouseLeave={() => setShowToolbar(false)}
+      style={messageStyles}
+      isReplying={keyedMessages[currentReply]?.url === message.url}
+    >
       {replyMessage && (
         <>
           <div style={{ position: "relative" }}>
-            <ReplyLine />
+            <div style={{ replyLineStyles }} />
           </div>
-          <j-flex gap="300" a="center">
-            <j-flex a="center" gap="300">
+          <div
+            style={{
+              display: "flex",
+              gap: "var(--j-space-500)",
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                gap: "var(--j-space-500)",
+                alignItems: "center",
+              }}
+            >
               <j-avatar
                 style="--j-avatar-size: 20px"
                 hash={replyMessage.author.did}
               ></j-avatar>
-              <j-text nomargin>{replyMessage.author.username}</j-text>
-            </j-flex>
+              <div>{replyMessage.author.username}</div>
+            </div>
             <div
-              style="font-size: var(--j-font-size-400)"
+              style={{
+                fontSize: "var(--j-font-size-400)",
+              }}
               dangerouslySetInnerHTML={{ __html: replyMessage.content }}
             ></div>
-          </j-flex>
+          </div>
         </>
       )}
       <div>
         {replyMessage || showAvatar ? (
-          <j-flex>
+          <div style={{ display: "flex" }}>
             <j-avatar
               src={message.author.profileImage}
               hash={message.author.did}
               onClick={() => {
-                bus.current.dispatchEvent("pv-member-click", {did: message.author.did})
+                bus.current.dispatchEvent("pv-member-click", {
+                  did: message.author.did,
+                });
               }}
             ></j-avatar>
-          </j-flex>
+          </div>
         ) : (
-          <j-tooltip>
-            <j-timestamp
-              slot="title"
-              value={message.timestamp}
-              dateStyle="medium"
-              timeStyle="short"
-            ></j-timestamp>
-            <j-timestamp
-              className="timestamp-left"
-              style={{ fontSize: "var(--j-font-size-300)" }}
-              hour="numeric"
-              minute="numeric"
-              value={message.timestamp}
-            ></j-timestamp>
-          </j-tooltip>
+          <small>
+            {new Intl.DateTimeFormat("en-US").format(
+              new Date(message.timestamp)
+            )}
+          </small>
         )}
       </div>
       <div>
         {(replyMessage || showAvatar) && (
-          <j-flex gap="300">
-            <j-text>{message.author.username}</j-text>
-            <j-tooltip>
-              <j-timestamp
-                slot="title"
-                value={message.timestamp}
-                dateStyle="medium"
-                timeStyle="short"
-              ></j-timestamp>
-              <j-timestamp
-                style={{ fontSize: "var(--j-font-size-300)" }}
-                relative
-                value={message.timestamp}
-              ></j-timestamp>
-            </j-tooltip>
-          </j-flex>
+          <div style={{ display: "flex", gap: "var(--j-space-300)" }}>
+            <div>{message.author.username}</div>
+            <small>
+              {new Intl.DateTimeFormat("en-US").format(
+                new Date(message.timestamp)
+              )}
+            </small>
+          </div>
         )}
 
         <div
@@ -243,12 +201,14 @@ export default function MessageItem({ index, showAvatar }) {
           </j-box>
         )}
       </div>
-      <div className="chat-view-toolbar">
-        <MessageToolbar
-          onReplyClick={onReplyClick}
-          onEmojiClick={onEmojiClick}
-        />
+      <div>
+        {showToolbar && (
+          <MessageToolbar
+            onReplyClick={onReplyClick}
+            onOpenEmojiPicker={onOpenEmojiPicker}
+          />
+        )}
       </div>
-    </Message>
+    </div>
   );
 }

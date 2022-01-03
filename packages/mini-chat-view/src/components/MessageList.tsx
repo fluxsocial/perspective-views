@@ -1,7 +1,9 @@
 import { useState, useContext, useRef, useEffect } from "preact/hooks";
 import { ChatContext } from "junto-utils/react";
 import MessageItem from "./MessageItem";
+import getMe from "junto-utils/api/getMe";
 import { differenceInMinutes, parseISO } from "date-fns";
+import tippy from "tippy.js";
 
 import { Virtuoso } from "react-virtuoso";
 
@@ -11,12 +13,13 @@ const mainStyles = {
 };
 
 export default function MessageList() {
+  const emojiPicker = useRef(document.createElement("emoji-picker"));
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const scroller = useRef();
 
   const {
     state: { messages, isFetchingMessages },
-    methods: { loadMore },
+    methods: { loadMore, removeReaction, addReaction },
   } = useContext(ChatContext);
 
   useEffect(() => {
@@ -46,6 +49,41 @@ export default function MessageList() {
               parseISO(message.timestamp),
               parseISO(previousMessage.timestamp)
             ) >= 2;
+    }
+  }
+
+  function openEmojiPicker(e: any, index: number) {
+    emojiPicker.current.setAttribute("message-index", index.toString());
+    const instance = tippy(e.target as HTMLElement, {
+      content: emojiPicker.current,
+      trigger: "click",
+      appendTo: document.body,
+      interactive: true,
+      onShow: () => {
+        emojiPicker.current.addEventListener("emoji-click", onEmojiClick);
+      },
+      onHide: () => {
+        emojiPicker.current.removeEventListener("emoji-click", onEmojiClick);
+      },
+    });
+    instance.show();
+  }
+
+  async function onEmojiClick(e: any) {
+    const unicode = e.detail.unicode;
+    const index = e.target.getAttribute("message-index");
+    const message = messages[parseInt(index)];
+
+    const me = await getMe();
+
+    const alreadyMadeReaction = message.reactions.find((reaction: Reaction) => {
+      return reaction.author === me.did && reaction.data.target === unicode;
+    });
+
+    if (alreadyMadeReaction) {
+      removeReaction(alreadyMadeReaction);
+    } else {
+      addReaction(message.url, unicode);
     }
   }
 
@@ -90,14 +128,17 @@ export default function MessageList() {
         startReached={() => console.log("start reached")}
         endReached={() => setHasUnreadMessages(false)}
         style={{ height: "100%" }}
-        overscan={10}
+        overscan={20}
         totalCount={messages.length}
-        itemContent={(index) => (
-          <MessageItem
-            showAvatar={showAvatar(index)}
-            index={index}
-          ></MessageItem>
-        )}
+        itemContent={(index) => {
+          return (
+            <MessageItem
+              onOpenEmojiPicker={(unicode) => openEmojiPicker(unicode, index)}
+              showAvatar={showAvatar(index)}
+              index={index}
+            />
+          );
+        }}
       />
     </main>
   );
