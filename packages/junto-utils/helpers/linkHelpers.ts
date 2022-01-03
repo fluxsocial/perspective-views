@@ -12,8 +12,9 @@ export const findLink = {
 export const linkIs = {
   message: (link: LinkExpression) =>
     link.data.source === "sioc://chatchannel" &&
-    link.data.predicate === "sioc://content_of" &&
-    link.proof.valid,
+    link.data.predicate === "sioc://content_of",
+  // TODO: SHould we check if the link is proof.valid?
   reaction: (link: LinkExpression) =>
-    link.data.predicate === "sioc://reaction_to" && link.proof.valid,
+    link.data.predicate === "sioc://reaction_to",
+  // TODO: SHould we check if the link is proof.valid?
 };
