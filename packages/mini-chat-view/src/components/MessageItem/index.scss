@@ -1,0 +1,10 @@
+.message {
+  padding-top: var(--j-space-400);
+  padding-left: var(--j-space-500);
+  padding-bottom: var(--j-space-400);
+  display: grid;
+  position: relative;
+  grid-template-columns: 60px 1fr;
+  column-gap: var(--j-space-500);
+  row-gap: var(--j-space-300);
+}

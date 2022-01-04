@@ -8,6 +8,7 @@ import tippy from "tippy.js";
 import MessageToolbar from "./MessageToolbar";
 import MessageReactions from "./MessageReactions";
 import UIContext from "../../context/UIContext";
+import styles from './index.scss';
 
 const replyLineStyles = {
   display: "block",
@@ -117,7 +118,7 @@ export default function MessageItem({ index, showAvatar, onOpenEmojiPicker }) {
     <div
       onMouseOver={() => setShowToolbar(true)}
       onMouseLeave={() => setShowToolbar(false)}
-      style={messageStyles}
+      class={styles.message}
       isReplying={keyedMessages[currentReply]?.url === message.url}
     >
       {replyMessage && (
@@ -158,7 +159,7 @@ export default function MessageItem({ index, showAvatar, onOpenEmojiPicker }) {
         {replyMessage || showAvatar ? (
           <div style={{ display: "flex" }}>
             <j-avatar
-              src={message.author.profileImage}
+              src={message.author.thumbnailPicture}
               hash={message.author.did}
               onClick={() => {
                 bus.current.dispatchEvent("pv-member-click", {
