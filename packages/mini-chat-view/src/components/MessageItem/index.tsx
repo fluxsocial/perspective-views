@@ -2,36 +2,30 @@ import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import { ChatContext, useEventEmitter } from "junto-utils/react";
 import { Reaction } from "junto-utils/types";
 import getMe from "junto-utils/api/getMe";
-import styled, { css } from "styled-components";
 import tippy from "tippy.js";
 
 import MessageToolbar from "./MessageToolbar";
 import MessageReactions from "./MessageReactions";
+import { getRelativeTime } from "./getRelativeTime";
 import UIContext from "../../context/UIContext";
 import styles from './index.scss';
 
-const replyLineStyles = {
-  display: "block",
-  position: "absolute",
-  top: "50%",
-  right: "0",
-  width: "70%",
-  height: "15px",
-  borderLeft: "2px solid var(--j-color-ui-200)",
-  borderTop: "2px solid var(--j-color-ui-200)",
-  borderTopLeftRadius: "var(--j-border-radius)",
-};
-
-const messageStyles = {
-  paddingTop: "var(--j-space-400)",
-  paddingLeft: "var(--j-space-500)",
-  paddingBottom: "var(--j-space-400)",
-  display: "grid",
-  position: "relative",
-  gridTemplateColumns: "60px 1fr",
-  columnGap: "var(--j-space-500)",
-  rowGap: "var(--j-space-300)",
-};
+type timeOptions = {
+  dateStyle?: string,
+  timeStyle?: string,
+  dayPeriod?: string,
+  timeZone?: string,
+  weekday?: string,
+  era?: string,
+  year?: string,
+  month?: string,
+  day?: string,
+  second?: string,
+  hour?: string,
+  minute?: string,
+  hourCycle?: string,
+  relative?: boolean
+}
 
 export default function MessageItem({ index, showAvatar, onOpenEmojiPicker }) {
   const [showToolbar, setShowToolbar] = useState(false);
@@ -114,6 +108,44 @@ export default function MessageItem({ index, showAvatar, onOpenEmojiPicker }) {
   }, [messageRef]);
   */
 
+  const getDateTimeOptions = (options: timeOptions) => {
+    if (options.dateStyle) {
+      return {
+        dateStyle: options.dateStyle,
+        ...(options.timeStyle && { timeStyle: options.timeStyle }),
+      };
+    }
+
+    return {
+      ...(options.dayPeriod && { dayPeriod: options.dayPeriod }),
+      ...(options.timeZone && { timeZone: options.timeZone }),
+      ...(options.weekday && { weekday: options.weekday }),
+      ...(options.era && { era: options.era }),
+      ...(options.year && { year: options.year }),
+      ...(options.month && { month: options.month }),
+      ...(options.day && { day: options.day }),
+      ...(options.second && { second: options.second }),
+      ...(options.hour && { hour: options.hour }),
+      ...(options.minute && { minute: options.minute }),
+      ...(options.hourCycle && { hourCycle: options.hourCycle }),
+    };
+  }
+
+  const getTime = (value: string, timeOptions: timeOptions) => {
+    if (timeOptions.relative) {
+      const rtf = new Intl.RelativeTimeFormat("en-US", {
+        numeric: "auto",
+        style: "long",
+      });
+      return getRelativeTime(new Date(value), new Date(), rtf);
+    } else {
+      // @ts-ignore
+      return new Intl.DateTimeFormat("en-US", getDateTimeOptions(timeOptions)).format(
+        new Date(value)
+      )
+    }
+  }
+
   return (
     <div
       onMouseOver={() => setShowToolbar(true)}
@@ -124,27 +156,15 @@ export default function MessageItem({ index, showAvatar, onOpenEmojiPicker }) {
       {replyMessage && (
         <>
           <div style={{ position: "relative" }}>
-            <div style={{ replyLineStyles }} />
+            <div class={styles.replyLine} />
           </div>
-          <div
-            style={{
-              display: "flex",
-              gap: "var(--j-space-500)",
-              alignItems: "center",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                gap: "var(--j-space-500)",
-                alignItems: "center",
-              }}
-            >
+          <div class={styles.messageFlex}>
+            <div class={styles.messageFlex}>
               <j-avatar
                 style="--j-avatar-size: 20px"
                 hash={replyMessage.author.did}
               ></j-avatar>
-              <div>{replyMessage.author.username}</div>
+              <div class={styles.messageUsernameNoMargin}>{replyMessage.author.username}</div>
             </div>
             <div
               style={{
@@ -169,28 +189,24 @@ export default function MessageItem({ index, showAvatar, onOpenEmojiPicker }) {
             ></j-avatar>
           </div>
         ) : (
-          <small>
-            {new Intl.DateTimeFormat("en-US").format(
-              new Date(message.timestamp)
-            )}
+          <small class={styles.timestampLeft}>
+            {getTime(message.timestamp, { hour: 'numeric', minute: 'numeric'})}
           </small>
         )}
       </div>
       <div>
         {(replyMessage || showAvatar) && (
           <div style={{ display: "flex", gap: "var(--j-space-300)" }}>
-            <div>{message.author.username}</div>
-            <small>
-              {new Intl.DateTimeFormat("en-US").format(
-                new Date(message.timestamp)
-              )}
+            <div class={styles.messageUsername}>{message.author.username}</div>
+            <small style={{ fontSize: "var(--j-font-size-300)" }}>
+              {getTime(message.timestamp, { relative: true })}
             </small>
           </div>
         )}
 
         <div
           ref={messageRef}
-          className="message-item__content"
+          class={styles.messageItemContent}
           dangerouslySetInnerHTML={{ __html: message.content }}
         ></div>
         {message.reactions.length > 0 && (
