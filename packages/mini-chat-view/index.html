@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Mini Chat View</title>
     <style>
       body {
         padding: 0;
@@ -23,20 +23,16 @@
       rel="stylesheet"
       href="https://unpkg.com/@junto-foundation/junto-elements@latest/dist/main.css"
     />
-    <link
-    rel="stylesheet"
-    href="./dist/main.css"
-  />
     <script src="https://unpkg.com/@junto-foundation/junto-elements@latest"></script>
   </head>
   <body>
-    <mini-chat-view
-      style="height: 100vh; display: block"
-      perspective-uuid="34686887-1d1e-4602-b6b1-3837a2853092"
-    ></mini-chat-view>
+    <mini-chat-view style="height: 100vh; display: block"></mini-chat-view>
     <script type="module">
-      import MiniChatView from "./dist/main.js";
+      const uuid = window.location.href.split("/").pop().replace("#", "");
+      const el = document.querySelector("mini-chat-view");
+      el.setAttribute("perspective-uuid", uuid);
 
+      import MiniChatView from "./dist/main.js";
       customElements.define("mini-chat-view", MiniChatView);
     </script>
   </body>
