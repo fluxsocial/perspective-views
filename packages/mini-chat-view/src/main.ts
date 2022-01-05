@@ -1,6 +1,5 @@
 // dynamic import of emoji picker only if it's not defined already
 if (customElements.get("emoji-picker") === undefined) {
-  console.log("what");
   import("emoji-picker-element").then((widget) => {
     console.log("imported?");
   });
