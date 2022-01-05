@@ -12,7 +12,14 @@
     background: rgba(0, 0, 0, 0.02);
   }
 
+  & .timestamp {
+    font-size: var(--j-font-size-300);
+    color: var(--j-color-ui-300);
+  }
+
   & .timestampLeft {
+    font-size: var(--j-font-size-300);
+    color: var(--j-color-ui-300);
     opacity: 0;
   }
 
@@ -35,6 +42,10 @@
     opacity: 1;
   }
 
+  & .messageItemContent {
+    margin-top: var(--j-space-300);
+  }
+
   & .messageItemContent p:first-of-type {
     margin-top: 0;
   }
@@ -52,10 +63,14 @@
   }
 
   & .messageUsername {
-    color: var(--j-color-ui-600);
+    cursor: pointer;
+    color: var(--j-color-black);
     font-size: var(--j-font-size-500);
     font-weight: 400;
-    margin-bottom: var(--j-space-400);
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 
   & .messageUsernameNoMargin {
@@ -72,7 +87,7 @@
 .replyLine {
   display: block;
   position: absolute;
-  top: 50%;
+  top: 5px;
   right: 0;
   width: 70%;
   height: 15px;
@@ -83,8 +98,22 @@
 
 .messageFlex {
   display: flex;
-  gap: var(--j-space-500);
+  gap: var(--j-space-200);
   align-items: center;
+  margin-bottom: var(--j-space-200);
+}
+
+.replyContent {
+  max-height: 15px;
+  line-height: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  color: var(--j-color-ui-400);
+}
+
+.replyContent p:first-of-type {
+  margin-top: 0;
 }
 
 .messageToolbar {
