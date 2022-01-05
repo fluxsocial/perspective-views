@@ -7,26 +7,31 @@ import MessageToolbar from "./MessageToolbar";
 import MessageReactions from "./MessageReactions";
 import { getRelativeTime } from "./getRelativeTime";
 import UIContext from "../../context/UIContext";
-import styles from './index.scss';
+import styles from "./index.scss";
 
 type timeOptions = {
-  dateStyle?: string,
-  timeStyle?: string,
-  dayPeriod?: string,
-  timeZone?: string,
-  weekday?: string,
-  era?: string,
-  year?: string,
-  month?: string,
-  day?: string,
-  second?: string,
-  hour?: string,
-  minute?: string,
-  hourCycle?: string,
-  relative?: boolean
-}
+  dateStyle?: string;
+  timeStyle?: string;
+  dayPeriod?: string;
+  timeZone?: string;
+  weekday?: string;
+  era?: string;
+  year?: string;
+  month?: string;
+  day?: string;
+  second?: string;
+  hour?: string;
+  minute?: string;
+  hourCycle?: string;
+  relative?: boolean;
+};
 
-export default function MessageItem({ index, showAvatar, onOpenEmojiPicker, mainRef }) {
+export default function MessageItem({
+  index,
+  showAvatar,
+  onOpenEmojiPicker,
+  mainRef,
+}) {
   const [showToolbar, setShowToolbar] = useState(false);
   const messageRef = useRef<any>(null);
   const {
@@ -92,17 +97,21 @@ export default function MessageItem({ index, showAvatar, onOpenEmojiPicker, main
       const mention = ele as HTMLElement;
       mention.onclick = () => {
         if (mention.innerText.startsWith("#")) {
-          const event = new CustomEvent('perspective-click', { detail: mention.dataset['id'], bubbles: true });
+          const event = new CustomEvent("perspective-click", {
+            detail: mention.dataset["id"],
+            bubbles: true,
+          });
           mainRef.current.dispatchEvent(event);
         } else {
-          const event = new CustomEvent('agent-click', { detail:mention.dataset['id'], bubbles: true });
+          const event = new CustomEvent("agent-click", {
+            detail: mention.dataset["id"],
+            bubbles: true,
+          });
           mainRef.current.dispatchEvent(event);
         }
       };
     }
   }, [messageRef]);
-
-
 
   const getDateTimeOptions = (options: timeOptions) => {
     if (options.dateStyle) {
@@ -125,7 +134,7 @@ export default function MessageItem({ index, showAvatar, onOpenEmojiPicker, main
       ...(options.minute && { minute: options.minute }),
       ...(options.hourCycle && { hourCycle: options.hourCycle }),
     };
-  }
+  };
 
   const getTime = (value: string, timeOptions: timeOptions) => {
     if (timeOptions.relative) {
@@ -136,11 +145,12 @@ export default function MessageItem({ index, showAvatar, onOpenEmojiPicker, main
       return getRelativeTime(new Date(value), new Date(), rtf);
     } else {
       // @ts-ignore
-      return new Intl.DateTimeFormat("en-US", getDateTimeOptions(timeOptions)).format(
-        new Date(value)
-      )
+      return new Intl.DateTimeFormat(
+        "en-US",
+        getDateTimeOptions(timeOptions)
+      ).format(new Date(value));
     }
-  }
+  };
 
   return (
     <div
@@ -151,7 +161,7 @@ export default function MessageItem({ index, showAvatar, onOpenEmojiPicker, main
     >
       {replyMessage && (
         <>
-          <div style={{ position: "relative" }}>
+          <div class={styles.replyLineWrapper}>
             <div class={styles.replyLine} />
           </div>
           <div class={styles.messageFlex}>
@@ -160,43 +170,43 @@ export default function MessageItem({ index, showAvatar, onOpenEmojiPicker, main
                 style="--j-avatar-size: 20px"
                 hash={replyMessage.author.did}
               ></j-avatar>
-              <div class={styles.messageUsernameNoMargin}>{replyMessage.author.username}</div>
+              <div class={styles.messageUsernameNoMargin}>
+                {replyMessage.author.username}
+              </div>
             </div>
-            <div
-              style={{
-                fontSize: "var(--j-font-size-400)",
-              }}
-              dangerouslySetInnerHTML={{ __html: replyMessage.content }}
-            ></div>
+            <div dangerouslySetInnerHTML={{ __html: replyMessage.content }} />
           </div>
         </>
       )}
       <div>
         {replyMessage || showAvatar ? (
-          <div style={{ display: "flex" }}>
+          <j-flex>
             <j-avatar
               src={message.author.thumbnailPicture}
               hash={message.author.did}
               onClick={() => {
-                const event = new CustomEvent('agent-click', { detail: message.author.did, bubbles: true });
+                const event = new CustomEvent("agent-click", {
+                  detail: message.author.did,
+                  bubbles: true,
+                });
                 mainRef.current.dispatchEvent(event);
               }}
             ></j-avatar>
-          </div>
+          </j-flex>
         ) : (
           <small class={styles.timestampLeft}>
-            {getTime(message.timestamp, { hour: 'numeric', minute: 'numeric'})}
+            {getTime(message.timestamp, { hour: "numeric", minute: "numeric" })}
           </small>
         )}
       </div>
       <div>
         {(replyMessage || showAvatar) && (
-          <div style={{ display: "flex", gap: "var(--j-space-300)" }}>
+          <j-flex gap="300">
             <div class={styles.messageUsername}>{message.author.username}</div>
             <small style={{ fontSize: "var(--j-font-size-300)" }}>
               {getTime(message.timestamp, { relative: true })}
             </small>
-          </div>
+          </j-flex>
         )}
 
         <div

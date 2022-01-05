@@ -1,16 +1,12 @@
 import { useState, useContext, useRef, useEffect } from "preact/hooks";
 import { ChatContext } from "junto-utils/react";
-import MessageItem from "./MessageItem";
+import MessageItem from "../MessageItem";
 import getMe from "junto-utils/api/getMe";
 import { differenceInMinutes, parseISO } from "date-fns";
 import tippy from "tippy.js";
 import { Virtuoso } from "react-virtuoso";
-import {h, Component, createRef} from 'preact'
-
-const mainStyles = {
-  flex: "1",
-  position: "relative",
-};
+import { h, Component, createRef } from "preact";
+import styles from "./index.scss";
 
 export default function MessageList({ perspectiveUuid, mainRef }) {
   const emojiPicker = useRef(document.createElement("emoji-picker"));
@@ -20,7 +16,13 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
 
   const {
     state: { messages, isFetchingMessages, scrollPosition, hasNewMessage },
-    methods: { loadMore, removeReaction, addReaction, saveScrollPos, setHasNewMessage },
+    methods: {
+      loadMore,
+      removeReaction,
+      addReaction,
+      saveScrollPos,
+      setHasNewMessage,
+    },
   } = useContext(ChatContext);
 
   useEffect(() => {
@@ -29,21 +31,27 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
         index: scrollPosition,
       });
 
-      setinitialScroll(true)
+      setinitialScroll(true);
     }
   }, [messages, initialScroll, scrollPosition]);
 
   useEffect(() => {
     if (atBottom && hasNewMessage) {
       scrollToBottom();
-      const event = new CustomEvent('hide-notification-indicator', { detail: perspectiveUuid, bubbles: true });
+      const event = new CustomEvent("hide-notification-indicator", {
+        detail: perspectiveUuid,
+        bubbles: true,
+      });
       mainRef.current.dispatchEvent(event);
-    } 
-  }, [hasNewMessage, atBottom])
+    }
+  }, [hasNewMessage, atBottom]);
 
   useEffect(() => {
     if (atBottom) {
-      const event = new CustomEvent('hide-notification-indicator', { detail: perspectiveUuid, bubbles: true });
+      const event = new CustomEvent("hide-notification-indicator", {
+        detail: perspectiveUuid,
+        bubbles: true,
+      });
       mainRef.current.dispatchEvent(event);
     }
   }, [atBottom]);
@@ -109,26 +117,19 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
     }
   }
 
-  const rangeChanged = ({startIndex}) => {
-
+  const rangeChanged = ({ startIndex }) => {
     if (typeof startIndex === "number") {
       saveScrollPos(startIndex);
     }
-  }
+  };
 
   return (
-    <main style={mainStyles}>
-      {(hasNewMessage && !atBottom) && (
+    <main class={styles.main}>
+      {hasNewMessage && !atBottom && (
         <j-button
+          class={styles.newMessagesButton}
           variant="primary"
           onClick={scrollToBottom}
-          style={{
-            position: "absolute",
-            top: "var(--j-space-500)",
-            left: "50%",
-            zIndex: "10",
-            transform: "translateX(-50%)",
-          }}
         >
           New messages
         </j-button>
@@ -159,7 +160,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
           if (atBottom) {
             setHasNewMessage(false);
           }
-          setAtBottom(atBottom)
+          setAtBottom(atBottom);
         }}
         style={{ height: "100%" }}
         overscan={20}

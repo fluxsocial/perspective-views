@@ -1,19 +1,14 @@
 import { ChatContext, PerspectiveContext } from "junto-utils/react";
 import { useContext, useMemo, useState } from "preact/hooks";
-import UIContext from "../context/UIContext";
-import TipTap from "./TipTap";
-
-const footerStyles = {
-  position: "relative",
-  background: "var(--j-color-white)",
-  borderTop: "1px solid var(--j-border-color)",
-  padding:
-    "var(--j-space-400) var(--j-space-500) var(--j-space-400) var(--j-space-500)",
-};
+import UIContext from "../../context/UIContext";
+import TipTap from "../TipTap";
+import styles from "./index.scss";
 
 export default function Footer() {
-  const { state: { members, channels, url } } = useContext(PerspectiveContext);
-  console.log('test 103', members, channels)
+  const {
+    state: { members, channels, url },
+  } = useContext(PerspectiveContext);
+  console.log("test 103", members, channels);
   const [inputValue, setInputValue] = useState("");
 
   const {
@@ -38,7 +33,6 @@ export default function Footer() {
     setInputValue("");
     setCurrentReply("");
   }
-  
 
   const mentionMembers = useMemo(() => {
     return Object.values(members).map((user: any) => {
@@ -50,11 +44,11 @@ export default function Footer() {
     });
   }, [members]);
 
-  console.log(mentionMembers)
+  console.log(mentionMembers);
 
   const mentionChannels = useMemo(() => {
     return Object.values(channels).map((channel: any) => {
-      if (channel.url === url) {        
+      if (channel.url === url) {
         return {
           label: "Home",
           id: channel.url,
@@ -71,18 +65,9 @@ export default function Footer() {
   }, [channels]);
 
   return (
-    <footer style={footerStyles}>
+    <footer class={styles.footer}>
       {currentReply && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            paddingBottom: "var(--j-space-400)",
-            maxHeight: "200px",
-            overflowY: "auto",
-          }}
-        >
+        <div class={styles.currentReply}>
           <j-text size="400" nomargin>
             Replying to @{currentReplyMessage.author.username}
           </j-text>
@@ -101,7 +86,7 @@ export default function Footer() {
         value={inputValue}
         onChange={setInputValue}
         onSend={handleSendMessage}
-        members={mentionMembers} 
+        members={mentionMembers}
         channels={mentionChannels}
       ></TipTap>
     </footer>
