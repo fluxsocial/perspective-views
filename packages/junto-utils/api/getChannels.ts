@@ -12,6 +12,7 @@ export interface Payload {
 
 export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
   try {
+    const home = await getPerspectiveMeta(perspectiveUuid)
     const expressionLinks = await ad4mClient.perspective.queryLinks(
       perspectiveUuid,
       new LinkQuery({
@@ -39,7 +40,7 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
     
     return channels.reduce((acc, channel) => {
       return { ...acc, [channel.id]: channel };
-    }, {});
+    }, {[perspectiveUuid]: home});
   } catch (e) {
     throw new Error(e);
   }
