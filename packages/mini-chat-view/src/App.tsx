@@ -1,6 +1,7 @@
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import MessageList from "./components/MessageList";
+import { forwardRef } from 'preact/compat';
 
 import {
   ChatProvider,
@@ -8,7 +9,7 @@ import {
   AgentProvider,
 } from "junto-utils/react";
 import { UIProvider } from "./context/UIContext";
-import { createRef } from "preact";
+import { useRef } from "preact/hooks";
 
 const containerStyles = {
   height: "100%",
@@ -42,24 +43,27 @@ emoji-picker {
 
 `;
 
-function MainComponent({ perspectiveUuid }) {
+const MainComponent = forwardRef(({ perspectiveUuid }: {perspectiveUuid: any}, ref) => {
   return (
-    <div style={containerStyles}>
+    <div style={containerStyles} ref={ref}>
       <style>{style}</style>
       <Header />
-      <MessageList perspectiveUuid={perspectiveUuid} />
+      <MessageList perspectiveUuid={perspectiveUuid} mainRef={ref} />
       <Footer />
     </div>
   );
-}
+})
+
 
 export default ({ perspectiveUuid = "" }) => {
+  const ref = useRef();
+  
   return (
     <UIProvider>
       <AgentProvider>
         <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
           <ChatProvider perspectiveUuid={perspectiveUuid}>
-            <MainComponent perspectiveUuid={perspectiveUuid}></MainComponent>
+            <MainComponent perspectiveUuid={perspectiveUuid} ref={ref}></MainComponent>
           </ChatProvider>
         </PerspectiveProvider>
       </AgentProvider>

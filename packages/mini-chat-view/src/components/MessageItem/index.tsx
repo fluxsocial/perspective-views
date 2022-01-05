@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
-import { ChatContext, useEventEmitter } from "junto-utils/react";
+import { ChatContext } from "junto-utils/react";
 import { Reaction } from "junto-utils/types";
 import getMe from "junto-utils/api/getMe";
 
@@ -26,10 +26,9 @@ type timeOptions = {
   relative?: boolean
 }
 
-export default function MessageItem({ index, showAvatar, onOpenEmojiPicker }) {
+export default function MessageItem({ index, showAvatar, onOpenEmojiPicker, mainRef }) {
   const [showToolbar, setShowToolbar] = useState(false);
   const messageRef = useRef<any>(null);
-  const bus = useEventEmitter();
   const {
     state: { messages, keyedMessages },
     methods: { addReaction, removeReaction },
@@ -93,13 +92,17 @@ export default function MessageItem({ index, showAvatar, onOpenEmojiPicker }) {
       const mention = ele as HTMLElement;
       mention.onclick = () => {
         if (mention.innerText.startsWith("#")) {
-          bus.current.dispatchEvent("perspective-click", mention.dataset.id);
+          const event = new CustomEvent('perspective-click', { detail: mention.dataset['id'], bubbles: true });
+          mainRef.current.dispatchEvent(event);
         } else {
-          bus.current.dispatchEvent("agent-click", message.author.did);
+          const event = new CustomEvent('agent-click', { detail:mention.dataset['id'], bubbles: true });
+          mainRef.current.dispatchEvent(event);
         }
       };
     }
   }, [messageRef]);
+
+
 
   const getDateTimeOptions = (options: timeOptions) => {
     if (options.dateStyle) {
@@ -175,7 +178,8 @@ export default function MessageItem({ index, showAvatar, onOpenEmojiPicker }) {
               src={message.author.thumbnailPicture}
               hash={message.author.did}
               onClick={() => {
-                bus.current.dispatchEvent("agent-click", message.author.did);
+                const event = new CustomEvent('agent-click', { detail: message.author.did, bubbles: true });
+                mainRef.current.dispatchEvent(event);
               }}
             ></j-avatar>
           </div>

@@ -1,5 +1,5 @@
 import { useState, useContext, useRef, useEffect } from "preact/hooks";
-import { ChatContext, useEventEmitter } from "junto-utils/react";
+import { ChatContext } from "junto-utils/react";
 import MessageItem from "./MessageItem";
 import getMe from "junto-utils/api/getMe";
 import { differenceInMinutes, parseISO } from "date-fns";
@@ -12,12 +12,11 @@ const mainStyles = {
   position: "relative",
 };
 
-export default function MessageList({perspectiveUuid}) {
+export default function MessageList({ perspectiveUuid, mainRef }) {
   const emojiPicker = useRef(document.createElement("emoji-picker"));
   const [atBottom, setAtBottom] = useState(true);
   const [initialScroll, setinitialScroll] = useState(false);
   const scroller = useRef();
-  const bus = useEventEmitter();
 
   const {
     state: { messages, isFetchingMessages, scrollPosition, hasNewMessage },
@@ -37,13 +36,15 @@ export default function MessageList({perspectiveUuid}) {
   useEffect(() => {
     if (atBottom && hasNewMessage) {
       scrollToBottom();
-      bus.current.dispatchEvent("hide-notification-indicator", perspectiveUuid);
+      const event = new CustomEvent('hide-notification-indicator', { detail: perspectiveUuid, bubbles: true });
+      mainRef.current.dispatchEvent(event);
     } 
   }, [hasNewMessage, atBottom])
 
   useEffect(() => {
     if (atBottom) {
-      bus.current.dispatchEvent("hide-notification-indicator", perspectiveUuid);
+      const event = new CustomEvent('hide-notification-indicator', { detail: perspectiveUuid, bubbles: true });
+      mainRef.current.dispatchEvent(event);
     }
   }, [atBottom]);
 
@@ -171,6 +172,7 @@ export default function MessageList({perspectiveUuid}) {
               onOpenEmojiPicker={(unicode) => openEmojiPicker(unicode, index)}
               showAvatar={showAvatar(index)}
               index={index}
+              mainRef={mainRef}
             />
           );
         }}
