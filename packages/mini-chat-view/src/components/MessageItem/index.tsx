@@ -152,6 +152,16 @@ export default function MessageItem({
     }
   };
 
+  function onProfileClick(did) {
+    const event = new CustomEvent("agent-click", {
+      detail: {
+        did,
+      },
+      bubbles: true,
+    });
+    mainRef.current.dispatchEvent(event);
+  }
+
   return (
     <div
       onMouseOver={() => setShowToolbar(true)}
@@ -165,7 +175,10 @@ export default function MessageItem({
             <div class={styles.replyLine} />
           </div>
           <div class={styles.messageFlex}>
-            <div class={styles.messageFlex}>
+            <div
+              class={styles.messageFlex}
+              onClick={() => onProfileClick(replyMessage.author.did)}
+            >
               <j-avatar
                 style="--j-avatar-size: 20px"
                 hash={replyMessage.author.did}
@@ -174,7 +187,10 @@ export default function MessageItem({
                 {replyMessage.author.username}
               </div>
             </div>
-            <div dangerouslySetInnerHTML={{ __html: replyMessage.content }} />
+            <div
+              class={styles.replyContent}
+              dangerouslySetInnerHTML={{ __html: replyMessage.content }}
+            />
           </div>
         </>
       )}
@@ -184,13 +200,7 @@ export default function MessageItem({
             <j-avatar
               src={message.author.thumbnailPicture}
               hash={message.author.did}
-              onClick={() => {
-                const event = new CustomEvent("agent-click", {
-                  detail: message.author.did,
-                  bubbles: true,
-                });
-                mainRef.current.dispatchEvent(event);
-              }}
+              onClick={() => onProfileClick(message.author.did)}
             ></j-avatar>
           </j-flex>
         ) : (
@@ -201,9 +211,14 @@ export default function MessageItem({
       </div>
       <div>
         {(replyMessage || showAvatar) && (
-          <j-flex gap="300">
-            <div class={styles.messageUsername}>{message.author.username}</div>
-            <small style={{ fontSize: "var(--j-font-size-300)" }}>
+          <j-flex a="center" gap="400">
+            <div
+              onClick={() => onProfileClick(message.author.did)}
+              class={styles.messageUsername}
+            >
+              {message.author.username}
+            </div>
+            <small class={styles.timestamp}>
               {getTime(message.timestamp, { relative: true })}
             </small>
           </j-flex>
