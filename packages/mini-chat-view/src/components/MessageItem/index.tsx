@@ -2,7 +2,6 @@ import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import { ChatContext, useEventEmitter } from "junto-utils/react";
 import { Reaction } from "junto-utils/types";
 import getMe from "junto-utils/api/getMe";
-import tippy from "tippy.js";
 
 import MessageToolbar from "./MessageToolbar";
 import MessageReactions from "./MessageReactions";
@@ -65,7 +64,6 @@ export default function MessageItem({ index, showAvatar, onOpenEmojiPicker }) {
 
   const replyMessage = keyedMessages[message?.replyUrl];
 
-  /*
   useEffect(() => {
     const mentionElements = (messageRef.current as any).querySelectorAll(
       ".mention"
@@ -95,18 +93,13 @@ export default function MessageItem({ index, showAvatar, onOpenEmojiPicker }) {
       const mention = ele as HTMLElement;
       mention.onclick = () => {
         if (mention.innerText.startsWith("#")) {
-          bus.current.dispatchEvent("pv-channel-click", {
-            id: mention.dataset.id,
-          });
+          bus.current.dispatchEvent("perspective-click", mention.dataset.id);
         } else {
-          bus.current.dispatchEvent("pv-member-click", {
-            did: message.author.did,
-          });
+          bus.current.dispatchEvent("agent-click", message.author.did);
         }
       };
     }
   }, [messageRef]);
-  */
 
   const getDateTimeOptions = (options: timeOptions) => {
     if (options.dateStyle) {
@@ -182,9 +175,7 @@ export default function MessageItem({ index, showAvatar, onOpenEmojiPicker }) {
               src={message.author.thumbnailPicture}
               hash={message.author.did}
               onClick={() => {
-                bus.current.dispatchEvent("pv-member-click", {
-                  did: message.author.did,
-                });
+                bus.current.dispatchEvent("agent-click", message.author.did);
               }}
             ></j-avatar>
           </div>

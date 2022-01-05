@@ -1,37 +1,58 @@
 import { useState, useContext, useRef, useEffect } from "preact/hooks";
-import { ChatContext } from "junto-utils/react";
+import { ChatContext, useEventEmitter } from "junto-utils/react";
 import MessageItem from "./MessageItem";
 import getMe from "junto-utils/api/getMe";
 import { differenceInMinutes, parseISO } from "date-fns";
 import tippy from "tippy.js";
-
 import { Virtuoso } from "react-virtuoso";
+import {h, Component, createRef} from 'preact'
 
 const mainStyles = {
   flex: "1",
   position: "relative",
 };
 
-export default function MessageList() {
+export default function MessageList({perspectiveUuid}) {
   const emojiPicker = useRef(document.createElement("emoji-picker"));
-  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+  const [atBottom, setAtBottom] = useState(true);
+  const [initialScroll, setinitialScroll] = useState(false);
   const scroller = useRef();
+  const bus = useEventEmitter();
 
   const {
-    state: { messages, isFetchingMessages },
-    methods: { loadMore, removeReaction, addReaction },
+    state: { messages, isFetchingMessages, scrollPosition, hasNewMessage },
+    methods: { loadMore, removeReaction, addReaction, saveScrollPos, setHasNewMessage },
   } = useContext(ChatContext);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages.length]);
+    if (scroller.current && messages.length > 0 && !initialScroll) {
+      scroller.current.scrollToIndex({
+        index: scrollPosition,
+      });
+
+      setinitialScroll(true)
+    }
+  }, [messages, initialScroll, scrollPosition]);
+
+  useEffect(() => {
+    if (atBottom && hasNewMessage) {
+      scrollToBottom();
+      bus.current.dispatchEvent("hide-notification-indicator", perspectiveUuid);
+    } 
+  }, [hasNewMessage, atBottom])
+
+  useEffect(() => {
+    if (atBottom) {
+      bus.current.dispatchEvent("hide-notification-indicator", perspectiveUuid);
+    }
+  }, [atBottom]);
 
   function scrollToBottom() {
     if (scroller.current) {
       scroller.current.scrollToIndex({
         index: messages.length - 1,
       });
-      setHasUnreadMessages(false);
+      setHasNewMessage(false);
     }
   }
 
@@ -87,9 +108,16 @@ export default function MessageList() {
     }
   }
 
+  const rangeChanged = ({startIndex}) => {
+
+    if (typeof startIndex === "number") {
+      saveScrollPos(startIndex);
+    }
+  }
+
   return (
     <main style={mainStyles}>
-      {hasUnreadMessages && (
+      {(hasNewMessage && !atBottom) && (
         <j-button
           variant="primary"
           onClick={scrollToBottom}
@@ -126,10 +154,17 @@ export default function MessageList() {
         ref={scroller}
         alignToBottom
         startReached={() => console.log("start reached")}
-        endReached={() => setHasUnreadMessages(false)}
+        atBottomStateChange={(atBottom) => {
+          if (atBottom) {
+            setHasNewMessage(false);
+          }
+          setAtBottom(atBottom)
+        }}
         style={{ height: "100%" }}
         overscan={20}
         totalCount={messages.length}
+        rangeChanged={rangeChanged}
+        initialTopMostItemIndex={scrollPosition}
         itemContent={(index) => {
           return (
             <MessageItem

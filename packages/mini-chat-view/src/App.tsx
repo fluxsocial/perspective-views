@@ -42,24 +42,24 @@ emoji-picker {
 
 `;
 
-function MainComponent() {
+function MainComponent({ perspectiveUuid }) {
   return (
     <div style={containerStyles}>
       <style>{style}</style>
       <Header />
-      <MessageList />
+      <MessageList perspectiveUuid={perspectiveUuid} />
       <Footer />
     </div>
   );
 }
 
-export default function App({ perspectiveUuid = "" }) {
+export default ({ perspectiveUuid = "" }) => {
   return (
     <UIProvider>
       <AgentProvider>
         <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
           <ChatProvider perspectiveUuid={perspectiveUuid}>
-            <MainComponent ></MainComponent>
+            <MainComponent perspectiveUuid={perspectiveUuid}></MainComponent>
           </ChatProvider>
         </PerspectiveProvider>
       </AgentProvider>
