@@ -23,14 +23,18 @@ export default function Footer() {
   const currentReplyMessage = keyedMessages[currentReply];
 
   function handleSendMessage(value) {
-    if (currentReplyMessage) {
-      sendReply(value, currentReplyMessage.url);
-    } else {
-      sendMessage(value);
-    }
+    const escapedMessage = value.replace(/( |<([^>]+)>)/gi, "");
 
-    setInputValue("");
-    setCurrentReply("");
+    if (escapedMessage) {
+      if (currentReplyMessage) {
+        sendReply(value, currentReplyMessage.url);
+      } else {
+        sendMessage(value);
+      }
+  
+      setInputValue("");
+      setCurrentReply("");
+    }
   }
 
   const mentionMembers = useMemo(() => {
