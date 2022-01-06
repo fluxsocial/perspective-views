@@ -38,12 +38,10 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
   const channelInterval = useRef();
 
   useEffect(() => {
-    console.log("arr 0", state.url);
     fetchMeta();
   }, [perspectiveUuid]);
 
   useEffect(() => {
-    console.log("arr 1", state.url);
     channelInterval.current = fetchChannels();
     memberInterval.current = fetchMembers();
 
@@ -59,17 +57,14 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
         perspectiveUuid,
         neighbourhoodUrl: state.url,
       });
-      console.log("members", members);
 
       setState((prev, curr) => ({ ...prev, members }));
 
       return setInterval(async () => {
-        console.log(state.url);
         const members = await getMembers({
           perspectiveUuid,
           neighbourhoodUrl: state.url,
         });
-        console.log("members", members);
 
         setState((prev, curr) => ({ ...prev, members }));
       }, 20000);
@@ -82,17 +77,14 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
         perspectiveUuid,
         neighbourhoodUrl: state.url,
       });
-      console.log("channels", state, channels);
 
       setState((prev, curr) => ({ ...prev, channels }));
 
       return setInterval(async () => {
-        console.log(state.url);
         const channels = await getChannels({
           perspectiveUuid,
           neighbourhoodUrl: state.url,
         });
-        console.log("channels", state, channels);
 
         setState((prev, curr) => ({ ...prev, channels }));
       }, 10000);
@@ -101,7 +93,6 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
 
   async function fetchMeta() {
     const meta = await getPerspectiveMeta(perspectiveUuid);
-    console.log("meta", meta);
     setState({
       ...state,
       name: meta.name,

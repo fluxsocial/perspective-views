@@ -8,7 +8,6 @@ export default function Footer() {
   const {
     state: { members, channels, url },
   } = useContext(PerspectiveContext);
-  console.log("test 103", members, channels);
   const [inputValue, setInputValue] = useState("");
 
   const {
@@ -43,8 +42,6 @@ export default function Footer() {
       };
     });
   }, [members]);
-
-  console.log(mentionMembers);
 
   const mentionChannels = useMemo(() => {
     return Object.values(channels).map((channel: any) => {
