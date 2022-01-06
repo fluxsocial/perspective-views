@@ -78,8 +78,8 @@ export default function Tiptap({
         Text,
         Paragraph.configure({
           HTMLAttributes: {
-            class: styles.editorParagraph
-          }
+            class: styles.editorParagraph,
+          },
         }),
         Link,
         Bold,
@@ -100,7 +100,7 @@ export default function Tiptap({
           },
           suggestion: {
             char: ":",
-            items: (query) => {
+            items: ({ query }) => {
               const formattedEmojiList = Object.entries(emojiList.emoji).map(
                 ([id, label]) => ({ id, label })
               );
@@ -114,7 +114,7 @@ export default function Tiptap({
         }),
         Mention("neighbourhood-mention").configure({
           HTMLAttributes: {
-            class: styles.editorMentions
+            class: styles.editorMentions,
           },
           renderLabel({ options, node }) {
             return `${options.suggestion.char}${
@@ -123,11 +123,10 @@ export default function Tiptap({
           },
           suggestion: {
             char: "#",
-            items: (query) => {
-              console.log({ thing: channelsCB.current, query });
+            items: ({ query }) => {
               return channelsCB.current
                 .filter((item) =>
-                  item.label.toLowerCase().startsWith(query.query.toLowerCase())
+                  item.label.toLowerCase().startsWith(query.toLowerCase())
                 )
                 .slice(0, 5);
             },
@@ -136,7 +135,7 @@ export default function Tiptap({
         }),
         Mention("agent-mention").configure({
           HTMLAttributes: {
-            class: styles.editorMentions
+            class: styles.editorMentions,
           },
           renderLabel({ options, node }) {
             return `${options.suggestion.char}${
@@ -145,10 +144,10 @@ export default function Tiptap({
           },
           suggestion: {
             char: "@",
-            items: (query) => {
+            items: ({ query }) => {
               return membersCB.current
                 .filter((item) =>
-                  item.label.toLowerCase().startsWith(query.query.toLowerCase())
+                  item.label.toLowerCase().startsWith(query.toLowerCase())
                 )
                 .slice(0, 5);
             },
