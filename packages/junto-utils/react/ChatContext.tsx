@@ -82,20 +82,20 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }
   }, [profileHash]);
 
-  useEffect(() => {
-    messageInterval.current = setInterval(async () => {
-      const oldestMessage = messages[0];
-      const latestMessage = messages[messages.length - 1];
-      await fetchMessages({
-        from: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
-        to: latestMessage ? new Date(latestMessage.timestamp) : new Date(),
-      });
-    }, 60000);
+  // useEffect(() => {
+  //   messageInterval.current = setInterval(async () => {
+  //     const oldestMessage = messages[0];
+  //     const latestMessage = messages[messages.length - 1];
+  //     await fetchMessages({
+  //       from: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
+  //       to: latestMessage ? new Date(latestMessage.timestamp) : new Date(),
+  //     });
+  //   }, 60000);
 
-    return () => {
-      clearInterval(messageInterval.current);
-    }
-  }, []);
+  //   return () => {
+  //     clearInterval(messageInterval.current);
+  //   }
+  // }, []);
 
   // Save every change to keyedMessages to localstorage
   // This might be a it slow?
