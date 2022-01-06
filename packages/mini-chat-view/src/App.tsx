@@ -12,22 +12,10 @@ import { UIProvider } from "./context/UIContext";
 import { useRef } from "preact/hooks";
 import styles from "./index.scss";
 
-const style = `
-.ProseMirror p:first-of-type {
-  padding-top: 0;
-  margin-top: 0;
-}
-.ProseMirror p:last-of-type {
-  padding-bottom: 0;
-  margin-bottom: 0;
-}
-`;
-
 const MainComponent = forwardRef(
   ({ perspectiveUuid }: { perspectiveUuid: any }, ref) => {
     return (
       <div class={styles.container} ref={ref}>
-        <style>{style}</style>
         <Header />
         <MessageList perspectiveUuid={perspectiveUuid} mainRef={ref} />
         <Footer />
