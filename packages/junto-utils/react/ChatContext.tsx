@@ -59,6 +59,7 @@ const ChatContext = createContext(initialState);
 export function ChatProvider({ perspectiveUuid, children }: any) {
   const [shortFormHash, setShortFormHash] = useState("");
   const [profileHash, setProfileHash] = useState("");
+  const messageInterval = useRef();
 
   const [state, setState] = useState(initialState.state);
 
@@ -78,6 +79,21 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       });
     }
   }, [profileHash]);
+
+  useEffect(() => {
+    messageInterval.current = setInterval(async () => {
+      const oldestMessage = messages[0];
+      const latestMessage = messages[messages.length - 1];
+      await fetchMessages({
+        from: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
+        to: latestMessage ? new Date(latestMessage.timestamp) : new Date(),
+      });
+    }, 60000);
+
+    return () => {
+      clearInterval(messageInterval.current);
+    }
+  }, []);
 
   // Save every change to keyedMessages to localstorage
   // This might be a it slow?
@@ -166,14 +182,13 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }
   }
 
-  async function fetchMessages(payload?: { from?: Date }) {
+  async function fetchMessages(payload?: { from?: Date, to?: Date }) {
     setState((oldState) => ({
       ...oldState,
       isFetchingMessages: true,
     }));
 
     const cachedMessages = sessionStorage.getItem(`chat-perspective-${perspectiveUuid}`);
-
     
     if (cachedMessages && perspectiveUuid) {
       const perspective = JSON.parse(cachedMessages);
@@ -187,6 +202,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     const res = await getMessages({
       perspectiveUuid,
       from: payload?.from,
+      to: payload?.to
     });
 
     setState((oldState) => ({
