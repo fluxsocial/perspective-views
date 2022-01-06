@@ -20,15 +20,23 @@ import renderMention from "./renderMention";
 import emojiList from "node-emoji/lib/emoji";
 import { useEffect } from "preact/hooks";
 
-export default function Tiptap({ value, onChange, onSend, members = [], channels = [] }) {
+import styles from "./index.scss";
+
+export default function Tiptap({
+  value,
+  onChange,
+  onSend,
+  members = [],
+  channels = [],
+}) {
   const [showToolbar, setShowToolbar] = useState(false);
 
   const emojiPicker = useRef();
 
   // This is needed because React ugh.
   const sendCB = useRef(onSend);
-  const membersCB = useRef(members)
-  const channelsCB = useRef(channels)
+  const membersCB = useRef(members);
+  const channelsCB = useRef(channels);
   useEffect(() => {
     sendCB.current = onSend;
   }, [onSend]);
@@ -45,104 +53,112 @@ export default function Tiptap({ value, onChange, onSend, members = [], channels
     }
   }, [emojiPicker.current]);
 
-  const editor = useEditor({
-    content: value as any,
-    enableInputRules: false,
-    editorProps: {
-      attributes: {
-        style: "outline: 0",
+  const editor = useEditor(
+    {
+      content: value as any,
+      enableInputRules: false,
+      editorProps: {
+        attributes: {
+          style: "outline: 0",
+        },
+      },
+      extensions: [
+        Document.extend({
+          addKeyboardShortcuts: () => {
+            return {
+              Enter: (props) => {
+                const value = props.editor.getHTML();
+                sendCB.current(value);
+                // Prevents us from getting a new paragraph if user pressed Enter
+                return true;
+              },
+            };
+          },
+        }),
+        Text,
+        Paragraph,
+        Link,
+        Bold,
+        Strike,
+        Italic,
+        LineBreak,
+        ListItem,
+        BulletList,
+        OrderedList,
+        History,
+        CodeBlock,
+        Mention("emoji").configure({
+          HTMLAttributes: {
+            class: "emoji",
+          },
+          renderLabel({ options, node }) {
+            return node.attrs.label ?? node.attrs.id;
+          },
+          suggestion: {
+            char: ":",
+            items: (query) => {
+              const formattedEmojiList = Object.entries(emojiList.emoji).map(
+                ([id, label]) => ({ id, label })
+              );
+
+              return formattedEmojiList
+                .filter((e) => e.id.startsWith(query))
+                .slice(0, 10);
+            },
+            render: renderMention,
+          },
+        }),
+        Mention("neighbourhood-mention").configure({
+          HTMLAttributes: {
+            class: "mention",
+          },
+          renderLabel({ options, node }) {
+            return `${options.suggestion.char}${
+              node.attrs.label ?? node.attrs.id
+            }`;
+          },
+          suggestion: {
+            char: "#",
+            items: (query) => {
+              console.log({ thing: channelsCB.current, query });
+              return channelsCB.current
+                .filter((item) =>
+                  item.label.toLowerCase().startsWith(query.toLowerCase())
+                )
+                .slice(0, 5);
+            },
+            render: renderMention,
+          },
+        }),
+        Mention("agent-mention").configure({
+          HTMLAttributes: {
+            class: "mention",
+          },
+          renderLabel({ options, node }) {
+            return `${options.suggestion.char}${
+              node.attrs.label ?? node.attrs.id
+            }`;
+          },
+          suggestion: {
+            char: "@",
+            items: (query) => {
+              return membersCB.current
+                .filter((item) =>
+                  item.label.toLowerCase().startsWith(query.toLowerCase())
+                )
+                .slice(0, 5);
+            },
+            render: renderMention,
+          },
+        }),
+      ],
+      onUpdate: (props) => {
+        const value = props.editor.getJSON() as any;
+        onChange(value);
       },
     },
-    extensions: [
-      Document.extend({
-        addKeyboardShortcuts: () => {
-          return {
-            Enter: (props) => {
-              const value = props.editor.getHTML();
-              sendCB.current(value);
-              // Prevents us from getting a new paragraph if user pressed Enter
-              return true;
-            },
-          };
-        },
-      }),
-      Text,
-      Paragraph,
-      Link,
-      Bold,
-      Strike,
-      Italic,
-      LineBreak,
-      ListItem,
-      BulletList,
-      OrderedList,
-      History,
-      CodeBlock,
-      Mention("emoji").configure({
-        HTMLAttributes: {
-          class: "emoji",
-        },
-        renderLabel({ options, node }) {
-          return node.attrs.label ?? node.attrs.id;
-        },
-        suggestion: {
-          char: ":",
-          items: ({query}) => {
-            const formattedEmojiList = Object.entries(emojiList.emoji).map(
-              ([id, label]) => ({ id, label })
-            );
-
-            return formattedEmojiList
-              .filter((e) => e.id.startsWith(query))
-              .slice(0, 10);
-          },
-          render: renderMention,
-        },
-      }),
-      Mention("neighbourhood-mention").configure({
-        HTMLAttributes: {
-          class: "mention",
-        },
-        renderLabel({ options, node }) {
-          return `${options.suggestion.char}${node.attrs.label ?? node.attrs.id}`;
-        },
-        suggestion: {
-          char: "#",
-          items: ({query}) => {
-            return channelsCB.current
-              .filter((item) =>
-                item.label.toLowerCase().startsWith(query.toLowerCase())
-              )
-              .slice(0, 5);
-          },
-          render: renderMention,
-        },
-      }),
-      Mention("agent-mention").configure({
-        HTMLAttributes: {
-          class: "mention",
-        },
-        renderLabel({ options, node }) {
-          return `${options.suggestion.char}${node.attrs.label ?? node.attrs.id}`;
-        },
-        suggestion: {
-          char: "@",
-          items: ({query}) => {
-            return membersCB.current
-              .filter((item) =>
-                item.label.toLowerCase().startsWith(query.toLowerCase())
-              )
-              .slice(0, 5);
-          },
-          render: renderMention,
-        },
-      }),
-    ],
-    onUpdate: (props) => {
-      const value = props.editor.getJSON() as any;
-      onChange(value);
-    },
-  }, [membersCB, channelsCB]);
+    [membersCB, channelsCB]
+  );
 
   useEffect(() => {
     if (editor) {
@@ -175,23 +191,9 @@ export default function Tiptap({ value, onChange, onSend, members = [], channels
   }
 
   return (
-    <div>
-      <div
-        style={{
-          paddingLeft: "var(--j-space-400)",
-          paddingRight: "var(--j-space-400)",
-          paddingTop: "var(--j-space-300)",
-          paddingBottom: "var(--j-space-300)",
-          borderRadius: "var(--j-border-radius)",
-          border: "1px solid var(--j-border-color)",
-          display: "flex",
-          boxSizing: "border-box",
-        }}
-      >
-        <EditorContent
-          style={{ width: "100%", paddingTop: "var(--j-space-200)" }}
-          editor={editor}
-        />
+    <div class={styles.editor}>
+      <div class={styles.editorWrapper}>
+        <EditorContent class={styles.editorContent} editor={editor} />
         <j-flex>
           <j-popover placement="top">
             <j-button slot="trigger" variant="ghost" size="sm">
