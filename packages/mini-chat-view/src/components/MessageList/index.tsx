@@ -42,7 +42,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
     if (atBottom && hasNewMessage) {
       scrollToBottom();
       const event = new CustomEvent("hide-notification-indicator", {
-        detail: perspectiveUuid,
+        detail: { uuid: perspectiveUuid },
         bubbles: true,
       });
       mainRef.current.dispatchEvent(event);
@@ -52,7 +52,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
   useEffect(() => {
     if (atBottom) {
       const event = new CustomEvent("hide-notification-indicator", {
-        detail: perspectiveUuid,
+        detail: { uuid: perspectiveUuid },
         bubbles: true,
       });
       mainRef.current.dispatchEvent(event);

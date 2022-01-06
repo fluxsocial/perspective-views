@@ -70,7 +70,7 @@ export default function MessageItem({
 
   useEffect(() => {
     const mentionElements = (messageRef.current as any).querySelectorAll(
-      ".mention"
+      "[data-mention]"
     );
     const emojiElements = (messageRef.current as any).querySelectorAll(
       ".emoji"
@@ -95,7 +95,8 @@ export default function MessageItem({
 
     for (const ele of mentionElements) {
       const mention = ele as HTMLElement;
-      mention.onclick = () => {
+
+      mention.addEventListener("click", () => {
         if (mention.innerText.startsWith("#")) {
           const event = new CustomEvent("perspective-click", {
             detail: {
@@ -113,7 +114,7 @@ export default function MessageItem({
           });
           mainRef.current.dispatchEvent(event);
         }
-      };
+      });
     }
   }, [messageRef]);
 
@@ -208,7 +209,14 @@ export default function MessageItem({
             ></j-avatar>
           </j-flex>
         ) : (
-          <small class={styles.timestampLeft} data-rh data-timestamp={getTime(message.timestamp, { dateStyle: "medium", timeStyle: "short" })}>
+          <small
+            class={styles.timestampLeft}
+            data-rh
+            data-timestamp={getTime(message.timestamp, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })}
+          >
             {getTime(message.timestamp, { hour: "numeric", minute: "numeric" })}
           </small>
         )}
@@ -222,7 +230,14 @@ export default function MessageItem({
             >
               {message.author.username}
             </div>
-            <small class={styles.timestamp} data-rh data-timestamp={getTime(message.timestamp, { dateStyle: "medium", timeStyle: "short" })} >
+            <small
+              class={styles.timestamp}
+              data-rh
+              data-timestamp={getTime(message.timestamp, {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })}
+            >
               {getTime(message.timestamp, { relative: true })}
             </small>
           </j-flex>
