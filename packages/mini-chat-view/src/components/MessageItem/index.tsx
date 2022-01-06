@@ -98,13 +98,17 @@ export default function MessageItem({
       mention.onclick = () => {
         if (mention.innerText.startsWith("#")) {
           const event = new CustomEvent("perspective-click", {
-            detail: mention.dataset["id"],
+            detail: {
+              uuid: mention.dataset["id"],
+            },
             bubbles: true,
           });
           mainRef.current.dispatchEvent(event);
         } else {
           const event = new CustomEvent("agent-click", {
-            detail: mention.dataset["id"],
+            detail: {
+              did: mention.dataset["id"],
+            },
             bubbles: true,
           });
           mainRef.current.dispatchEvent(event);
