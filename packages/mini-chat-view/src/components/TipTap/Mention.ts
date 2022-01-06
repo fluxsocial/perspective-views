@@ -16,7 +16,7 @@ export type MentionOptions = {
 export default (name: string) =>
   Node.create<MentionOptions>({
     name: name,
-    defaultOptions: {
+    addOptions: () => ({
       name: name,
       HTMLAttributes: {},
       renderLabel({ options, node }) {
@@ -54,7 +54,7 @@ export default (name: string) =>
           return editor.can().insertContentAt(range, { type: name });
         },
       },
-    },
+    }),
 
     group: "inline",
 

@@ -24,9 +24,9 @@ declare module "@tiptap/core" {
 
 export default Node.create({
   name: "hardBreak",
-  defaultOptions: {
+  addOptions: () => ({
     HTMLAttributes: {},
-  },
+  }),
   inline: true,
   group: "inline",
   selectable: false,
