@@ -16,7 +16,7 @@
   "scripts": {
     "prepare": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node esbuild.js",
+    "build": "NODE_ENV=prod node esbuild.js",
     "dev": "NODE_ENV=dev run-p dev:**",
     "dev:build": "node esbuild.js",
     "dev:serve": "npx live-server",
