@@ -6,6 +6,9 @@ import { differenceInMinutes, parseISO } from "date-fns";
 import tippy from "tippy.js";
 import { Virtuoso } from "react-virtuoso";
 import { h, Component, createRef } from "preact";
+import ReactHintFactory from 'react-hint'
+const ReactHint = ReactHintFactory({createElement: h, Component, createRef})
+import 'react-hint/css/index.css'
 import styles from "./index.scss";
 
 export default function MessageList({ perspectiveUuid, mainRef }) {
@@ -177,6 +180,17 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
             />
           );
         }}
+      />
+      <ReactHint 
+        position="right" 
+        className={styles.reactHint} 
+        events={{hover: true}} 
+        onRenderContent={(target) => (
+          <div>
+            <span>{target.dataset['timestamp']}</span>
+            <div class={styles.arrow}></div>
+          </div>
+        )}  
       />
     </main>
   );

@@ -204,7 +204,7 @@ export default function MessageItem({
             ></j-avatar>
           </j-flex>
         ) : (
-          <small class={styles.timestampLeft}>
+          <small class={styles.timestampLeft} data-rh data-timestamp={getTime(message.timestamp, { dateStyle: "medium", timeStyle: "short" })}>
             {getTime(message.timestamp, { hour: "numeric", minute: "numeric" })}
           </small>
         )}
@@ -218,7 +218,7 @@ export default function MessageItem({
             >
               {message.author.username}
             </div>
-            <small class={styles.timestamp}>
+            <small class={styles.timestamp} data-rh data-timestamp={getTime(message.timestamp, { dateStyle: "medium", timeStyle: "short" })} >
               {getTime(message.timestamp, { relative: true })}
             </small>
           </j-flex>
