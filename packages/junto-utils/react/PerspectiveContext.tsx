@@ -38,7 +38,9 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
   const channelInterval = useRef();
 
   useEffect(() => {
-    fetchMeta();
+    if (perspectiveUuid) {
+      fetchMeta();
+    }
   }, [perspectiveUuid]);
 
   useEffect(() => {
