@@ -76,7 +76,11 @@ export default function Tiptap({
           },
         }),
         Text,
-        Paragraph,
+        Paragraph.configure({
+          HTMLAttributes: {
+            class: styles.editorParagraph
+          }
+        }),
         Link,
         Bold,
         Strike,
@@ -110,7 +114,7 @@ export default function Tiptap({
         }),
         Mention("neighbourhood-mention").configure({
           HTMLAttributes: {
-            class: "mention",
+            class: styles.editorMentions
           },
           renderLabel({ options, node }) {
             return `${options.suggestion.char}${
@@ -123,7 +127,7 @@ export default function Tiptap({
               console.log({ thing: channelsCB.current, query });
               return channelsCB.current
                 .filter((item) =>
-                  item.label.toLowerCase().startsWith(query.toLowerCase())
+                  item.label.toLowerCase().startsWith(query.query.toLowerCase())
                 )
                 .slice(0, 5);
             },
@@ -132,7 +136,7 @@ export default function Tiptap({
         }),
         Mention("agent-mention").configure({
           HTMLAttributes: {
-            class: "mention",
+            class: styles.editorMentions
           },
           renderLabel({ options, node }) {
             return `${options.suggestion.char}${
@@ -144,7 +148,7 @@ export default function Tiptap({
             items: (query) => {
               return membersCB.current
                 .filter((item) =>
-                  item.label.toLowerCase().startsWith(query.toLowerCase())
+                  item.label.toLowerCase().startsWith(query.query.toLowerCase())
                 )
                 .slice(0, 5);
             },
