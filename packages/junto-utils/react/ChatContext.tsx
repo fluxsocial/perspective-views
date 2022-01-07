@@ -10,6 +10,7 @@ import { linkIs } from "../helpers/linkHelpers";
 import deleteMessageReaction from "../api/deleteMessageReaction";
 import createMessageReaction from "../api/createMessageReaction";
 import createReply from "../api/createReply";
+import getReactions from "../api/getReactions";
 import {
   PROFILE_EXPRESSION,
   SHORT_FORM_EXPRESSION,
@@ -83,19 +84,24 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   }, [profileHash]);
 
   // useEffect(() => {
-  //   messageInterval.current = setInterval(async () => {
-  //     const oldestMessage = messages[0];
-  //     const latestMessage = messages[messages.length - 1];
-  //     await fetchMessages({
-  //       from: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
-  //       to: latestMessage ? new Date(latestMessage.timestamp) : new Date(),
-  //     });
-  //   }, 60000);
+  //   messageInterval.current = fetchMessagesAgain();
 
   //   return () => {
   //     clearInterval(messageInterval.current);
   //   }
-  // }, []);
+  // }, [messages]);
+
+  // function fetchMessagesAgain() {
+  //   return setInterval(async () => {
+  //     const oldestMessage = messages[0];
+  //     const latestMessage = messages[messages.length - 1];
+  //     // console.log('lol 3', messages.length, latestMessage.timestamp, oldestMessage.timestamp)
+  //     await fetchMessages({
+  //       from: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
+  //       to: latestMessage ? new Date(latestMessage.timestamp) : new Date(),
+  //     });
+  //   }, 10000);
+  // }
 
   // Save every change to keyedMessages to localstorage
   // This might be a it slow?
@@ -126,6 +132,18 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     return newState;
   }
 
+  function addReactionToState(oldState, messageId, reactions) {
+    const newState = {
+      ...oldState,
+      hasNewMessage: true,
+      keyedMessages: {
+        ...oldState.keyedMessages,
+        [messageId]: { ...oldState.keyedMessages[messageId], reactions },
+      },
+    };
+    return newState;
+  }
+
   async function handleLinkAdded(link) {
     console.log("handle link added", link);
     if (linkIs.message(link)) {
@@ -136,6 +154,13 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       });
 
       setState((oldState) => addMessage(oldState, message));
+
+      const reactions = await getReactions({
+        url: link.data.target,
+        perspectiveUuid
+      });
+
+      setState((oldState) => addReactionToState(oldState, message.id, reactions));
     }
 
     if (linkIs.reaction(link)) {
@@ -143,6 +168,11 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
       setState((oldState) => {
         const message = oldState.keyedMessages[id];
+        
+        // TODO: Duplicate signals lead to duplicate links using this to filter
+        const linkFound = message.reactions.find(e => e.data.source === link.data.source && e.data.target === link.data.target);
+
+        if (linkFound) return oldState;
 
         return {
           ...oldState,
@@ -191,7 +221,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }));
 
     const cachedMessages = sessionStorage.getItem(`chat-perspective-${perspectiveUuid}`);
-    
+
     if (cachedMessages && perspectiveUuid) {
       const perspective = JSON.parse(cachedMessages);
 
@@ -209,13 +239,31 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
     setState((oldState) => ({
       ...oldState,
-      keyedMessages: res,
+      keyedMessages: {
+        ...res,
+        ...oldState.keyedMessages,
+      },
     }));
 
     setState((oldState) => ({
       ...oldState,
       isFetchingMessages: false,
     }));
+
+    const messages = {
+      ...state.keyedMessages,
+      ...res
+    };
+
+    for (const message of Object.values(messages)) {
+      const url = (message as any).id;
+      const reactions = await getReactions({
+        url,
+        perspectiveUuid
+      });
+    
+      setState((oldState) => addReactionToState(oldState, url, reactions));
+    }
   }
 
   async function sendMessage(value) {

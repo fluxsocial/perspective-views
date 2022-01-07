@@ -27,14 +27,6 @@ export default async function ({
       })
     );
 
-    const reactionLinks = await ad4mClient.perspective.queryLinks(
-      perspectiveUuid,
-      new LinkQuery({
-        source: link.data.target,
-        predicate: "sioc://reaction_to",
-      })
-    );
-
     const author = await getProfile({
       did: expression.author,
       languageAddress: profileLangAddress,
@@ -45,7 +37,7 @@ export default async function ({
       timestamp: expression.timestamp,
       url: link.data.target,
       author,
-      reactions: reactionLinks,
+      reactions: [],
       replyUrl: replyLinks[0]?.data.target,
       content: expression.data.body,
     };
