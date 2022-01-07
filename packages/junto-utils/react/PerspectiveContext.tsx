@@ -9,6 +9,7 @@ type State = {
   description: string;
   languages: Array<any>;
   url: string;
+  sourceUrl: string;
   members: { [x: string]: any };
   channels: { [x: string]: any };
 };
@@ -23,6 +24,7 @@ const initialState: ContextProps = {
     name: "",
     description: "",
     url: "",
+    sourceUrl: "",
     languages: [],
     members: {},
     channels: {},
@@ -32,7 +34,7 @@ const initialState: ContextProps = {
 
 const PerspectiveContext = createContext(initialState);
 
-export function PerspectiveProvider({ perspectiveUuid, children }: any) {
+export function PerspectiveProvider({ perspectiveUuid, sourcePerspectiveUuid, children }: any) {
   const [state, setState] = useState(initialState.state);
   const memberInterval = useRef();
   const channelInterval = useRef();
@@ -41,7 +43,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     if (perspectiveUuid) {
       fetchMeta();
     }
-  }, [perspectiveUuid]);
+  }, [perspectiveUuid, sourcePerspectiveUuid]);
 
   useEffect(() => {
     channelInterval.current = fetchChannels();
@@ -51,21 +53,21 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
       clearInterval(memberInterval.current);
       clearInterval(channelInterval.current);
     };
-  }, [state.url]);
+  }, [state.url, state.sourceUrl]);
 
   const fetchMembers = async () => {
     if (state.url) {
       const members = await getMembers({
-        perspectiveUuid,
-        neighbourhoodUrl: state.url,
+        perspectiveUuid: sourcePerspectiveUuid || perspectiveUuid,
+        neighbourhoodUrl: state.sourceUrl || state.url,
       });
 
       setState((prev, curr) => ({ ...prev, members }));
 
       return setInterval(async () => {
         const members = await getMembers({
-          perspectiveUuid,
-          neighbourhoodUrl: state.url,
+          perspectiveUuid: sourcePerspectiveUuid || perspectiveUuid,
+          neighbourhoodUrl: state.sourceUrl || state.url,
         });
 
         setState((prev, curr) => ({ ...prev, members }));
@@ -76,16 +78,16 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
   const fetchChannels = async () => {
     if (state.url) {
       const channels = await getChannels({
-        perspectiveUuid,
-        neighbourhoodUrl: state.url,
+        perspectiveUuid: sourcePerspectiveUuid || perspectiveUuid,
+        neighbourhoodUrl: state.sourceUrl || state.url,
       });
 
       setState((prev, curr) => ({ ...prev, channels }));
 
       return setInterval(async () => {
         const channels = await getChannels({
-          perspectiveUuid,
-          neighbourhoodUrl: state.url,
+          perspectiveUuid: sourcePerspectiveUuid || perspectiveUuid,
+          neighbourhoodUrl: state.sourceUrl || state.url,
         });
 
         setState((prev, curr) => ({ ...prev, channels }));
@@ -95,11 +97,14 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
 
   async function fetchMeta() {
     const meta = await getPerspectiveMeta(perspectiveUuid);
+    const source = sourcePerspectiveUuid ? await (await getPerspectiveMeta(sourcePerspectiveUuid)).url : undefined;
+    
     setState({
       ...state,
       name: meta.name,
       description: meta.description,
       url: meta.url,
+      sourceUrl: source, 
       members: {},
       channels: {},
     });

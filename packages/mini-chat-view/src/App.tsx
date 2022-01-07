@@ -13,7 +13,7 @@ import { useRef } from "preact/hooks";
 import styles from "./index.scss";
 
 const MainComponent = forwardRef(
-  ({ perspectiveUuid }: { perspectiveUuid: any }, ref) => {
+  ({ perspectiveUuid }: { perspectiveUuid: string }, ref) => {
     return (
       <div class={styles.container} ref={ref}>
         <Header />
@@ -24,13 +24,16 @@ const MainComponent = forwardRef(
   }
 );
 
-export default ({ perspectiveUuid = "" }) => {
+export default ({ perspectiveUuid = "", sourcePerspectiveUuid = "" }) => {
   const ref = useRef();
 
   return (
     <UIProvider>
       <AgentProvider>
-        <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
+        <PerspectiveProvider 
+          perspectiveUuid={perspectiveUuid} 
+          sourcePerspectiveUuid={sourcePerspectiveUuid}
+        >
           <ChatProvider perspectiveUuid={perspectiveUuid}>
             <MainComponent
               perspectiveUuid={perspectiveUuid}
