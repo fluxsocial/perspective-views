@@ -1,4 +1,4 @@
-const { sassPlugin, postcssModules } = require('esbuild-sass-plugin')
+const { sassPlugin, postcssModules } = require("esbuild-sass-plugin");
 
 const preactCompatPlugin = {
   name: "preact-compat",
@@ -26,11 +26,14 @@ require("esbuild")
     format: "esm",
     minify: true,
     outfile: "dist/main.js",
-    watch: true,
+    watch: process.env.NODE_ENV === "dev" ? true : false,
     inject: ["./preact-shim.js"],
 
-    plugins: [preactCompatPlugin, sassPlugin({
-      transform: postcssModules({})
-    })],
+    plugins: [
+      preactCompatPlugin,
+      sassPlugin({
+        transform: postcssModules({}),
+      }),
+    ],
   })
   .catch(() => process.exit(1));
