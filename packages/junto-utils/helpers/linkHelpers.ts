@@ -16,5 +16,10 @@ export const linkIs = {
   // TODO: SHould we check if the link is proof.valid?
   reaction: (link: LinkExpression) =>
     link.data.predicate === "sioc://reaction_to",
+  channel: (link: LinkExpression) => 
+  link.data.predicate === "sioc://has_space",
+  member: (link: LinkExpression) => 
+  link.data.predicate === "sioc://has_member"
+
   // TODO: SHould we check if the link is proof.valid?
 };

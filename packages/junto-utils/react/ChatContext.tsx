@@ -6,7 +6,7 @@ import createMessage from "../api/createMessage";
 import subscribeToLinks from "../api/subscribeToLinks";
 import getPerspectiveMeta from "../api/getPerspectiveMeta";
 import getMessage from "../api/getMessage";
-import { linkIs } from "../helpers/linkHelpers";
+import { findLink, linkIs } from "../helpers/linkHelpers";
 import deleteMessageReaction from "../api/deleteMessageReaction";
 import createMessageReaction from "../api/createMessageReaction";
 import createReply from "../api/createReply";
@@ -16,6 +16,8 @@ import {
   SHORT_FORM_EXPRESSION,
 } from "../constants/languages";
 import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
+import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
+import getProfile from "../api/getProfile";
 
 type State = {
   isFetchingMessages: boolean;
@@ -188,6 +190,28 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
         return oldState;
       });
+    }
+
+    if (linkIs.channel(link)) {
+      const neighbourhood = await ad4mClient.expression.get(link.data.target);
+      const links = (neighbourhood.neighbourhood.meta?.links as Array<any>) || [];
+      const languageLinks = links.filter(findLink.language);
+      const langs = await getMetaFromLinks(languageLinks);
+    
+      const channelObj = {
+        name: links.find(findLink.name).data.target,
+        description: links.find(findLink.description).data.target,
+        languages: keyedLanguages(langs),
+        url: neighbourhood.sharedUrl || "",
+        id: neighbourhood.uuid
+      };
+
+      //TODO: add to channel state
+    }
+
+    if (linkIs.member(link)) {
+      const member = await getProfile(link.data.target);
+      //TODO: add to member state
     }
   }
 
