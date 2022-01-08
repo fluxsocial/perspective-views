@@ -20,8 +20,9 @@ export default async function ({ perspectiveUuid, from, to }: Payload) {
       new LinkQuery({
         source: "sioc://chatchannel",
         predicate: "sioc://content_of",
-        fromDate: from || new Date("1/12/10"),
-        untilDate: to || new Date(),
+        fromDate: from || new Date(),
+        untilDate: to || new Date("August 19, 1975 23:15:30"),
+        limit: 50
       })
     );
 
