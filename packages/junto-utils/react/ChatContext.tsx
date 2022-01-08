@@ -168,22 +168,25 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
       setState((oldState) => {
         const message = oldState.keyedMessages[id];
-        
-        // TODO: Duplicate signals lead to duplicate links using this to filter
-        const linkFound = message.reactions.find(e => e.data.source === link.data.source && e.data.target === link.data.target);
 
-        if (linkFound) return oldState;
-
-        return {
-          ...oldState,
-          keyedMessages: {
-            ...oldState.keyedMessages,
-            [id]: {
-              ...message,
-              reactions: [...message.reactions, { ...link }],
+        if (message) {
+          const linkFound = message.reactions.find(e => e.data.source === link.data.source && e.data.target === link.data.target);
+  
+          if (linkFound) return oldState;
+  
+          return {
+            ...oldState,
+            keyedMessages: {
+              ...oldState.keyedMessages,
+              [id]: {
+                ...message,
+                reactions: [...message.reactions, { ...link }],
+              },
             },
-          },
-        };
+          };
+        }
+
+        return oldState;
       });
     }
   }
