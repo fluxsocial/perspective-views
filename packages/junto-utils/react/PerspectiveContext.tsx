@@ -46,13 +46,8 @@ export function PerspectiveProvider({ perspectiveUuid, sourcePerspectiveUuid, ch
   }, [perspectiveUuid, sourcePerspectiveUuid]);
 
   useEffect(() => {
-    channelInterval.current = fetchChannels();
-    memberInterval.current = fetchMembers();
-
-    return () => {
-      clearInterval(memberInterval.current);
-      clearInterval(channelInterval.current);
-    };
+    fetchChannels();
+    fetchMembers();
   }, [state.url, state.sourceUrl]);
 
   const fetchMembers = async () => {
@@ -63,15 +58,6 @@ export function PerspectiveProvider({ perspectiveUuid, sourcePerspectiveUuid, ch
       });
 
       setState((prev, curr) => ({ ...prev, members }));
-
-      return setInterval(async () => {
-        const members = await getMembers({
-          perspectiveUuid: sourcePerspectiveUuid || perspectiveUuid,
-          neighbourhoodUrl: state.sourceUrl || state.url,
-        });
-
-        setState((prev, curr) => ({ ...prev, members }));
-      }, 20000);
     }
   };
 
@@ -83,15 +69,6 @@ export function PerspectiveProvider({ perspectiveUuid, sourcePerspectiveUuid, ch
       });
 
       setState((prev, curr) => ({ ...prev, channels }));
-
-      return setInterval(async () => {
-        const channels = await getChannels({
-          perspectiveUuid: sourcePerspectiveUuid || perspectiveUuid,
-          neighbourhoodUrl: state.sourceUrl || state.url,
-        });
-
-        setState((prev, curr) => ({ ...prev, channels }));
-      }, 10000);
     }
   };
 
