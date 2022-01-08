@@ -2,6 +2,7 @@ import { ref, watch, computed, watchEffect, Ref } from "vue";
 import { Ad4mClient, LinkExpression } from "@perspect3vism/ad4m";
 import { Messages, Message } from "../types";
 import createMessage from "../api/createMessage";
+import getProfile from "../api/getProfile";
 import subscribeToLinks from "../api/subscribeToLinks";
 import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
 import getMessages from "../api/getMessages";
@@ -16,6 +17,8 @@ import {
 } from "../constants/languages";
 import deleteMessageReaction from "../api/deleteMessageReaction";
 import ad4mClient from "../api/client";
+import { findLink } from "../helpers/linkHelpers";
+import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
 
 export function sortMessages(
   messages: Messages,
@@ -124,6 +127,28 @@ export default function useMessages({
                 reactions: [...message.reactions, { ...link }],
               },
             };
+          }
+
+          if (link.data.predicate == "sioc://has_space") {
+            const neighbourhood = await ad4mClient.expression.get(link.data.target);
+            const links = (neighbourhood.neighbourhood.meta?.links as Array<any>) || [];
+            const languageLinks = links.filter(findLink.language);
+            const langs = await getMetaFromLinks(languageLinks);
+          
+            const channelObj = {
+              name: links.find(findLink.name).data.target,
+              description: links.find(findLink.description).data.target,
+              languages: keyedLanguages(langs),
+              url: neighbourhood.sharedUrl || "",
+              id: neighbourhood.uuid
+            };
+
+            //TODO: add to channel state
+          }
+
+          if (link.data.predicate == "sioc://has_member") {
+            const member = await getProfile(link.data.target);
+            //TODO: add to member state
           }
         },
       });
