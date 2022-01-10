@@ -45,6 +45,7 @@ export function PerspectiveProvider({ perspectiveUuid, sourcePerspectiveUuid, ch
   const [profileHash, setProfileHash] = useState("");
   const memberInterval = useRef();
   const channelInterval = useRef();
+  const linkSubscriberRef = useRef();
 
   useEffect(() => {
     if (perspectiveUuid) {
@@ -58,16 +59,23 @@ export function PerspectiveProvider({ perspectiveUuid, sourcePerspectiveUuid, ch
   }, [state.url, state.sourceUrl]);
 
   useEffect(() => {
-    if (profileHash) {
-      subscribeToLinks({
-        perspectiveUuid,
-        added: handleLinkAdded,
-        removed: () => {},
-      });
+    if (perspectiveUuid) {
+      setupSubscribers();
     }
-  }, [profileHash]);
 
-  
+    return () => {
+      linkSubscriberRef.current();
+    }
+  }, [perspectiveUuid]);
+
+  async function setupSubscribers() {
+    linkSubscriberRef.current = await subscribeToLinks({
+      perspectiveUuid,
+      added: handleLinkAdded,
+      removed: () => {},
+    });
+  }
+
   async function handleLinkAdded(link) {
     console.log("handle link added", link);
 
