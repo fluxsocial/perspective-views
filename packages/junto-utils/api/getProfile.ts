@@ -33,9 +33,9 @@ export default async function getProfile({
       did: did,
       timestamp: expression.timestamp,
       url: `${languageAddress}://${did}`,
-      ...partialProfile,
       profilePicture: null,
       thumbnailPicture: null,
+      ...partialProfile,
     } as Profile;
 
     session.set(url, profile);
