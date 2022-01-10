@@ -69,7 +69,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   const messages = sortExpressionsByTimestamp(state.keyedMessages, "asc");
 
   useEffect(() => {
-    if (perspectiveUuid) {    
+    if (perspectiveUuid.length > 0) {    
       fetchLanguages();
       fetchMessages();
     }
@@ -86,23 +86,24 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   }, [profileHash]);
 
   // useEffect(() => {
-  //   messageInterval.current = fetchMessagesAgain();
+  //   if (perspectiveUuid.length > 0) {
+  //     messageInterval.current = fetchMessagesAgain();
+  //   }
 
   //   return () => {
   //     clearInterval(messageInterval.current);
   //   }
-  // }, [messages]);
+  // }, [perspectiveUuid]);
 
   // function fetchMessagesAgain() {
   //   return setInterval(async () => {
   //     const oldestMessage = messages[0];
   //     const latestMessage = messages[messages.length - 1];
-  //     // console.log('lol 3', messages.length, latestMessage.timestamp, oldestMessage.timestamp)
   //     await fetchMessages({
   //       from: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
   //       to: latestMessage ? new Date(latestMessage.timestamp) : new Date(),
   //     });
-  //   }, 10000);
+  //   }, 60000);
   // }
 
   // Save every change to keyedMessages to localstorage
@@ -190,28 +191,6 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
         return oldState;
       });
-    }
-
-    if (linkIs.channel(link)) {
-      const neighbourhood = await ad4mClient.expression.get(link.data.target);
-      const links = (neighbourhood.neighbourhood.meta?.links as Array<any>) || [];
-      const languageLinks = links.filter(findLink.language);
-      const langs = await getMetaFromLinks(languageLinks);
-    
-      const channelObj = {
-        name: links.find(findLink.name).data.target,
-        description: links.find(findLink.description).data.target,
-        languages: keyedLanguages(langs),
-        url: neighbourhood.sharedUrl || "",
-        id: neighbourhood.uuid
-      };
-
-      //TODO: add to channel state
-    }
-
-    if (linkIs.member(link)) {
-      const member = await getProfile(link.data.target);
-      //TODO: add to member state
     }
   }
 
