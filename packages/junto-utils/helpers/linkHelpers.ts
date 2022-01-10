@@ -7,6 +7,7 @@ export const findLink = {
   description: (link: LinkExpression) =>
     link.data.predicate === "rdf://description",
   language: (link: LinkExpression) => link.data.predicate === "language",
+  dateCreated: (link: LinkExpression) => link.data.predicate === "rdf://dateCreated"
 };
 
 export const linkIs = {
