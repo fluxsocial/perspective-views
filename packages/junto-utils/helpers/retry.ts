@@ -1,4 +1,4 @@
-export default async function retry(fn: () => void, count = 5) {
+export default async function retry(fn: () => void, defaultValue = null, count = 5) {
   try {
     return await fn();
   } catch (e) {
@@ -6,6 +6,6 @@ export default async function retry(fn: () => void, count = 5) {
       return await retry(fn, count - 1);
     }
 
-    return []
+    return defaultValue;
   }
 }

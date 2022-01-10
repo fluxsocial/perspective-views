@@ -21,7 +21,7 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
           source: `${neighbourhoodUrl!}://self`,
           predicate: "sioc://has_space",
         })
-    )});
+    )}, []);
 
     const linkPromises = expressionLinks.map(async (link) => {
       const neighbourhood = await ad4mClient.neighbourhood.joinFromUrl(link.data.target);

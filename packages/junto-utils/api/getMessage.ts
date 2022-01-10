@@ -20,7 +20,9 @@ export default async function ({
   profileLangAddress,
 }: Payload): Promise<Message> {
   try {
-    const expression = await getExpression(link);
+    const expression = await retry(async () => {
+      await getExpression(link);
+    }, null);
 
     let replyLinks = await retry(async () => {
       return await ad4mClient.perspective.queryLinks(
@@ -30,7 +32,7 @@ export default async function ({
           predicate: "sioc://reply_to",
         })
       );
-    });
+    }, []);
 
     const author = await getProfile({
       did: expression.author,

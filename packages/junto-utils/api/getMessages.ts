@@ -25,9 +25,9 @@ export default async function ({ perspectiveUuid, from, to }: Payload) {
           untilDate: to || new Date("August 19, 1975 23:15:30"),
           limit: 50
         })
-    )});
+    )}, []);
 
-    const linkPromises = expressionLinks.map((link) =>
+    const linkPromises = expressionLinks.filter(e => !e.data.target.includes('[object Object]')).map((link) =>
       getMessage({
         link,
         perspectiveUuid,

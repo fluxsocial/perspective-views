@@ -19,7 +19,7 @@ export default async function ({
           source: url,
           predicate: "sioc://reaction_to",
         })
-    )});
+    )}, []);
 
     return reactionLinks;
   } catch (e: any) {
