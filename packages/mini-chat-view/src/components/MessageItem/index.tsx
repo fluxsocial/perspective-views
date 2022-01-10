@@ -185,7 +185,9 @@ export default function MessageItem({
               onClick={() => onProfileClick(replyMessage.author.did)}
             >
               <j-avatar
+                class={styles.messageAvatar}
                 style="--j-avatar-size: 20px"
+                src={replyMessage.author.thumbnailPicture}
                 hash={replyMessage.author.did}
               ></j-avatar>
               <div class={styles.messageUsernameNoMargin}>
@@ -203,6 +205,7 @@ export default function MessageItem({
         {replyMessage || showAvatar ? (
           <j-flex>
             <j-avatar
+              class={styles.messageAvatar}
               src={message.author.thumbnailPicture}
               hash={message.author.did}
               onClick={() => onProfileClick(message.author.did)}
@@ -223,7 +226,7 @@ export default function MessageItem({
       </div>
       <div>
         {(replyMessage || showAvatar) && (
-          <j-flex a="center" gap="400">
+          <header class={styles.messageItemHeader}>
             <div
               onClick={() => onProfileClick(message.author.did)}
               class={styles.messageUsername}
@@ -240,7 +243,7 @@ export default function MessageItem({
             >
               {getTime(message.timestamp, { relative: true })}
             </small>
-          </j-flex>
+          </header>
         )}
 
         <div
