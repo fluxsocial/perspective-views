@@ -141,7 +141,6 @@ export function PerspectiveProvider({ perspectiveUuid, sourcePerspectiveUuid, ch
 
   async function fetchMeta() {
     const meta = await getPerspectiveMeta(perspectiveUuid);
-    console.log('lol 3', meta.languages, meta.languages[PROFILE_EXPRESSION]);
     const source = sourcePerspectiveUuid ? await (await getPerspectiveMeta(sourcePerspectiveUuid)).url : undefined;
     setProfileHash(meta.languages[PROFILE_EXPRESSION])
     setState({
