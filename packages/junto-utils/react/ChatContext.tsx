@@ -85,26 +85,27 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }
   }, [profileHash]);
 
-  // useEffect(() => {
-  //   if (perspectiveUuid.length > 0) {
-  //     messageInterval.current = fetchMessagesAgain();
-  //   }
+  useEffect(() => {
+    if (perspectiveUuid.length > 0) {
+      messageInterval.current = fetchMessagesAgain();
+    }
 
-  //   return () => {
-  //     clearInterval(messageInterval.current);
-  //   }
-  // }, [perspectiveUuid]);
+    return () => {
+      clearInterval(messageInterval.current);
+    }
+  }, [perspectiveUuid]);
 
-  // function fetchMessagesAgain() {
-  //   return setInterval(async () => {
-  //     const oldestMessage = messages[0];
-  //     const latestMessage = messages[messages.length - 1];
-  //     await fetchMessages({
-  //       from: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
-  //       to: latestMessage ? new Date(latestMessage.timestamp) : new Date(),
-  //     });
-  //   }, 60000);
-  // }
+  function fetchMessagesAgain() {
+    return setInterval(async () => {
+      const oldestMessage = messages[0];
+      const latestMessage = messages[messages.length - 1];
+  
+      await fetchMessages({
+        from: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
+        to: latestMessage ? new Date(latestMessage.timestamp) : new Date(),
+      });
+    }, 60000);
+  }
 
   // Save every change to keyedMessages to localstorage
   // This might be a it slow?
