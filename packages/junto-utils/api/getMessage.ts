@@ -21,7 +21,7 @@ export default async function ({
 }: Payload): Promise<Message> {
   try {
     const expression = await retry(async () => {
-      await getExpression(link);
+      return await getExpression(link);
     }, null);
 
     let replyLinks = await retry(async () => {
