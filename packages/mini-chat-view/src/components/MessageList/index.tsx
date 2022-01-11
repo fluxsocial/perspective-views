@@ -45,7 +45,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
         detail: { uuid: perspectiveUuid },
         bubbles: true,
       });
-      mainRef.current.dispatchEvent(event);
+      mainRef?.dispatchEvent(event);
     }
   }, [hasNewMessage, atBottom]);
 
@@ -55,7 +55,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
         detail: { uuid: perspectiveUuid },
         bubbles: true,
       });
-      mainRef.current.dispatchEvent(event);
+      mainRef?.dispatchEvent(event);
     }
   }, [atBottom]);
 

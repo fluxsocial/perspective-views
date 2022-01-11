@@ -104,7 +104,7 @@ export default function MessageItem({
             },
             bubbles: true,
           });
-          mainRef.current.dispatchEvent(event);
+          mainRef?.dispatchEvent(event);
         } else {
           const event = new CustomEvent("agent-click", {
             detail: {
@@ -112,7 +112,7 @@ export default function MessageItem({
             },
             bubbles: true,
           });
-          mainRef.current.dispatchEvent(event);
+          mainRef?.dispatchEvent(event);
         }
       });
     }
@@ -164,7 +164,7 @@ export default function MessageItem({
       },
       bubbles: true,
     });
-    mainRef.current.dispatchEvent(event);
+    mainRef?.dispatchEvent(event);
   }
 
   return (
