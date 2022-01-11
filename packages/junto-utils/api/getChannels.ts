@@ -18,14 +18,16 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
       return await ad4mClient.perspective.queryLinks(
         perspectiveUuid,
         new LinkQuery({
-          source: `${neighbourhoodUrl!}://self`,
+          source: neighbourhoodUrl!,
           predicate: "sioc://has_space",
         })
     )}, []);
 
+    const all = await ad4mClient.perspective.all();
+
     const linkPromises = expressionLinks.map(async (link) => {
-      const neighbourhood = await ad4mClient.neighbourhood.joinFromUrl(link.data.target);
-      const links = (neighbourhood.neighbourhood.meta?.links as Array<any>) || [];
+      const neighbourhood = all.find(e => e.sharedUrl === link.data.target);
+      const links = ((neighbourhood.neighbourhood as any).meta.links as Array<any>) || [];
       const languageLinks = links.filter(findLink.language);
       const langs = await getMetaFromLinks(languageLinks);
     

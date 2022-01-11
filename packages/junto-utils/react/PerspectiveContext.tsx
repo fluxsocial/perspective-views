@@ -16,6 +16,7 @@ type State = {
   languages: Array<any>;
   url: string;
   sourceUrl: string;
+  sourceUuid: string;
   members: { [x: string]: any };
   channels: { [x: string]: any };
 };
@@ -31,6 +32,7 @@ const initialState: ContextProps = {
     description: "",
     url: "",
     sourceUrl: "",
+    sourceUuid: "",
     languages: [],
     members: {},
     channels: {},
@@ -40,7 +42,7 @@ const initialState: ContextProps = {
 
 const PerspectiveContext = createContext(initialState);
 
-export function PerspectiveProvider({ perspectiveUuid, sourcePerspectiveUuid, children }: any) {
+export function PerspectiveProvider({ perspectiveUuid, children }: any) {
   const [state, setState] = useState(initialState.state);
   const [profileHash, setProfileHash] = useState("");
   const memberInterval = useRef();
@@ -51,7 +53,7 @@ export function PerspectiveProvider({ perspectiveUuid, sourcePerspectiveUuid, ch
     if (perspectiveUuid) {
       fetchMeta();
     }
-  }, [perspectiveUuid, sourcePerspectiveUuid]);
+  }, [perspectiveUuid]);
 
   useEffect(() => {
     fetchChannels();
@@ -59,21 +61,30 @@ export function PerspectiveProvider({ perspectiveUuid, sourcePerspectiveUuid, ch
   }, [state.url, state.sourceUrl]);
 
   useEffect(() => {
-    if (profileHash) {
-      subscribeToLinks({
-        perspectiveUuid,
-        added: handleLinkAdded,
-        removed: () => {},
-      });
+    if (perspectiveUuid) {
+      setupSubscribers();
     }
-  }, [profileHash]);
+
+    return () => {
+      // linkSubscriberRef.current();
+    }
+  }, [perspectiveUuid]);
+
+  async function setupSubscribers() {
+    linkSubscriberRef.current = await subscribeToLinks({
+      perspectiveUuid,
+      added: handleLinkAdded,
+      removed: () => {},
+    });
+  }
 
   async function handleLinkAdded(link) {
     console.log("handle link added", link);
 
     if (linkIs.channel(link)) {
-      const neighbourhood = await ad4mClient.neighbourhood.joinFromUrl(link.data.target);
-      const links = (neighbourhood.neighbourhood.meta?.links as Array<any>) || [];
+      const all = await ad4mClient.perspective.all();
+      const neighbourhood = all.find(e => e.sharedUrl === link.data.target);
+      const links = ((neighbourhood.neighbourhood as any).meta?.links as Array<any>) || [];
       const languageLinks = links.filter(findLink.language);
       const langs = await getMetaFromLinks(languageLinks);
 
@@ -120,7 +131,7 @@ export function PerspectiveProvider({ perspectiveUuid, sourcePerspectiveUuid, ch
   const fetchMembers = async () => {
     if (state.url) {
       const members = await getMembers({
-        perspectiveUuid: sourcePerspectiveUuid || perspectiveUuid,
+        perspectiveUuid: state.sourceUuid || perspectiveUuid,
         neighbourhoodUrl: state.sourceUrl || state.url,
       });
 
@@ -131,7 +142,7 @@ export function PerspectiveProvider({ perspectiveUuid, sourcePerspectiveUuid, ch
   const fetchChannels = async () => {
     if (state.url) {
       const channels = await getChannels({
-        perspectiveUuid: sourcePerspectiveUuid || perspectiveUuid,
+        perspectiveUuid: state.sourceUuid || perspectiveUuid,
         neighbourhoodUrl: state.sourceUrl || state.url,
       });
 
@@ -141,14 +152,14 @@ export function PerspectiveProvider({ perspectiveUuid, sourcePerspectiveUuid, ch
 
   async function fetchMeta() {
     const meta = await getPerspectiveMeta(perspectiveUuid);
-    const source = sourcePerspectiveUuid ? await (await getPerspectiveMeta(sourcePerspectiveUuid)).url : undefined;
     setProfileHash(meta.languages[PROFILE_EXPRESSION])
     setState({
       ...state,
       name: meta.name,
       description: meta.description,
       url: meta.url,
-      sourceUrl: source, 
+      sourceUrl: meta.sourceUrl, 
+      sourceUuid: meta.sourceUuid,
       members: {},
       channels: {},
     });
