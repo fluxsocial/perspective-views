@@ -63,27 +63,32 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   const [shortFormHash, setShortFormHash] = useState("");
   const [profileHash, setProfileHash] = useState("");
   const messageInterval = useRef();
+  const linkSubscriberRef = useRef();
 
   const [state, setState] = useState(initialState.state);
 
   const messages = sortExpressionsByTimestamp(state.keyedMessages, "asc");
 
   useEffect(() => {
-    if (perspectiveUuid.length > 0) {    
-      fetchLanguages();
-      fetchMessages();
-    }
-  }, [perspectiveUuid]);
+    fetchLanguages();
 
-  useEffect(() => {
-    if (profileHash) {
-      subscribeToLinks({
-        perspectiveUuid,
-        added: handleLinkAdded,
-        removed: handleLinkRemoved,
-      });
+    if (perspectiveUuid.length > 0 && profileHash.length > 0) {    
+      fetchMessages();
+      setupSubscribers();
     }
-  }, [profileHash]);
+
+    return () => {
+      // linkSubscriberRef.current();
+    }
+  }, [perspectiveUuid, profileHash]);
+
+  async function setupSubscribers() {
+    linkSubscriberRef.current = await subscribeToLinks({
+      perspectiveUuid,
+      added: handleLinkAdded,
+      removed: handleLinkRemoved,
+    });
+  }
 
   useEffect(() => {
     if (perspectiveUuid.length > 0) {
