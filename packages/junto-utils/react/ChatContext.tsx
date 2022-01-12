@@ -111,19 +111,19 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }, 60000);
   }
 
-  // Save every change to keyedMessages to localstorage
-  // This might be a it slow?
   useEffect(() => {
-    console.log("setting new state");
-    const perspective = {
-      messages: state.keyedMessages,
-      scrollPosition: state.scrollPosition,
-    };
     sessionStorage.setItem(
-      `chat-perspective-${perspectiveUuid}`,
-      JSON.stringify(perspective)
+      `chat-messages-${perspectiveUuid}`,
+      JSON.stringify(state.keyedMessages)
     );
-  }, [JSON.stringify(state.keyedMessages), state.scrollPosition]);
+  }, [JSON.stringify(state.keyedMessages)]);
+
+  useEffect(() => {
+    sessionStorage.setItem(
+      `chat-scroll-position-${perspectiveUuid}`,
+      state.scrollPosition
+    );
+  }, [state.scrollPosition]);
 
   async function fetchLanguages() {
     const { languages } = await getPerspectiveMeta(perspectiveUuid);
@@ -241,20 +241,13 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       isFetchingMessages: true,
     }));
 
-    const cachedMessages = sessionStorage.getItem(
-      `chat-perspective-${perspectiveUuid}`
+    const storedMessages = sessionStorage.getItem(
+      `chat-messages-${perspectiveUuid}`
     );
 
-    if (cachedMessages && perspectiveUuid) {
-      const perspective = JSON.parse(cachedMessages);
+    const cachedMessages = storedMessages ? JSON.parse(storedMessages) : [];
 
-      setState((oldState) => ({
-        ...oldState,
-        keyedMessages: perspective.messages,
-        scrollPosition: perspective.scrollPosition,
-      }));
-    }
-    const res = await getMessages({
+    const newMessages = await getMessages({
       perspectiveUuid,
       from: payload?.from,
       to: payload?.to,
@@ -263,8 +256,9 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     setState((oldState) => ({
       ...oldState,
       keyedMessages: {
-        ...res,
+        ...cachedMessages,
         ...oldState.keyedMessages,
+        ...newMessages,
       },
     }));
 
@@ -274,8 +268,9 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }));
 
     const messages = {
+      ...cachedMessages,
       ...state.keyedMessages,
-      ...res,
+      ...newMessages,
     };
 
     for (const message of Object.values(messages)) {
