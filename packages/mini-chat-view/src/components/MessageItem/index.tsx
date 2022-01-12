@@ -167,6 +167,8 @@ export default function MessageItem({
     mainRef?.dispatchEvent(event);
   }
 
+  console.log({ replyMessage, message });
+
   return (
     <div
       onMouseOver={() => setShowToolbar(true)}

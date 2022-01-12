@@ -44,7 +44,7 @@ const initialState: ContextProps = {
     isFetchingMessages: false,
     keyedMessages: {},
     scrollPosition: 0,
-    hasNewMessage: false
+    hasNewMessage: false,
   },
   methods: {
     loadMore: () => null,
@@ -53,7 +53,7 @@ const initialState: ContextProps = {
     addReaction: () => null,
     sendMessage: () => null,
     saveScrollPos: () => null,
-    setHasNewMessage: () => null
+    setHasNewMessage: () => null,
   },
 };
 
@@ -72,14 +72,14 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   useEffect(() => {
     fetchLanguages();
 
-    if (perspectiveUuid.length > 0 && profileHash.length > 0) {    
+    if (perspectiveUuid.length > 0 && profileHash.length > 0) {
       fetchMessages();
       setupSubscribers();
     }
 
     return () => {
       // linkSubscriberRef.current();
-    }
+    };
   }, [perspectiveUuid, profileHash]);
 
   async function setupSubscribers() {
@@ -97,13 +97,13 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
     return () => {
       clearInterval(messageInterval.current);
-    }
+    };
   }, [perspectiveUuid]);
 
   function fetchMessagesAgain() {
     return setInterval(async () => {
       const oldestMessage = messages[0];
-  
+
       await fetchMessages({
         from: new Date(),
         to: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
@@ -117,9 +117,12 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     console.log("setting new state");
     const perspective = {
       messages: state.keyedMessages,
-      scrollPosition: state.scrollPosition
-    }
-    sessionStorage.setItem(`chat-perspective-${perspectiveUuid}`, JSON.stringify(perspective));
+      scrollPosition: state.scrollPosition,
+    };
+    sessionStorage.setItem(
+      `chat-perspective-${perspectiveUuid}`,
+      JSON.stringify(perspective)
+    );
   }, [JSON.stringify(state.keyedMessages), state.scrollPosition]);
 
   async function fetchLanguages() {
@@ -154,6 +157,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
   async function handleLinkAdded(link) {
     console.log("handle link added", link);
+
     if (linkIs.message(link)) {
       const message = await getMessage({
         link,
@@ -165,10 +169,12 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
       const reactions = await getReactions({
         url: link.data.target,
-        perspectiveUuid
+        perspectiveUuid,
       });
 
-      setState((oldState) => addReactionToState(oldState, message.id, reactions));
+      setState((oldState) =>
+        addReactionToState(oldState, message.id, reactions)
+      );
     }
 
     if (linkIs.reaction(link)) {
@@ -178,10 +184,14 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
         const message = oldState.keyedMessages[id];
 
         if (message) {
-          const linkFound = message.reactions.find(e => e.data.source === link.data.source && e.data.target === link.data.target);
-  
+          const linkFound = message.reactions.find(
+            (e) =>
+              e.data.source === link.data.source &&
+              e.data.target === link.data.target
+          );
+
           if (linkFound) return oldState;
-  
+
           return {
             ...oldState,
             keyedMessages: {
@@ -225,13 +235,15 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }
   }
 
-  async function fetchMessages(payload?: { from?: Date, to?: Date }) {
+  async function fetchMessages(payload?: { from?: Date; to?: Date }) {
     setState((oldState) => ({
       ...oldState,
       isFetchingMessages: true,
     }));
 
-    const cachedMessages = sessionStorage.getItem(`chat-perspective-${perspectiveUuid}`);
+    const cachedMessages = sessionStorage.getItem(
+      `chat-perspective-${perspectiveUuid}`
+    );
 
     if (cachedMessages && perspectiveUuid) {
       const perspective = JSON.parse(cachedMessages);
@@ -239,13 +251,13 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       setState((oldState) => ({
         ...oldState,
         keyedMessages: perspective.messages,
-        scrollPosition: perspective.scrollPosition
+        scrollPosition: perspective.scrollPosition,
       }));
     }
     const res = await getMessages({
       perspectiveUuid,
       from: payload?.from,
-      to: payload?.to
+      to: payload?.to,
     });
 
     setState((oldState) => ({
@@ -263,16 +275,16 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
     const messages = {
       ...state.keyedMessages,
-      ...res
+      ...res,
     };
 
     for (const message of Object.values(messages)) {
       const url = (message as any).id;
       const reactions = await getReactions({
         url,
-        perspectiveUuid
+        perspectiveUuid,
       });
-    
+
       setState((oldState) => addReactionToState(oldState, url, reactions));
     }
   }
@@ -324,14 +336,14 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   function saveScrollPos(pos?: number) {
     setState((oldState) => ({
       ...oldState,
-      scrollPosition: pos
-    }))
+      scrollPosition: pos,
+    }));
   }
 
   function setHasNewMessage(value: boolean) {
     setState((oldState) => ({
       ...oldState,
-      hasNewMessage: value
+      hasNewMessage: value,
     }));
   }
 
@@ -346,7 +358,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
           sendReply,
           removeReaction,
           saveScrollPos,
-          setHasNewMessage
+          setHasNewMessage,
         },
       }}
     >

@@ -25,6 +25,7 @@ require("esbuild")
     bundle: true,
     format: "esm",
     minify: true,
+    sourcemap: true,
     outfile: "dist/main.js",
     watch: process.env.NODE_ENV === "dev" ? true : false,
     inject: ["./preact-shim.js"],

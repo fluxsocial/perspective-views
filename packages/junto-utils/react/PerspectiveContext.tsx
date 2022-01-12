@@ -67,7 +67,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
 
     return () => {
       // linkSubscriberRef.current();
-    }
+    };
   }, [perspectiveUuid]);
 
   async function setupSubscribers() {
@@ -83,8 +83,9 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
 
     if (linkIs.channel(link)) {
       const all = await ad4mClient.perspective.all();
-      const neighbourhood = all.find(e => e.sharedUrl === link.data.target);
-      const links = ((neighbourhood.neighbourhood as any).meta?.links as Array<any>) || [];
+      const neighbourhood = all.find((e) => e.sharedUrl === link.data.target);
+      const links =
+        ((neighbourhood.neighbourhood as any).meta?.links as Array<any>) || [];
       const languageLinks = links.filter(findLink.language);
       const langs = await getMetaFromLinks(languageLinks);
 
@@ -93,7 +94,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
         description: links.find(findLink.description).data.target,
         languages: keyedLanguages(langs),
         url: neighbourhood.sharedUrl || "",
-        id: neighbourhood.uuid
+        id: neighbourhood.uuid,
       };
 
       setState((oldState) => {
@@ -102,17 +103,17 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
         );
 
         if (isAlreadyPartOf) {
-          return oldState
+          return oldState;
         }
 
         return {
           ...oldState,
           channels: {
             ...oldState.channels,
-            [channelObj.id]: channelObj
-          }
-        }
-      })
+            [channelObj.id]: channelObj,
+          },
+        };
+      });
     }
 
     if (linkIs.member(link)) {
@@ -122,9 +123,9 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
         ...oldState,
         members: {
           ...oldState.members,
-          [member.did]: member
-        }
-      }))
+          [member.did]: member,
+        },
+      }));
     }
   }
 
@@ -152,13 +153,13 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
 
   async function fetchMeta() {
     const meta = await getPerspectiveMeta(perspectiveUuid);
-    setProfileHash(meta.languages[PROFILE_EXPRESSION])
+    setProfileHash(meta.languages[PROFILE_EXPRESSION]);
     setState({
       ...state,
       name: meta.name,
       description: meta.description,
       url: meta.url,
-      sourceUrl: meta.sourceUrl, 
+      sourceUrl: meta.sourceUrl,
       sourceUuid: meta.sourceUuid,
       members: {},
       channels: {},
