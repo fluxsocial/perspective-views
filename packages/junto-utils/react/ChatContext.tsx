@@ -72,7 +72,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   useEffect(() => {
     fetchLanguages();
 
-    if (perspectiveUuid.length > 0 && profileHash.length > 0) {
+    if (perspectiveUuid && profileHash) {
       fetchMessages();
       setupSubscribers();
     }
