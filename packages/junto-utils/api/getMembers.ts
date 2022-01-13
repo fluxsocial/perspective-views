@@ -14,7 +14,7 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
       return await ad4mClient.perspective.queryLinks(
         perspectiveUuid,
         new LinkQuery({
-          source: `${neighbourhoodUrl!}://self`,
+          source: neighbourhoodUrl!,
           predicate: "sioc://has_member",
         })
     )}, { defaultValue: [] });
