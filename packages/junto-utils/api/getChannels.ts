@@ -21,7 +21,7 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
           source: neighbourhoodUrl!,
           predicate: "sioc://has_space",
         })
-    )}, []);
+    )}, { defaultValue: [] });
 
     const all = await ad4mClient.perspective.all();
 

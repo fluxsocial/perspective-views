@@ -20,7 +20,7 @@ export default async function getPerspectiveMeta(uuid: string) {
         source: perspective?.sharedUrl!,
         predicate: "flux://parentCommunity",
       })
-  )}, []);
+  )}, { defaultValue: [] });
 
   let sourceUuid = uuid;
   if (expressionLinks.length > 0) {

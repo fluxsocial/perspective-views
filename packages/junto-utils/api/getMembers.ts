@@ -17,7 +17,7 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
           source: `${neighbourhoodUrl!}://self`,
           predicate: "sioc://has_member",
         })
-    )}, []);
+    )}, { defaultValue: [] });
 
     const linkPromises = expressionLinks.map((link) =>
       getMember({ did: link.author, languageAddress: link.data.target.split("://")[0] })

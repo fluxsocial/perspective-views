@@ -22,7 +22,7 @@ export default async function ({
   try {
     const expression = await retry(async () => {
       return await getExpression(link);
-    }, null);
+    }, {});
 
     let replyLinks = await retry(async () => {
       return await ad4mClient.perspective.queryLinks(
@@ -32,7 +32,7 @@ export default async function ({
           predicate: "sioc://reply_to",
         })
       );
-    }, []);
+    }, { defaultValue: [] });
 
     const author = await getProfile({
       did: expression.author,
