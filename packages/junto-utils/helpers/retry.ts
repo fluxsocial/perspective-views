@@ -6,8 +6,8 @@ type RetryOptions = {
 
 export default async function retry(fn: () => any, {
   defaultValue = null, 
-  count = 5, 
-  sleepDuration = 500 
+  count = 50, 
+  sleepDuration = 1000 
 }: RetryOptions) {
   await setTimeout(() => {}, sleepDuration);
   try {
