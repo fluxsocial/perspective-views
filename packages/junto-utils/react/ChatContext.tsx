@@ -70,7 +70,9 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   const messages = sortExpressionsByTimestamp(state.keyedMessages, "asc");
 
   useEffect(() => {
-    fetchLanguages();
+    if (perspectiveUuid) {
+      fetchLanguages();
+    }
 
     if (perspectiveUuid && profileHash) {
       fetchMessages();
