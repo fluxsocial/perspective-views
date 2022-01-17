@@ -24,6 +24,10 @@ export default async function ({
       return await getExpression(link);
     }, {});
 
+    if (!expression) {
+      throw new Error('No Expression found for the message');
+    }
+
     let replyLinks = await retry(async () => {
       return await ad4mClient.perspective.queryLinks(
         perspectiveUuid,
