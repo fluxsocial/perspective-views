@@ -242,7 +242,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
   async function getReplyMessage(url: string) {
     const replyMessage = state.keyedMessages[url];
-    if (!replyMessage) {
+    if (!replyMessage && url) {
       try {
         const expression = await retry(async () => {
           const expression = await ad4mClient.expression.get(url);
