@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useRef } from "react";
 import { Messages, Message } from "../types";
-import { Link, LinkExpression } from "@perspect3vism/ad4m";
+import { Link, LinkExpression, LinkQuery } from "@perspect3vism/ad4m";
 import getMessages from "../api/getMessages";
 import createMessage from "../api/createMessage";
 import subscribeToLinks from "../api/subscribeToLinks";
@@ -16,8 +16,9 @@ import {
   SHORT_FORM_EXPRESSION,
 } from "../constants/languages";
 import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
-import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
 import getProfile from "../api/getProfile";
+import retry from "../helpers/retry";
+import ad4mClient from "../api/client";
 
 type State = {
   isFetchingMessages: boolean;
@@ -36,6 +37,7 @@ type ContextProps = {
     sendMessage: (message: string) => void;
     saveScrollPos: (pos?: number) => void;
     setHasNewMessage: (value: boolean) => void;
+    getReplyMessage: (url: string) => void;
   };
 };
 
@@ -54,6 +56,7 @@ const initialState: ContextProps = {
     sendMessage: () => null,
     saveScrollPos: () => null,
     setHasNewMessage: () => null,
+    getReplyMessage: () => null
   },
 };
 
@@ -237,6 +240,44 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }
   }
 
+  async function getReplyMessage(url: string) {
+    const replyMessage = state.keyedMessages[url];
+    if (!replyMessage) {
+      try {
+        const expression = await retry(async () => {
+          const expression = await ad4mClient.expression.get(url);
+          return { ...expression, data: JSON.parse(expression.data) };
+        }, {});
+  
+        if (!expression) {
+          console.log('No Expression found for the reply');
+          return null;
+        }
+    
+        const author = await getProfile({
+          did: expression.author,
+          languageAddress: profileHash,
+        });
+    
+        const message = {
+          id: url,
+          timestamp: expression.timestamp,
+          url: url,
+          author,
+          reactions: [],
+          replyUrl: null,
+          content: expression.data.body,
+        };
+    
+        return message as Message;
+      } catch (e) {
+        throw new Error(e);
+      }
+    }
+
+    return replyMessage;
+  }
+
   async function fetchMessages(payload?: { from?: Date; to?: Date }) {
     setState((oldState) => ({
       ...oldState,
@@ -356,6 +397,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
           removeReaction,
           saveScrollPos,
           setHasNewMessage,
+          getReplyMessage
         },
       }}
     >

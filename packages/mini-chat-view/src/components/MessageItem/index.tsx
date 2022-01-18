@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "preact/hooks";
+import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { ChatContext } from "junto-utils/react";
 import { Reaction } from "junto-utils/types";
 import getMe from "junto-utils/api/getMe";
@@ -36,8 +36,9 @@ export default function MessageItem({
   const messageRef = useRef<any>(null);
   const {
     state: { messages, keyedMessages },
-    methods: { addReaction, removeReaction },
+    methods: { addReaction, removeReaction, getReplyMessage },
   } = useContext(ChatContext);
+  const [replyMessage, setReplyMessage] = useState();
 
   const {
     state: { currentReply },
@@ -65,8 +66,6 @@ export default function MessageItem({
       addReaction(message.url, unicode);
     }
   }
-
-  const replyMessage = keyedMessages[message?.replyUrl];
 
   useEffect(() => {
     const mentionElements = (messageRef.current as any).querySelectorAll(
@@ -167,7 +166,15 @@ export default function MessageItem({
     mainRef?.dispatchEvent(event);
   }
 
-  console.log({ replyMessage, message });
+  useEffect(() => {
+    getReply();
+  }, [message])
+
+  const getReply = async () => {
+    const reply = await getReplyMessage(message.replyUrl);
+
+    setReplyMessage(reply);
+  }
 
   return (
     <div
