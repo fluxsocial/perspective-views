@@ -68,11 +68,11 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     return () => {
       // linkSubscriberRef.current();
     };
-  }, [perspectiveUuid]);
+  }, [perspectiveUuid, state.sourceUuid]);
 
   async function setupSubscribers() {
     linkSubscriberRef.current = await subscribeToLinks({
-      perspectiveUuid,
+      perspectiveUuid: state.sourceUuid || perspectiveUuid,
       added: handleLinkAdded,
       removed: () => {},
     });
