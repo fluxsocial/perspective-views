@@ -26,6 +26,27 @@ type timeOptions = {
   relative?: boolean;
 };
 
+function getAuthor(did?: string) {
+  const {
+    methods: { getMessageProfile },
+  } = useContext(ChatContext);
+  const [author, setAuthor] = useState({});
+
+  useEffect(() => {
+    getAuthor();
+  }, [did])
+
+  const getAuthor = async () => {
+    if (did) {
+      const author = await getMessageProfile(did);
+  
+      setAuthor(author);
+    }
+  }
+
+  return author;
+}
+
 export default function MessageItem({
   index,
   showAvatar,
@@ -36,7 +57,7 @@ export default function MessageItem({
   const messageRef = useRef<any>(null);
   const {
     state: { messages, keyedMessages },
-    methods: { addReaction, removeReaction, getReplyMessage },
+    methods: { addReaction, removeReaction, getReplyMessage, getMessageProfile },
   } = useContext(ChatContext);
   const [replyMessage, setReplyMessage] = useState();
 
@@ -176,6 +197,9 @@ export default function MessageItem({
     setReplyMessage(reply);
   }
 
+  const author = getAuthor(message.author);
+  const replyAuthor = getAuthor(replyMessage?.author)
+
   return (
     <div
       onMouseOver={() => setShowToolbar(true)}
@@ -191,16 +215,16 @@ export default function MessageItem({
           <div class={styles.messageFlex}>
             <div
               class={styles.messageFlex}
-              onClick={() => onProfileClick(replyMessage.author.did)}
+              onClick={() => onProfileClick(replyAuthor?.did)}
             >
               <j-avatar
                 class={styles.messageAvatar}
                 style="--j-avatar-size: 20px"
-                src={replyMessage.author.thumbnailPicture}
-                hash={replyMessage.author.did}
+                src={replyAuthor?.thumbnailPicture}
+                hash={replyAuthor?.did}
               ></j-avatar>
               <div class={styles.messageUsernameNoMargin}>
-                {replyMessage.author.username}
+                {replyAuthor?.username}
               </div>
             </div>
             <div
@@ -215,9 +239,9 @@ export default function MessageItem({
           <j-flex>
             <j-avatar
               class={styles.messageAvatar}
-              src={message.author.thumbnailPicture}
-              hash={message.author.did}
-              onClick={() => onProfileClick(message.author.did)}
+              src={author?.thumbnailPicture}
+              hash={author?.did}
+              onClick={() => onProfileClick(author?.did)}
             ></j-avatar>
           </j-flex>
         ) : (
@@ -237,10 +261,10 @@ export default function MessageItem({
         {(replyMessage || showAvatar) && (
           <header class={styles.messageItemHeader}>
             <div
-              onClick={() => onProfileClick(message.author.did)}
+              onClick={() => onProfileClick(author?.did)}
               class={styles.messageUsername}
             >
-              {message.author.username}
+              {author?.username}
             </div>
             <small
               class={styles.timestamp}

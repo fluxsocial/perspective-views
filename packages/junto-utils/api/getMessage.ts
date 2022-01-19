@@ -38,18 +38,15 @@ export default async function ({
       );
     }, { defaultValue: [] });
 
-    const author = await getProfile({
-      did: expression.author,
-      languageAddress: profileLangAddress,
-    });
+    const filteredReplyLinks = replyLinks.filter(e => e.data.source === link.data.target);
 
     const message = {
       id: link.data.target,
       timestamp: expression.timestamp,
       url: link.data.target,
-      author,
+      author: link.author,
       reactions: [],
-      replyUrl: replyLinks[0]?.data.target,
+      replyUrl: filteredReplyLinks[0]?.data.target,
       content: expression.data.body,
     };
 

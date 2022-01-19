@@ -75,9 +75,9 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
     if (!previousMessage || !message) {
       return true;
     } else {
-      return previousMessage.author.did !== message.author.did
+      return previousMessage.author !== message.author
         ? true
-        : previousMessage.author.did === message.author.did &&
+        : previousMessage.author === message.author &&
             differenceInMinutes(
               parseISO(message.timestamp),
               parseISO(previousMessage.timestamp)

@@ -38,6 +38,7 @@ type ContextProps = {
     saveScrollPos: (pos?: number) => void;
     setHasNewMessage: (value: boolean) => void;
     getReplyMessage: (url: string) => void;
+    getMessageProfile: (did: string) => void;
   };
 };
 
@@ -56,7 +57,8 @@ const initialState: ContextProps = {
     sendMessage: () => null,
     saveScrollPos: () => null,
     setHasNewMessage: () => null,
-    getReplyMessage: () => null
+    getReplyMessage: () => null,
+    getMessageProfile: () => null,
   },
 };
 
@@ -240,6 +242,14 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }
   }
 
+  async function getMessageProfile(did: string) {
+    if (profileHash) {      
+      const profile = await getProfile({did, languageAddress: profileHash});
+  
+      return profile;
+    }
+  }
+
   async function getReplyMessage(url: string) {
     const replyMessage = state.keyedMessages[url];
     if (!replyMessage && url) {
@@ -254,16 +264,11 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
           return null;
         }
     
-        const author = await getProfile({
-          did: expression.author,
-          languageAddress: profileHash,
-        });
-    
         const message = {
           id: url,
           timestamp: expression.timestamp,
           url: url,
-          author,
+          author: expression.author,
           reactions: [],
           replyUrl: null,
           content: expression.data.body,
@@ -397,7 +402,8 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
           removeReaction,
           saveScrollPos,
           setHasNewMessage,
-          getReplyMessage
+          getReplyMessage,
+          getMessageProfile
         },
       }}
     >
