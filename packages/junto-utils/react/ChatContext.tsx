@@ -77,6 +77,14 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   useEffect(() => {
     if (perspectiveUuid) {
       fetchLanguages();
+      
+      const scrollPosition = sessionStorage.getItem(
+        `chat-scroll-position-${perspectiveUuid}`,
+      ) ?? "0";
+      setState((oldState) => ({
+        ...oldState,
+        scrollPosition: parseInt(scrollPosition)
+      }))
     }
 
     if (perspectiveUuid && profileHash) {

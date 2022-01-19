@@ -121,7 +121,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
   }
 
   const rangeChanged = ({ startIndex }) => {
-    if (typeof startIndex === "number") {
+    if (typeof startIndex === "number" && initialScroll) {
       saveScrollPos(startIndex);
     }
   };
