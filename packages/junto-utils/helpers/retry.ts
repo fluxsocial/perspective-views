@@ -12,7 +12,7 @@ function sleep(ms) {
 export default async function retry(fn: () => any, {
   defaultValue = null, 
   count = 50, 
-  sleepDuration = 50
+  sleepDuration = 200
 }: RetryOptions) {
   await sleep(sleepDuration)
   try {
