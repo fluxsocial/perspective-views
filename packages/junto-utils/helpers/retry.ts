@@ -4,12 +4,17 @@ type RetryOptions = {
   sleepDuration?: number;
 }
 
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export default async function retry(fn: () => any, {
   defaultValue = null, 
   count = 50, 
-  sleepDuration = 1000 
+  sleepDuration = 50
 }: RetryOptions) {
-  await setTimeout(() => {}, sleepDuration);
+  await sleep(sleepDuration)
   try {
     const val = await fn();
     
