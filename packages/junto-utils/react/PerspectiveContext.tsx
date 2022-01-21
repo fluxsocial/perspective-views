@@ -66,7 +66,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     }
 
     return () => {
-      // linkSubscriberRef.current();
+      linkSubscriberRef.current?.removeListener('link-added', handleLinkAdded);
     };
   }, [perspectiveUuid, state.sourceUuid]);
 
@@ -74,7 +74,6 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     linkSubscriberRef.current = await subscribeToLinks({
       perspectiveUuid: state.sourceUuid || perspectiveUuid,
       added: handleLinkAdded,
-      removed: () => {},
     });
   }
 

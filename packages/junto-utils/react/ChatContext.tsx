@@ -109,8 +109,8 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }
 
     return () => {
-      // linkSubscriberRef.current?.removeListener('link-added', handleLinkAdded);
-      // linkSubscriberRef.current?.removeListener('link-removed', handleLinkRemoved);
+      linkSubscriberRef.current?.removeListener('link-added', handleLinkAdded);
+      linkSubscriberRef.current?.removeListener('link-removed', handleLinkRemoved);
     };
   }, [perspectiveUuid, profileHash]);
 
