@@ -26,6 +26,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
       addReaction,
       saveScrollPos,
       setHasNewMessage,
+      setIsMessageFromSelf
     },
   } = useContext(ChatContext);
 
@@ -141,6 +142,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
   const rangeChanged = ({ startIndex }) => {
     if (typeof startIndex === "number" && initialScroll) {
       saveScrollPos(startIndex);
+      setIsMessageFromSelf(false)
     }
   };
 

@@ -41,6 +41,7 @@ type ContextProps = {
     setHasNewMessage: (value: boolean) => void;
     getReplyMessage: (url: string) => void;
     getMessageProfile: (did: string) => void;
+    setIsMessageFromSelf: (value: boolean) => void; 
   };
 };
 
@@ -62,6 +63,7 @@ const initialState: ContextProps = {
     setHasNewMessage: () => null,
     getReplyMessage: () => null,
     getMessageProfile: () => null,
+    setIsMessageFromSelf: () => null,
   },
 };
 
@@ -386,6 +388,13 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     });
   }
 
+  function setIsMessageFromSelf(isMessageFromSelf: boolean) {
+    setState((oldState) => ({
+      ...oldState,
+      isMessageFromSelf
+    }))
+  }
+
   async function removeReaction(linkExpression: LinkExpression) {
     console.log("removeReaction", linkExpression);
     return deleteMessageReaction({
@@ -428,7 +437,8 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
           saveScrollPos,
           setHasNewMessage,
           getReplyMessage,
-          getMessageProfile
+          getMessageProfile,
+          setIsMessageFromSelf
         },
       }}
     >
