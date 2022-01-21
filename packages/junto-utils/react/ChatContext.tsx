@@ -130,7 +130,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     return () => {
       clearInterval(messageInterval.current);
     };
-  }, [perspectiveUuid]);
+  }, [perspectiveUuid, messages]);
 
   function fetchMessagesAgain() {
     return setInterval(async () => {
@@ -138,7 +138,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
       await fetchMessages({
         from: new Date(),
-        to: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
+        to: oldestMessage ? new Date(oldestMessage.timestamp) : new Date("August 19, 1975 23:15:30"),
         again: true
       });
     }, 60000);
