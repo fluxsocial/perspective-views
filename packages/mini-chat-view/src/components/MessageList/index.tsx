@@ -1,3 +1,4 @@
+
 import { useState, useContext, useRef, useEffect } from "preact/hooks";
 import { ChatContext } from "junto-utils/react";
 import MessageItem from "../MessageItem";
@@ -18,7 +19,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
   const scroller = useRef();
 
   const {
-    state: { messages, isFetchingMessages, scrollPosition, hasNewMessage },
+    state: { messages, isFetchingMessages, scrollPosition, hasNewMessage, isMessageFromSelf },
     methods: {
       loadMore,
       removeReaction,
@@ -30,9 +31,15 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
 
   useEffect(() => {
     if (scroller.current && messages.length > 0 && !initialScroll) {
-      scroller.current.scrollToIndex({
-        index: scrollPosition,
-      });
+      if (!scrollPosition) {
+        scroller.current.scrollToIndex({
+          index: messages.length,
+        });
+      } else {
+        scroller.current.scrollToIndex({
+          index: scrollPosition,
+        });
+      }
 
       setinitialScroll(true);
     }
@@ -48,6 +55,17 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
       mainRef?.dispatchEvent(event);
     }
   }, [hasNewMessage, atBottom]);
+
+  useEffect(() => {
+    if (isMessageFromSelf) {
+      scrollToBottom();
+      const event = new CustomEvent("hide-notification-indicator", {
+        detail: { uuid: perspectiveUuid },
+        bubbles: true,
+      });
+      mainRef?.dispatchEvent(event);
+    }
+  }, [isMessageFromSelf]);
 
   useEffect(() => {
     if (atBottom) {

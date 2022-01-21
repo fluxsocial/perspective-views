@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useState, useEffect, useRef  } from "react";
 import { Messages, Message } from "../types";
 import { Link, LinkExpression, LinkQuery } from "@perspect3vism/ad4m";
 import getMessages from "../api/getMessages";
@@ -19,12 +19,14 @@ import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
 import getProfile from "../api/getProfile";
 import retry from "../helpers/retry";
 import ad4mClient from "../api/client";
+import getMe from "../api/getMe";
 
 type State = {
   isFetchingMessages: boolean;
   keyedMessages: Messages;
   scrollPosition?: number;
   hasNewMessage: boolean;
+  isMessageFromSelf: boolean;
 };
 
 type ContextProps = {
@@ -48,6 +50,7 @@ const initialState: ContextProps = {
     keyedMessages: {},
     scrollPosition: 0,
     hasNewMessage: false,
+    isMessageFromSelf: false,
   },
   methods: {
     loadMore: () => null,
@@ -71,6 +74,17 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   const linkSubscriberRef = useRef();
 
   const [state, setState] = useState(initialState.state);
+  const [agent, setAgent] = useState();
+
+  useEffect(() => {
+    fetchAgent();
+  }, []);
+
+  async function fetchAgent() {
+    const agent = await getMe();
+
+    setAgent({ ...agent });
+  }
 
   const messages = sortExpressionsByTimestamp(state.keyedMessages, "asc");
 
@@ -93,7 +107,8 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }
 
     return () => {
-      // linkSubscriberRef.current();
+      linkSubscriberRef.current?.removeListener('link-added', handleLinkAdded);
+      linkSubscriberRef.current?.removeListener('link-removed', handleLinkRemoved);
     };
   }, [perspectiveUuid, profileHash]);
 
@@ -161,7 +176,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   function addReactionToState(oldState, messageId, reactions) {
     const newState = {
       ...oldState,
-      hasNewMessage: true,
+      hasNewMessage: false,
       keyedMessages: {
         ...oldState.keyedMessages,
         [messageId]: { ...oldState.keyedMessages[messageId], reactions },
@@ -171,7 +186,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   }
 
   async function handleLinkAdded(link) {
-    console.log("handle link added", link);
+    console.log("handle link added 1", link);
 
     if (linkIs.message(link)) {
       const message = await getMessage({
@@ -181,6 +196,8 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       });
 
       setState((oldState) => addMessage(oldState, message));
+
+      setState((oldState) => ({...oldState, isMessageFromSelf: link.author === agent.did }));
 
       const reactions = await getReactions({
         url: link.data.target,
