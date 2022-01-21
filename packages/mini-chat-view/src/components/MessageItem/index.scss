@@ -1,15 +1,18 @@
 .message {
-  padding-top: var(--j-space-400);
+  padding-top: var(--j-space-300);
+  padding-bottom: var(--j-space-300);
   padding-left: var(--j-space-500);
-  padding-bottom: var(--j-space-400);
   display: grid;
   position: relative;
   grid-template-columns: 60px 1fr;
-  column-gap: var(--j-space-500);
-  row-gap: var(--j-space-300);
+  column-gap: var(--j-space-100);
 
   &:hover {
     background: rgba(0, 0, 0, 0.02);
+  }
+
+  & .messageAvatar {
+    cursor: pointer;
   }
 
   & .timestamp {
@@ -42,10 +45,6 @@
     opacity: 1;
   }
 
-  & .messageItemContent {
-    margin-top: var(--j-space-300);
-  }
-
   & .messageItemContent p:first-of-type {
     margin-top: 0;
   }
@@ -70,6 +69,13 @@
     font-size: var(--j-font-size-500);
     font-weight: 400;
   }
+}
+
+.messageItemHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--j-space-200);
+  margin-bottom: var(--j-space-200);
 }
 
 .replyLineWrapper {

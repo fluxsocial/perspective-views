@@ -3,7 +3,7 @@ import { LinkQuery } from "@perspect3vism/ad4m";
 import { PROFILE_EXPRESSION } from "../constants/languages";
 import getMessage from "./getMessage";
 import getPerspectiveMeta from "./getPerspectiveMeta";
-import { session } from "../helpers/storageHelpers";
+import retry from "../helpers/retry";
 
 export interface Payload {
   perspectiveUuid: string;
@@ -15,17 +15,19 @@ export default async function ({ perspectiveUuid, from, to }: Payload) {
   try {
     const { languages } = await getPerspectiveMeta(perspectiveUuid);
 
-    const expressionLinks = await ad4mClient.perspective.queryLinks(
-      perspectiveUuid,
-      new LinkQuery({
-        source: "sioc://chatchannel",
-        predicate: "sioc://content_of",
-        fromDate: from || new Date("1/12/10"),
-        untilDate: to || new Date(),
-      })
-    );
+    const expressionLinks = await retry(async () => {
+      return await ad4mClient.perspective.queryLinks(
+        perspectiveUuid,
+        new LinkQuery({
+          source: "sioc://chatchannel",
+          predicate: "sioc://content_of",
+          fromDate: from || new Date(),
+          untilDate: to || new Date("August 19, 1975 23:15:30"),
+          limit: 50
+        })
+    )}, { defaultValue: [] });
 
-    const linkPromises = expressionLinks.map((link) =>
+    const linkPromises = expressionLinks.filter(e => !e.data.target.includes('[object Object]')).map((link) =>
       getMessage({
         link,
         perspectiveUuid,

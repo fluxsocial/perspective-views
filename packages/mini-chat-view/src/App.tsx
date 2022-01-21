@@ -1,7 +1,6 @@
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import MessageList from "./components/MessageList";
-import { forwardRef } from "preact/compat";
 
 import {
   ChatProvider,
@@ -9,24 +8,22 @@ import {
   AgentProvider,
 } from "junto-utils/react";
 import { UIProvider } from "./context/UIContext";
-import { useRef } from "preact/hooks";
+import { useState } from "preact/hooks";
 import styles from "./index.scss";
 
-const MainComponent = forwardRef(
-  ({ perspectiveUuid }: { perspectiveUuid: any }, ref) => {
+const MainComponent = ({ perspectiveUuid }) => {
+    const [ref, setRef] = useState(null)
+
     return (
-      <div class={styles.container} ref={ref}>
+      <div class={styles.container} ref={setRef}>
         <Header />
         <MessageList perspectiveUuid={perspectiveUuid} mainRef={ref} />
         <Footer />
       </div>
     );
   }
-);
 
 export default ({ perspectiveUuid = "" }) => {
-  const ref = useRef();
-
   return (
     <UIProvider>
       <AgentProvider>
@@ -34,7 +31,6 @@ export default ({ perspectiveUuid = "" }) => {
           <ChatProvider perspectiveUuid={perspectiveUuid}>
             <MainComponent
               perspectiveUuid={perspectiveUuid}
-              ref={ref}
             ></MainComponent>
           </ChatProvider>
         </PerspectiveProvider>

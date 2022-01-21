@@ -1,26 +1,32 @@
-import React, { createContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useState, useEffect, useRef  } from "react";
 import { Messages, Message } from "../types";
-import { Link, LinkExpression } from "@perspect3vism/ad4m";
+import { Link, LinkExpression, LinkQuery } from "@perspect3vism/ad4m";
 import getMessages from "../api/getMessages";
 import createMessage from "../api/createMessage";
 import subscribeToLinks from "../api/subscribeToLinks";
 import getPerspectiveMeta from "../api/getPerspectiveMeta";
 import getMessage from "../api/getMessage";
-import { linkIs } from "../helpers/linkHelpers";
+import { findLink, linkIs } from "../helpers/linkHelpers";
 import deleteMessageReaction from "../api/deleteMessageReaction";
 import createMessageReaction from "../api/createMessageReaction";
 import createReply from "../api/createReply";
+import getReactions from "../api/getReactions";
 import {
   PROFILE_EXPRESSION,
   SHORT_FORM_EXPRESSION,
 } from "../constants/languages";
 import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
+import getProfile from "../api/getProfile";
+import retry from "../helpers/retry";
+import ad4mClient from "../api/client";
+import getMe from "../api/getMe";
 
 type State = {
   isFetchingMessages: boolean;
   keyedMessages: Messages;
   scrollPosition?: number;
   hasNewMessage: boolean;
+  isMessageFromSelf: boolean;
 };
 
 type ContextProps = {
@@ -33,6 +39,9 @@ type ContextProps = {
     sendMessage: (message: string) => void;
     saveScrollPos: (pos?: number) => void;
     setHasNewMessage: (value: boolean) => void;
+    getReplyMessage: (url: string) => void;
+    getMessageProfile: (did: string) => void;
+    setIsMessageFromSelf: (value: boolean) => void; 
   };
 };
 
@@ -41,7 +50,8 @@ const initialState: ContextProps = {
     isFetchingMessages: false,
     keyedMessages: {},
     scrollPosition: 0,
-    hasNewMessage: false
+    hasNewMessage: false,
+    isMessageFromSelf: false,
   },
   methods: {
     loadMore: () => null,
@@ -50,7 +60,10 @@ const initialState: ContextProps = {
     addReaction: () => null,
     sendMessage: () => null,
     saveScrollPos: () => null,
-    setHasNewMessage: () => null
+    setHasNewMessage: () => null,
+    getReplyMessage: () => null,
+    getMessageProfile: () => null,
+    setIsMessageFromSelf: () => null,
   },
 };
 
@@ -60,53 +73,90 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   const [shortFormHash, setShortFormHash] = useState("");
   const [profileHash, setProfileHash] = useState("");
   const messageInterval = useRef();
+  const linkSubscriberRef = useRef();
 
   const [state, setState] = useState(initialState.state);
+  const [agent, setAgent] = useState();
+
+  useEffect(() => {
+    fetchAgent();
+  }, []);
+
+  async function fetchAgent() {
+    const agent = await getMe();
+
+    setAgent({ ...agent });
+  }
 
   const messages = sortExpressionsByTimestamp(state.keyedMessages, "asc");
 
   useEffect(() => {
-    if (perspectiveUuid) {    
+    if (perspectiveUuid) {
       fetchLanguages();
-      fetchMessages();
+      
+      const scrollPosition = sessionStorage.getItem(
+        `chat-scroll-position-${perspectiveUuid}`,
+      ) ?? "0";
+      setState((oldState) => ({
+        ...oldState,
+        scrollPosition: parseInt(scrollPosition)
+      }))
     }
-  }, [perspectiveUuid]);
+
+    if (perspectiveUuid && profileHash) {
+      fetchMessages({ again: false });
+      setupSubscribers();
+    }
+
+    return () => {
+      linkSubscriberRef.current?.removeListener('link-added', handleLinkAdded);
+      linkSubscriberRef.current?.removeListener('link-removed', handleLinkRemoved);
+    };
+  }, [perspectiveUuid, profileHash]);
+
+  async function setupSubscribers() {
+    linkSubscriberRef.current = await subscribeToLinks({
+      perspectiveUuid,
+      added: handleLinkAdded,
+      removed: handleLinkRemoved,
+    });
+  }
 
   useEffect(() => {
-    if (profileHash) {
-      subscribeToLinks({
-        perspectiveUuid,
-        added: handleLinkAdded,
-        removed: handleLinkRemoved,
+    if (perspectiveUuid.length > 0) {
+      messageInterval.current = fetchMessagesAgain();
+    }
+
+    return () => {
+      clearInterval(messageInterval.current);
+    };
+  }, [perspectiveUuid, messages]);
+
+  function fetchMessagesAgain() {
+    return setInterval(async () => {
+      const oldestMessage = messages[0];
+
+      await fetchMessages({
+        from: new Date(),
+        to: oldestMessage ? new Date(oldestMessage.timestamp) : new Date("August 19, 1975 23:15:30"),
+        again: true
       });
-    }
-  }, [profileHash]);
+    }, 60000);
+  }
 
-  // useEffect(() => {
-  //   messageInterval.current = setInterval(async () => {
-  //     const oldestMessage = messages[0];
-  //     const latestMessage = messages[messages.length - 1];
-  //     await fetchMessages({
-  //       from: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
-  //       to: latestMessage ? new Date(latestMessage.timestamp) : new Date(),
-  //     });
-  //   }, 60000);
-
-  //   return () => {
-  //     clearInterval(messageInterval.current);
-  //   }
-  // }, []);
-
-  // Save every change to keyedMessages to localstorage
-  // This might be a it slow?
   useEffect(() => {
-    console.log("setting new state");
-    const perspective = {
-      messages: state.keyedMessages,
-      scrollPosition: state.scrollPosition
-    }
-    sessionStorage.setItem(`chat-perspective-${perspectiveUuid}`, JSON.stringify(perspective));
-  }, [JSON.stringify(state.keyedMessages), state.scrollPosition]);
+    sessionStorage.setItem(
+      `chat-messages-${perspectiveUuid}`,
+      JSON.stringify(state.keyedMessages)
+    );
+  }, [JSON.stringify(state.keyedMessages)]);
+
+  useEffect(() => {
+    sessionStorage.setItem(
+      `chat-scroll-position-${perspectiveUuid}`,
+      state.scrollPosition
+    );
+  }, [state.scrollPosition]);
 
   async function fetchLanguages() {
     const { languages } = await getPerspectiveMeta(perspectiveUuid);
@@ -126,8 +176,21 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     return newState;
   }
 
+  function addReactionToState(oldState, messageId, reactions) {
+    const newState = {
+      ...oldState,
+      hasNewMessage: false,
+      keyedMessages: {
+        ...oldState.keyedMessages,
+        [messageId]: { ...oldState.keyedMessages[messageId], reactions },
+      },
+    };
+    return newState;
+  }
+
   async function handleLinkAdded(link) {
-    console.log("handle link added", link);
+    console.log("handle link added 1", link);
+
     if (linkIs.message(link)) {
       const message = await getMessage({
         link,
@@ -136,6 +199,17 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       });
 
       setState((oldState) => addMessage(oldState, message));
+
+      setState((oldState) => ({...oldState, isMessageFromSelf: link.author === agent.did }));
+
+      const reactions = await getReactions({
+        url: link.data.target,
+        perspectiveUuid,
+      });
+
+      setState((oldState) =>
+        addReactionToState(oldState, message.id, reactions)
+      );
     }
 
     if (linkIs.reaction(link)) {
@@ -144,16 +218,28 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       setState((oldState) => {
         const message = oldState.keyedMessages[id];
 
-        return {
-          ...oldState,
-          keyedMessages: {
-            ...oldState.keyedMessages,
-            [id]: {
-              ...message,
-              reactions: [...message.reactions, { ...link }],
+        if (message) {
+          const linkFound = message.reactions.find(
+            (e) =>
+              e.data.source === link.data.source &&
+              e.data.target === link.data.target
+          );
+
+          if (linkFound) return oldState;
+
+          return {
+            ...oldState,
+            keyedMessages: {
+              ...oldState.keyedMessages,
+              [id]: {
+                ...message,
+                reactions: [...message.reactions, { ...link }],
+              },
             },
-          },
-        };
+          };
+        }
+
+        return oldState;
       });
     }
   }
@@ -184,38 +270,114 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }
   }
 
-  async function fetchMessages(payload?: { from?: Date, to?: Date }) {
+  async function getMessageProfile(did: string) {
+    if (profileHash) {      
+      const profile = await getProfile({did, languageAddress: profileHash});
+  
+      return profile;
+    }
+  }
+
+  async function getReplyMessage(url: string) {
+    const replyMessage = state.keyedMessages[url];
+    if (!replyMessage && url) {
+      try {
+        const expression = await retry(async () => {
+          const expression = await ad4mClient.expression.get(url);
+          return { ...expression, data: JSON.parse(expression.data) };
+        }, {});
+  
+        if (!expression) {
+          console.log('No Expression found for the reply');
+          return null;
+        }
+    
+        const message = {
+          id: url,
+          timestamp: expression.timestamp,
+          url: url,
+          author: expression.author,
+          reactions: [],
+          replyUrl: null,
+          content: expression.data.body,
+        };
+    
+        return message as Message;
+      } catch (e) {
+        throw new Error(e);
+      }
+    }
+
+    return replyMessage;
+  }
+
+  async function fetchMessages(payload?: { from?: Date; to?: Date, again: boolean }) {
     setState((oldState) => ({
       ...oldState,
       isFetchingMessages: true,
     }));
 
-    const cachedMessages = sessionStorage.getItem(`chat-perspective-${perspectiveUuid}`);
-    
-    if (cachedMessages && perspectiveUuid) {
-      const perspective = JSON.parse(cachedMessages);
+    const oldMessages = state.keyedMessages;
 
-      setState((oldState) => ({
-        ...oldState,
-        keyedMessages: perspective.messages,
-        scrollPosition: perspective.scrollPosition
-      }));
-    }
-    const res = await getMessages({
+    const storedMessages = sessionStorage.getItem(
+      `chat-messages-${perspectiveUuid}`
+    );
+
+    const cachedMessages = storedMessages ? JSON.parse(storedMessages) : [];
+
+    const newMessages = await getMessages({
       perspectiveUuid,
       from: payload?.from,
-      to: payload?.to
+      to: payload?.to,
     });
 
     setState((oldState) => ({
       ...oldState,
-      keyedMessages: res,
+      keyedMessages: {
+        ...cachedMessages,
+        ...oldState.keyedMessages,
+        ...newMessages,
+      },
     }));
 
     setState((oldState) => ({
       ...oldState,
       isFetchingMessages: false,
     }));
+
+    const messages = {
+      ...cachedMessages,
+      ...state.keyedMessages,
+      ...newMessages,
+    };
+    
+
+    if (payload.again) {
+      for (const [key, message] of Object.entries(newMessages)) {
+        if (payload.again) {
+          if (!oldMessages[key]) {
+            const url = (message as any).id;
+            const reactions = await getReactions({
+              url,
+              perspectiveUuid,
+            });
+      
+            setState((oldState) => addReactionToState(oldState, url, reactions));
+          }
+        }
+      }
+    } else {
+      for (const message of Object.values(messages)) {
+        const url = (message as any).id;
+        const reactions = await getReactions({
+          url,
+          perspectiveUuid,
+        });
+  
+        setState((oldState) => addReactionToState(oldState, url, reactions));
+      }
+    }
+
   }
 
   async function sendMessage(value) {
@@ -247,6 +409,13 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     });
   }
 
+  function setIsMessageFromSelf(isMessageFromSelf: boolean) {
+    setState((oldState) => ({
+      ...oldState,
+      isMessageFromSelf
+    }))
+  }
+
   async function removeReaction(linkExpression: LinkExpression) {
     console.log("removeReaction", linkExpression);
     return deleteMessageReaction({
@@ -259,20 +428,21 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     const oldestMessage = messages[0];
     fetchMessages({
       from: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
+      again: false
     });
   }
 
   function saveScrollPos(pos?: number) {
     setState((oldState) => ({
       ...oldState,
-      scrollPosition: pos
-    }))
+      scrollPosition: pos,
+    }));
   }
 
   function setHasNewMessage(value: boolean) {
     setState((oldState) => ({
       ...oldState,
-      hasNewMessage: value
+      hasNewMessage: value,
     }));
   }
 
@@ -287,7 +457,10 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
           sendReply,
           removeReaction,
           saveScrollPos,
-          setHasNewMessage
+          setHasNewMessage,
+          getReplyMessage,
+          getMessageProfile,
+          setIsMessageFromSelf
         },
       }}
     >

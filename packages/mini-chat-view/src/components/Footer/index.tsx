@@ -6,7 +6,7 @@ import styles from "./index.scss";
 
 export default function Footer() {
   const {
-    state: { members, channels, url },
+    state: { members, channels, url, sourceUrl },
   } = useContext(PerspectiveContext);
   const [inputValue, setInputValue] = useState("");
 
@@ -49,7 +49,7 @@ export default function Footer() {
 
   const mentionChannels = useMemo(() => {
     return Object.values(channels).map((channel: any) => {
-      if (channel.url === url) {
+      if (channel.url === (sourceUrl || url)) {
         return {
           label: "Home",
           id: channel.url,

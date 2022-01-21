@@ -1,3 +1,4 @@
+
 import { useState, useContext, useRef, useEffect } from "preact/hooks";
 import { ChatContext } from "junto-utils/react";
 import MessageItem from "../MessageItem";
@@ -18,21 +19,28 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
   const scroller = useRef();
 
   const {
-    state: { messages, isFetchingMessages, scrollPosition, hasNewMessage },
+    state: { messages, isFetchingMessages, scrollPosition, hasNewMessage, isMessageFromSelf },
     methods: {
       loadMore,
       removeReaction,
       addReaction,
       saveScrollPos,
       setHasNewMessage,
+      setIsMessageFromSelf
     },
   } = useContext(ChatContext);
 
   useEffect(() => {
     if (scroller.current && messages.length > 0 && !initialScroll) {
-      scroller.current.scrollToIndex({
-        index: scrollPosition,
-      });
+      if (!scrollPosition) {
+        scroller.current.scrollToIndex({
+          index: messages.length,
+        });
+      } else {
+        scroller.current.scrollToIndex({
+          index: scrollPosition,
+        });
+      }
 
       setinitialScroll(true);
     }
@@ -45,9 +53,20 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
         detail: { uuid: perspectiveUuid },
         bubbles: true,
       });
-      mainRef.current.dispatchEvent(event);
+      mainRef?.dispatchEvent(event);
     }
   }, [hasNewMessage, atBottom]);
+
+  useEffect(() => {
+    if (isMessageFromSelf) {
+      scrollToBottom();
+      const event = new CustomEvent("hide-notification-indicator", {
+        detail: { uuid: perspectiveUuid },
+        bubbles: true,
+      });
+      mainRef?.dispatchEvent(event);
+    }
+  }, [isMessageFromSelf]);
 
   useEffect(() => {
     if (atBottom) {
@@ -55,7 +74,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
         detail: { uuid: perspectiveUuid },
         bubbles: true,
       });
-      mainRef.current.dispatchEvent(event);
+      mainRef?.dispatchEvent(event);
     }
   }, [atBottom]);
 
@@ -75,9 +94,9 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
     if (!previousMessage || !message) {
       return true;
     } else {
-      return previousMessage.author.did !== message.author.did
+      return previousMessage.author !== message.author
         ? true
-        : previousMessage.author.did === message.author.did &&
+        : previousMessage.author === message.author &&
             differenceInMinutes(
               parseISO(message.timestamp),
               parseISO(previousMessage.timestamp)
@@ -121,8 +140,9 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
   }
 
   const rangeChanged = ({ startIndex }) => {
-    if (typeof startIndex === "number") {
+    if (typeof startIndex === "number" && initialScroll) {
       saveScrollPos(startIndex);
+      setIsMessageFromSelf(false)
     }
   };
 

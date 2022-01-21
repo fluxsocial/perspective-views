@@ -3,24 +3,23 @@ import { LinkExpression } from "@perspect3vism/ad4m";
 
 export interface Payload {
   perspectiveUuid: string;
-  added: Function;
-  removed: Function;
+  added?: Function;
+  removed?: Function;
 }
 
 export default async function ({ perspectiveUuid, added, removed }: Payload) {
   try {
-    ad4mClient.perspective.addPerspectiveLinkAddedListener(
-      perspectiveUuid,
-      (link: LinkExpression) => {
-        added(link as LinkExpression);
-      }
-    );
-    ad4mClient.perspective.addPerspectiveLinkRemovedListener(
-      perspectiveUuid,
-      (link: LinkExpression) => {
-        removed(link as LinkExpression);
-      }
-    );
+    const perspective = await ad4mClient.perspective.byUUID(perspectiveUuid);
+    
+    if (added) {
+      perspective.addListener('link-added', added);
+    }
+
+    if (removed) {
+      perspective.addListener('link-removed', removed);
+    }
+
+    return perspective;
   } catch (e) {
     throw new Error(e);
   }

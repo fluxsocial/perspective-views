@@ -1,5 +1,5 @@
 import { ref, watch, computed, watchEffect, Ref } from "vue";
-import { Ad4mClient, LinkExpression } from "@perspect3vism/ad4m";
+import { LinkExpression } from "@perspect3vism/ad4m";
 import { Messages, Message } from "../types";
 import createMessage from "../api/createMessage";
 import subscribeToLinks from "../api/subscribeToLinks";
@@ -15,7 +15,6 @@ import {
   SHORT_FORM_EXPRESSION,
 } from "../constants/languages";
 import deleteMessageReaction from "../api/deleteMessageReaction";
-import ad4mClient from "../api/client";
 
 export function sortMessages(
   messages: Messages,

@@ -1,6 +1,7 @@
 import ad4mClient from "./client";
 import { LinkQuery } from "@perspect3vism/ad4m";
 import getMember from "./getProfile";
+import retry from "../helpers/retry";
 
 export interface Payload {
   perspectiveUuid: string;
@@ -9,13 +10,14 @@ export interface Payload {
 
 export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
   try {
-    const expressionLinks = await ad4mClient.perspective.queryLinks(
-      perspectiveUuid,
-      new LinkQuery({
-        source: `${neighbourhoodUrl!}://self`,
-        predicate: "sioc://has_member",
-      })
-    );
+    const expressionLinks = await retry(async () => {
+      return await ad4mClient.perspective.queryLinks(
+        perspectiveUuid,
+        new LinkQuery({
+          source: neighbourhoodUrl!,
+          predicate: "sioc://has_member",
+        })
+    )}, { defaultValue: [] });
 
     const linkPromises = expressionLinks.map((link) =>
       getMember({ did: link.author, languageAddress: link.data.target.split("://")[0] })

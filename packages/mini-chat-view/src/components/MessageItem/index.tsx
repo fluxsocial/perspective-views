@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "preact/hooks";
+import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { ChatContext } from "junto-utils/react";
 import { Reaction } from "junto-utils/types";
 import getMe from "junto-utils/api/getMe";
@@ -26,6 +26,27 @@ type timeOptions = {
   relative?: boolean;
 };
 
+function getAuthor(did?: string) {
+  const {
+    methods: { getMessageProfile },
+  } = useContext(ChatContext);
+  const [author, setAuthor] = useState({});
+
+  useEffect(() => {
+    getAuthor();
+  }, [did])
+
+  const getAuthor = async () => {
+    if (did) {
+      const author = await getMessageProfile(did);
+  
+      setAuthor(author);
+    }
+  }
+
+  return author;
+}
+
 export default function MessageItem({
   index,
   showAvatar,
@@ -36,8 +57,9 @@ export default function MessageItem({
   const messageRef = useRef<any>(null);
   const {
     state: { messages, keyedMessages },
-    methods: { addReaction, removeReaction },
+    methods: { addReaction, removeReaction, getReplyMessage, getMessageProfile },
   } = useContext(ChatContext);
+  const [replyMessage, setReplyMessage] = useState();
 
   const {
     state: { currentReply },
@@ -65,8 +87,6 @@ export default function MessageItem({
       addReaction(message.url, unicode);
     }
   }
-
-  const replyMessage = keyedMessages[message?.replyUrl];
 
   useEffect(() => {
     const mentionElements = (messageRef.current as any).querySelectorAll(
@@ -104,7 +124,7 @@ export default function MessageItem({
             },
             bubbles: true,
           });
-          mainRef.current.dispatchEvent(event);
+          mainRef?.dispatchEvent(event);
         } else {
           const event = new CustomEvent("agent-click", {
             detail: {
@@ -112,7 +132,7 @@ export default function MessageItem({
             },
             bubbles: true,
           });
-          mainRef.current.dispatchEvent(event);
+          mainRef?.dispatchEvent(event);
         }
       });
     }
@@ -164,8 +184,21 @@ export default function MessageItem({
       },
       bubbles: true,
     });
-    mainRef.current.dispatchEvent(event);
+    mainRef?.dispatchEvent(event);
   }
+
+  useEffect(() => {
+    getReply();
+  }, [message])
+
+  const getReply = async () => {
+    const reply = await getReplyMessage(message.replyUrl);
+
+    setReplyMessage(reply);
+  }
+
+  const author = getAuthor(message.author);
+  const replyAuthor = getAuthor(replyMessage?.author)
 
   return (
     <div
@@ -182,14 +215,16 @@ export default function MessageItem({
           <div class={styles.messageFlex}>
             <div
               class={styles.messageFlex}
-              onClick={() => onProfileClick(replyMessage.author.did)}
+              onClick={() => onProfileClick(replyAuthor?.did)}
             >
               <j-avatar
+                class={styles.messageAvatar}
                 style="--j-avatar-size: 20px"
-                hash={replyMessage.author.did}
+                src={replyAuthor?.thumbnailPicture}
+                hash={replyAuthor?.did}
               ></j-avatar>
               <div class={styles.messageUsernameNoMargin}>
-                {replyMessage.author.username}
+                {replyAuthor?.username}
               </div>
             </div>
             <div
@@ -203,9 +238,10 @@ export default function MessageItem({
         {replyMessage || showAvatar ? (
           <j-flex>
             <j-avatar
-              src={message.author.thumbnailPicture}
-              hash={message.author.did}
-              onClick={() => onProfileClick(message.author.did)}
+              class={styles.messageAvatar}
+              src={author?.thumbnailPicture}
+              hash={author?.did}
+              onClick={() => onProfileClick(author?.did)}
             ></j-avatar>
           </j-flex>
         ) : (
@@ -223,12 +259,12 @@ export default function MessageItem({
       </div>
       <div>
         {(replyMessage || showAvatar) && (
-          <j-flex a="center" gap="400">
+          <header class={styles.messageItemHeader}>
             <div
-              onClick={() => onProfileClick(message.author.did)}
+              onClick={() => onProfileClick(author?.did)}
               class={styles.messageUsername}
             >
-              {message.author.username}
+              {author?.username}
             </div>
             <small
               class={styles.timestamp}
@@ -240,7 +276,7 @@ export default function MessageItem({
             >
               {getTime(message.timestamp, { relative: true })}
             </small>
-          </j-flex>
+          </header>
         )}
 
         <div

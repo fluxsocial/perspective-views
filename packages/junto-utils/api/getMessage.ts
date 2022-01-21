@@ -4,6 +4,7 @@ import { getExpression } from "../helpers/expressionHelpers";
 import { Message } from "../types";
 import getProfile from "./getProfile";
 import { session } from "../helpers/storageHelpers";
+import retry from "../helpers/retry";
 
 export interface Payload {
   perspectiveUuid: string;
@@ -11,42 +12,41 @@ export interface Payload {
   link: LinkExpression;
 }
 
+
+
 export default async function ({
   link,
   perspectiveUuid,
   profileLangAddress,
 }: Payload): Promise<Message> {
   try {
-    const expression = await getExpression(link);
+    const expression = await retry(async () => {
+      return await getExpression(link);
+    }, {});
 
-    const replyLinks = await ad4mClient.perspective.queryLinks(
-      perspectiveUuid,
-      new LinkQuery({
-        source: link.data.target,
-        predicate: "sioc://reply_to",
-      })
-    );
+    if (!expression) {
+      throw new Error('No Expression found for the message');
+    }
 
-    const reactionLinks = await ad4mClient.perspective.queryLinks(
-      perspectiveUuid,
-      new LinkQuery({
-        source: link.data.target,
-        predicate: "sioc://reaction_to",
-      })
-    );
+    let replyLinks = await retry(async () => {
+      return await ad4mClient.perspective.queryLinks(
+        perspectiveUuid,
+        new LinkQuery({
+          source: link.data.target,
+          predicate: "sioc://reply_to",
+        })
+      );
+    }, { defaultValue: [] });
 
-    const author = await getProfile({
-      did: expression.author,
-      languageAddress: profileLangAddress,
-    });
+    const filteredReplyLinks = replyLinks.filter(e => e.data.source === link.data.target);
 
     const message = {
       id: link.data.target,
       timestamp: expression.timestamp,
       url: link.data.target,
-      author,
-      reactions: reactionLinks,
-      replyUrl: replyLinks[0]?.data.target,
+      author: link.author,
+      reactions: [],
+      replyUrl: filteredReplyLinks[0]?.data.target,
       content: expression.data.body,
     };
 

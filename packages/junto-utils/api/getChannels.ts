@@ -4,6 +4,7 @@ import getMember from "./getProfile";
 import getPerspectiveMeta from "./getPerspectiveMeta";
 import { findLink } from "../helpers/linkHelpers";
 import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
+import retry from "../helpers/retry";
 
 export interface Payload {
   perspectiveUuid: string;
@@ -13,17 +14,20 @@ export interface Payload {
 export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
   try {
     const home = await getPerspectiveMeta(perspectiveUuid)
-    const expressionLinks = await ad4mClient.perspective.queryLinks(
-      perspectiveUuid,
-      new LinkQuery({
-        source: `${neighbourhoodUrl!}://self`,
-        predicate: "sioc://has_space",
-      })
-    );
+    const expressionLinks = await retry(async () => {
+      return await ad4mClient.perspective.queryLinks(
+        perspectiveUuid,
+        new LinkQuery({
+          source: neighbourhoodUrl!,
+          predicate: "sioc://has_space",
+        })
+    )}, { defaultValue: [] });
+
+    const all = await ad4mClient.perspective.all();
 
     const linkPromises = expressionLinks.map(async (link) => {
-      const neighbourhood = await ad4mClient.neighbourhood.joinFromUrl(link.data.target);
-      const links = (neighbourhood.neighbourhood.meta?.links as Array<any>) || [];
+      const neighbourhood = all.find(e => e.sharedUrl === link.data.target);
+      const links = ((neighbourhood.neighbourhood as any).meta.links as Array<any>) || [];
       const languageLinks = links.filter(findLink.language);
       const langs = await getMetaFromLinks(languageLinks);
     
