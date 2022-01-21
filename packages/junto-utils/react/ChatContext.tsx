@@ -104,13 +104,13 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }
 
     if (perspectiveUuid && profileHash) {
-      fetchMessages();
+      fetchMessages({ again: false });
       setupSubscribers();
     }
 
     return () => {
-      linkSubscriberRef.current?.removeListener('link-added', handleLinkAdded);
-      linkSubscriberRef.current?.removeListener('link-removed', handleLinkRemoved);
+      // linkSubscriberRef.current?.removeListener('link-added', handleLinkAdded);
+      // linkSubscriberRef.current?.removeListener('link-removed', handleLinkRemoved);
     };
   }, [perspectiveUuid, profileHash]);
 
@@ -139,6 +139,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       await fetchMessages({
         from: new Date(),
         to: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
+        again: true
       });
     }, 60000);
   }
@@ -310,11 +311,13 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     return replyMessage;
   }
 
-  async function fetchMessages(payload?: { from?: Date; to?: Date }) {
+  async function fetchMessages(payload?: { from?: Date; to?: Date, again: boolean }) {
     setState((oldState) => ({
       ...oldState,
       isFetchingMessages: true,
     }));
+
+    const oldMessages = state.keyedMessages;
 
     const storedMessages = sessionStorage.getItem(
       `chat-messages-${perspectiveUuid}`
@@ -347,16 +350,34 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       ...state.keyedMessages,
       ...newMessages,
     };
+    
 
-    for (const message of Object.values(messages)) {
-      const url = (message as any).id;
-      const reactions = await getReactions({
-        url,
-        perspectiveUuid,
-      });
-
-      setState((oldState) => addReactionToState(oldState, url, reactions));
+    if (payload.again) {
+      for (const [key, message] of Object.entries(newMessages)) {
+        if (payload.again) {
+          if (!oldMessages[key]) {
+            const url = (message as any).id;
+            const reactions = await getReactions({
+              url,
+              perspectiveUuid,
+            });
+      
+            setState((oldState) => addReactionToState(oldState, url, reactions));
+          }
+        }
+      }
+    } else {
+      for (const message of Object.values(messages)) {
+        const url = (message as any).id;
+        const reactions = await getReactions({
+          url,
+          perspectiveUuid,
+        });
+  
+        setState((oldState) => addReactionToState(oldState, url, reactions));
+      }
     }
+
   }
 
   async function sendMessage(value) {
@@ -407,6 +428,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     const oldestMessage = messages[0];
     fetchMessages({
       from: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
+      again: false
     });
   }
 
