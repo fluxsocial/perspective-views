@@ -124,3 +124,7 @@
   top: -10px;
   right: var(--j-space-500);
 }
+
+j-tooltip::part(base) {
+  display: inline;
+}
