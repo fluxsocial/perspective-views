@@ -11,15 +11,12 @@ import deleteMessageReaction from "../api/deleteMessageReaction";
 import createMessageReaction from "../api/createMessageReaction";
 import createReply from "../api/createReply";
 import getReactions from "../api/getReactions";
-import {
-  PROFILE_EXPRESSION,
-  SHORT_FORM_EXPRESSION,
-} from "../constants/languages";
 import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
 import getProfile from "../api/getProfile";
 import retry from "../helpers/retry";
 import ad4mClient from "../api/client";
 import getMe from "../api/getMe";
+import { PROFILE_EXPRESSION, SHORT_FORM_EXPRESSION } from "../helpers/languageHelpers";
 
 type State = {
   isFetchingMessages: boolean;

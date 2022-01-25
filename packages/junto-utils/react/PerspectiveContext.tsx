@@ -4,10 +4,9 @@ import getMembers from "../api/getMembers";
 import getChannels from "../api/getChannels";
 import getPerspectiveMeta from "../api/getPerspectiveMeta";
 import subscribeToLinks from "../api/subscribeToLinks";
-import { PROFILE_EXPRESSION } from "../constants/languages";
 import { findLink, linkIs } from "../helpers/linkHelpers";
 import ad4mClient from "../api/client";
-import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
+import { getMetaFromLinks, keyedLanguages, PROFILE_EXPRESSION } from "../helpers/languageHelpers";
 import getProfile from "../api/getProfile";
 
 type State = {
