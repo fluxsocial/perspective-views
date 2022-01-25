@@ -109,7 +109,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       linkSubscriberRef.current?.removeListener('link-added', handleLinkAdded);
       linkSubscriberRef.current?.removeListener('link-removed', handleLinkRemoved);
     };
-  }, [perspectiveUuid, profileHash]);
+  }, [perspectiveUuid, profileHash, agent]);
 
   async function setupSubscribers() {
     linkSubscriberRef.current = await subscribeToLinks({
@@ -219,7 +219,8 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
           const linkFound = message.reactions.find(
             (e) =>
               e.data.source === link.data.source &&
-              e.data.target === link.data.target
+              e.data.target === link.data.target &&
+              e.author === agent.did
           );
 
           if (linkFound) return oldState;
