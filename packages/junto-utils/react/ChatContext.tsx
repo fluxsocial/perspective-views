@@ -314,13 +314,13 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       isFetchingMessages: true,
     }));
 
-    const oldMessages = state.keyedMessages;
-
+    
     const storedMessages = sessionStorage.getItem(
       `chat-messages-${perspectiveUuid}`
-    );
-
-    const cachedMessages = storedMessages ? JSON.parse(storedMessages) : [];
+      );
+      
+      const cachedMessages = storedMessages ? JSON.parse(storedMessages) : [];
+      const oldMessages = {...state.keyedMessages, ...cachedMessages};
 
     const newMessages = await getMessages({
       perspectiveUuid,
@@ -351,16 +351,17 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
     if (payload.again) {
       for (const [key, message] of Object.entries(newMessages)) {
-        if (payload.again) {
-          if (!oldMessages[key]) {
-            const url = (message as any).id;
-            const reactions = await getReactions({
-              url,
-              perspectiveUuid,
-            });
-      
-            setState((oldState) => addReactionToState(oldState, url, reactions));
-          }
+        const url = (message as any).id;
+        if (!oldMessages[key]) {
+          const reactions = await getReactions({
+            url,
+            perspectiveUuid,
+          });
+    
+          setState((oldState) => addReactionToState(oldState, url, reactions));
+        } else {
+          const reactions = oldMessages[key]['reactions']
+          setState((oldState) => addReactionToState(oldState, url, reactions));
         }
       }
     } else {
