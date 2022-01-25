@@ -1,9 +1,9 @@
 import ad4mClient from "./client";
 import { LinkQuery } from "@perspect3vism/ad4m";
-import { PROFILE_EXPRESSION } from "../constants/languages";
 import getMessage from "./getMessage";
 import getPerspectiveMeta from "./getPerspectiveMeta";
 import retry from "../helpers/retry";
+import { PROFILE_EXPRESSION } from "../helpers/languageHelpers";
 
 export interface Payload {
   perspectiveUuid: string;

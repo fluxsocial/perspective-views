@@ -10,11 +10,8 @@ import getMessage from "../api/getMessage";
 import createMessageReaction from "../api/createMessageReaction";
 import getPerspectiveMeta from "../api/getPerspectiveMeta";
 import { session } from "../helpers/storageHelpers";
-import {
-  PROFILE_EXPRESSION,
-  SHORT_FORM_EXPRESSION,
-} from "../constants/languages";
 import deleteMessageReaction from "../api/deleteMessageReaction";
+import { PROFILE_EXPRESSION, SHORT_FORM_EXPRESSION } from "../helpers/languageHelpers";
 
 export function sortMessages(
   messages: Messages,
