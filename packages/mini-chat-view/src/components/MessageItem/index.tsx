@@ -125,7 +125,7 @@ export default function MessageItem({
             bubbles: true,
           });
           mainRef?.dispatchEvent(event);
-        } else {
+        } else if (mention.innerText.startsWith("@")) {
           const event = new CustomEvent("agent-click", {
             detail: {
               did: mention.dataset["id"],
