@@ -125,6 +125,22 @@
   right: var(--j-space-500);
 }
 
+.emojiButton {
+  background: var(--j-color-white);
+  color: var(--j-color-black);
+  display: flex;
+  gap: var(--j-space-200);
+  align-items: center;
+  cursor: pointer;
+  border-radius: var(--j-border-radius);
+  border: 1px solid var(--j-color-ui-200);
+}
+
+.emojiButtonActive {
+  background-color: var(--j-color-primary-50);
+  border: 1px solid var(--j-color-primary-500);
+}
+
 j-tooltip::part(base) {
   display: inline;
 }
