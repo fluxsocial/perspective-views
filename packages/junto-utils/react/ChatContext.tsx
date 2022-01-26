@@ -131,11 +131,9 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
   function fetchMessagesAgain() {
     return setInterval(async () => {
-      const oldestMessage = messages[0];
-
       await fetchMessages({
         from: new Date(),
-        to: oldestMessage ? new Date(oldestMessage.timestamp) : new Date("August 19, 1975 23:15:30"),
+        to: new Date("August 19, 1975 23:15:30"),
         again: true
       });
     }, 60000);
