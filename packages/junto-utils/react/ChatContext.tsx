@@ -259,7 +259,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
             [id]: {
               ...message,
               reactions: message.reactions.filter(
-                (reaction) => reaction.data.target !== link.data.target
+                (reaction) => reaction.proof.signature !== link.proof.signature
               ),
             },
           },
