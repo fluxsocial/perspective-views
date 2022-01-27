@@ -23,7 +23,7 @@ export default async function ({ perspectiveUuid, from, to }: Payload) {
           predicate: "sioc://content_of",
           fromDate: from || new Date(),
           untilDate: to || new Date("August 19, 1975 23:15:30"),
-          limit: 50
+          limit: 35
         })
     )}, { defaultValue: [] });
 
