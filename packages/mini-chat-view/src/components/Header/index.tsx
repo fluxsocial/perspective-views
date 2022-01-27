@@ -3,7 +3,7 @@ import { useContext } from "preact/hooks";
 import styles from "./index.scss";
 
 export default function Header() {
-  const { state } = useContext(PerspectiveContext);
+  const { state: { name, isHome } } = useContext(PerspectiveContext);
 
-  return <header class={styles.header}># {state.name}</header>;
+  return <header class={styles.header}># {isHome ? 'Home' : name}</header>;
 }

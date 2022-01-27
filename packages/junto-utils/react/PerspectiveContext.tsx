@@ -18,6 +18,7 @@ type State = {
   sourceUuid: string;
   members: { [x: string]: any };
   channels: { [x: string]: any };
+  isHome: boolean;
 };
 
 type ContextProps = {
@@ -37,6 +38,7 @@ const initialState: ContextProps = {
     languages: [],
     members: {},
     channels: {},
+    isHome: false
   },
   methods: {
     getProfile: (did: string) => null
@@ -165,6 +167,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
       sourceUuid: meta.sourceUuid,
       members: {},
       channels: {},
+      isHome: meta.isHome
     });
   }
 
