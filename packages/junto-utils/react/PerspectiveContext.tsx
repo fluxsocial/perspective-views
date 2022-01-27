@@ -22,7 +22,9 @@ type State = {
 
 type ContextProps = {
   state: State;
-  methods: {};
+  methods: {
+    getMessageProfile: (did: string) => any
+  };
 };
 
 const initialState: ContextProps = {
@@ -36,7 +38,9 @@ const initialState: ContextProps = {
     members: {},
     channels: {},
   },
-  methods: {},
+  methods: {
+    getMessageProfile: (did: string) => null
+  },
 };
 
 const PerspectiveContext = createContext(initialState);
@@ -164,11 +168,29 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     });
   }
 
+  async function getMessageProfile(did: string) {
+    if (state.members[did]) {
+      return state.members[did]
+    } else {
+      if (profileHash) {      
+        const profile = await getProfile({did, languageAddress: profileHash});
+
+        setState((oldState) => ({...oldState, members: {...oldState.members, [profile.did]: profile}}))
+    
+        return profile;
+      }
+    }
+
+    return null;
+  }
+
   return (
     <PerspectiveContext.Provider
       value={{
         state,
-        methods: {},
+        methods: {
+          getMessageProfile
+        },
       }}
     >
       {children}
