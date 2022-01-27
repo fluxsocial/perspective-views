@@ -1,5 +1,5 @@
-import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { ChatContext } from "junto-utils/react";
+import { useContext, useEffect, useRef, useState } from "preact/hooks";
+import { ChatContext, PerspectiveContext } from "junto-utils/react";
 import { Reaction } from "junto-utils/types";
 import getMe from "junto-utils/api/getMe";
 
@@ -28,8 +28,8 @@ type timeOptions = {
 
 function getAuthor(did?: string) {
   const {
-    methods: { getMessageProfile },
-  } = useContext(ChatContext);
+    methods: { getProfile },
+  } = useContext(PerspectiveContext);
   const [author, setAuthor] = useState({});
 
   useEffect(() => {
@@ -38,7 +38,7 @@ function getAuthor(did?: string) {
 
   const getAuthor = async () => {
     if (did) {
-      const author = await getMessageProfile(did);
+      const author = await getProfile(did);
   
       setAuthor(author);
     }
@@ -57,7 +57,7 @@ export default function MessageItem({
   const messageRef = useRef<any>(null);
   const {
     state: { messages, keyedMessages },
-    methods: { addReaction, removeReaction, getReplyMessage, getMessageProfile },
+    methods: { addReaction, removeReaction, getReplyMessage },
   } = useContext(ChatContext);
   const [replyMessage, setReplyMessage] = useState();
 

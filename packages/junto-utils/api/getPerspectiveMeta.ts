@@ -40,6 +40,7 @@ export default async function getPerspectiveMeta(uuid: string) {
     url: perspective?.sharedUrl || "",
     dateCreated: links.find(findLink.dateCreated).data.target,
     sourceUrl: expressionLinks.length > 0 ? expressionLinks[0].data.target : perspective?.sharedUrl || "",
-    sourceUuid
+    sourceUuid,
+    isHome :expressionLinks.length === 0 
   };
 }

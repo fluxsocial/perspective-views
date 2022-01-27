@@ -7,7 +7,7 @@ import subscribeToLinks from "../api/subscribeToLinks";
 import { findLink, linkIs } from "../helpers/linkHelpers";
 import ad4mClient from "../api/client";
 import { getMetaFromLinks, keyedLanguages, PROFILE_EXPRESSION } from "../helpers/languageHelpers";
-import getProfile from "../api/getProfile";
+import getPerspectiveProfile from "../api/getProfile";
 
 type State = {
   name: string;
@@ -18,11 +18,14 @@ type State = {
   sourceUuid: string;
   members: { [x: string]: any };
   channels: { [x: string]: any };
+  isHome: boolean;
 };
 
 type ContextProps = {
   state: State;
-  methods: {};
+  methods: {
+    getProfile: (did: string) => any
+  };
 };
 
 const initialState: ContextProps = {
@@ -35,8 +38,11 @@ const initialState: ContextProps = {
     languages: [],
     members: {},
     channels: {},
+    isHome: false
   },
-  methods: {},
+  methods: {
+    getProfile: (did: string) => null
+  },
 };
 
 const PerspectiveContext = createContext(initialState);
@@ -161,14 +167,33 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
       sourceUuid: meta.sourceUuid,
       members: {},
       channels: {},
+      isHome: meta.isHome
     });
+  }
+
+  async function getProfile(did: string) {
+    if (state.members[did]) {
+      return state.members[did]
+    } else {
+      if (profileHash) {      
+        const profile = await getPerspectiveProfile({did, languageAddress: profileHash});
+
+        setState((oldState) => ({...oldState, members: {...oldState.members, [profile.did]: profile}}))
+    
+        return profile;
+      }
+    }
+
+    return null;
   }
 
   return (
     <PerspectiveContext.Provider
       value={{
         state,
-        methods: {},
+        methods: {
+          getProfile
+        },
       }}
     >
       {children}
