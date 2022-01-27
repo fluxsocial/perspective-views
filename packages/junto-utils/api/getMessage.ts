@@ -28,25 +28,13 @@ export default async function ({
       return undefined
     }
 
-    let replyLinks = await retry(async () => {
-      return await ad4mClient.perspective.queryLinks(
-        perspectiveUuid,
-        new LinkQuery({
-          source: link.data.target,
-          predicate: "sioc://reply_to",
-        })
-      );
-    }, { defaultValue: [] });
-
-    const filteredReplyLinks = replyLinks.filter(e => e.data.source === link.data.target);
-
     const message = {
       id: link.data.target,
       timestamp: expression.timestamp,
       url: link.data.target,
       author: link.author,
       reactions: [],
-      replyUrl: filteredReplyLinks[0]?.data.target,
+      replyUrl: undefined,
       content: expression.data.body,
     };
 

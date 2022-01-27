@@ -17,6 +17,7 @@ import retry from "../helpers/retry";
 import ad4mClient from "../api/client";
 import getMe from "../api/getMe";
 import { PROFILE_EXPRESSION, SHORT_FORM_EXPRESSION } from "../helpers/languageHelpers";
+import getReplyTo from "../api/getReplyTo";
 
 type State = {
   isFetchingMessages: boolean;
@@ -181,6 +182,18 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     return newState;
   }
 
+  function addReplyToState(oldState, messageId, replyUrl) {
+    const newState = {
+      ...oldState,
+      hasNewMessage: false,
+      keyedMessages: {
+        ...oldState.keyedMessages,
+        [messageId]: { ...oldState.keyedMessages[messageId], replyUrl },
+      },
+    };
+    return newState;
+  }
+
   async function handleLinkAdded(link) {
     console.log("handle link added 1", link);
 
@@ -337,12 +350,18 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       ...state.keyedMessages,
       ...newMessages,
     };
-    
 
     if (payload.again) {
       for (const [key, message] of Object.entries(newMessages)) {
         const url = (message as any).id;
         if (!oldMessages[key]) {
+          const replyUrl = await getReplyTo({
+            url,
+            perspectiveUuid
+          })
+
+          setState((oldState) => addReplyToState(oldState, url, replyUrl));
+
           const reactions = await getReactions({
             url,
             perspectiveUuid,
@@ -351,12 +370,22 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
           setState((oldState) => addReactionToState(oldState, url, reactions));
         } else {
           const reactions = oldMessages[key]['reactions']
+          const replyUrl = oldMessages[key]['replyUrl']
           setState((oldState) => addReactionToState(oldState, url, reactions));
+          setState((oldState) => addReplyToState(oldState, url, replyUrl));
         }
       }
     } else {
       for (const message of Object.values(messages)) {
         const url = (message as any).id;
+
+        const replyUrl = await getReplyTo({
+          url,
+          perspectiveUuid
+        })
+
+        setState((oldState) => addReplyToState(oldState, url, replyUrl));
+
         const reactions = await getReactions({
           url,
           perspectiveUuid,
