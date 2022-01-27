@@ -38,7 +38,10 @@ export default async function ({ perspectiveUuid, from, to }: Payload) {
     const messages = await Promise.all(linkPromises);
 
     const keyedMessages = messages.reduce((acc, message) => {
-      return { ...acc, [message.id]: message };
+      if (message) {
+        //@ts-ignore
+        return { ...acc, [message.id]: message };
+      }
     }, {});
 
     return keyedMessages;

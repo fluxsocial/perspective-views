@@ -18,14 +18,14 @@ export default async function ({
   link,
   perspectiveUuid,
   profileLangAddress,
-}: Payload): Promise<Message> {
+}: Payload): Promise<Message | undefined> {
   try {
     const expression = await retry(async () => {
       return await getExpression(link);
     }, {});
 
     if (!expression) {
-      throw new Error('No Expression found for the message');
+      return undefined
     }
 
     let replyLinks = await retry(async () => {

@@ -190,19 +190,20 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
         perspectiveUuid: perspectiveUuid,
         profileLangAddress: profileHash,
       });
+      if (message) {
+        setState((oldState) => addMessage(oldState, message));
 
-      setState((oldState) => addMessage(oldState, message));
-
-      setState((oldState) => ({...oldState, isMessageFromSelf: link.author === agent.did }));
-
-      const reactions = await getReactions({
-        url: link.data.target,
-        perspectiveUuid,
-      });
-
-      setState((oldState) =>
-        addReactionToState(oldState, message.id, reactions)
-      );
+        setState((oldState) => ({...oldState, isMessageFromSelf: link.author === agent.did }));
+  
+        const reactions = await getReactions({
+          url: link.data.target,
+          perspectiveUuid,
+        });
+  
+        setState((oldState) =>
+          addReactionToState(oldState, message.id, reactions)
+        );
+      }
     }
 
     if (linkIs.reaction(link)) {
