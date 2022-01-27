@@ -7,7 +7,7 @@ import subscribeToLinks from "../api/subscribeToLinks";
 import { findLink, linkIs } from "../helpers/linkHelpers";
 import ad4mClient from "../api/client";
 import { getMetaFromLinks, keyedLanguages, PROFILE_EXPRESSION } from "../helpers/languageHelpers";
-import getProfile from "../api/getProfile";
+import getPerspectiveProfile from "../api/getProfile";
 
 type State = {
   name: string;
@@ -23,7 +23,7 @@ type State = {
 type ContextProps = {
   state: State;
   methods: {
-    getMessageProfile: (did: string) => any
+    getProfile: (did: string) => any
   };
 };
 
@@ -39,7 +39,7 @@ const initialState: ContextProps = {
     channels: {},
   },
   methods: {
-    getMessageProfile: (did: string) => null
+    getProfile: (did: string) => null
   },
 };
 
@@ -168,12 +168,12 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     });
   }
 
-  async function getMessageProfile(did: string) {
+  async function getProfile(did: string) {
     if (state.members[did]) {
       return state.members[did]
     } else {
       if (profileHash) {      
-        const profile = await getProfile({did, languageAddress: profileHash});
+        const profile = await getPerspectiveProfile({did, languageAddress: profileHash});
 
         setState((oldState) => ({...oldState, members: {...oldState.members, [profile.did]: profile}}))
     
@@ -189,7 +189,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
       value={{
         state,
         methods: {
-          getMessageProfile
+          getProfile
         },
       }}
     >

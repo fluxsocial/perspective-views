@@ -28,7 +28,7 @@ type timeOptions = {
 
 function getAuthor(did?: string) {
   const {
-    methods: { getMessageProfile },
+    methods: { getProfile },
   } = useContext(PerspectiveContext);
   const [author, setAuthor] = useState({});
 
@@ -38,7 +38,7 @@ function getAuthor(did?: string) {
 
   const getAuthor = async () => {
     if (did) {
-      const author = await getMessageProfile(did);
+      const author = await getProfile(did);
   
       setAuthor(author);
     }
