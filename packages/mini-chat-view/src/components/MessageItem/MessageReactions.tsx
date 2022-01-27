@@ -1,5 +1,6 @@
 import { AgentContext } from "junto-utils/react";
 import { useContext } from "preact/hooks";
+import styles from "./index.scss";
 
 function sortReactions(reactions) {
   const mapped = reactions.reduce((acc: any, reaction: any) => {
@@ -19,32 +20,20 @@ function sortReactions(reactions) {
 export default function MessageReactions({ onEmojiClick, reactions = [] }) {
   const sortedReactions = sortReactions(reactions);
 
-  const agent = useContext(AgentContext);
-
-  async function checkIfAgentMadeReaction(unicode: string) {
-    return reactions.some(
-      (reaction: any) =>
-        reaction.author === agent?.did && reaction.data.target === unicode
-    );
-  }
+  const { state: agentState } = useContext(AgentContext);
 
   return (
     <div style={{ display: "flex", gap: "var(--j-space-200)" }}>
       {sortedReactions.map((reaction: any, i) => {
+        const activeClass = reaction.authors.find(
+          (did) => did === agentState.did
+        )
+          ? styles.emojiButtonActive
+          : "";
+
         return (
           <button
-            style={{
-              background: "var(--j-color-white)",
-              color: "var(--j-color-black)",
-              display: "flex",
-              gap: "var(--j-space-200)",
-              alignItems: "center",
-              cursor: "pointer",
-              borderRadius: "var(--j-border-radius)",
-              border: checkIfAgentMadeReaction(reaction.content)
-                ? "1px solid var(--j-color-primary-500)"
-                : "",
-            }}
+            class={`${styles.emojiButton} ${activeClass}`}
             onClick={() => onEmojiClick(reaction.content)}
             key={i}
           >
