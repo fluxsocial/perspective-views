@@ -216,7 +216,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
             (e) =>
               e.data.source === link.data.source &&
               e.data.target === link.data.target &&
-              e.author === agent.did
+              e.author === link.author
           );
 
           if (linkFound) return oldState;
