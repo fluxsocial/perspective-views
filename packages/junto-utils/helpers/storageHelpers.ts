@@ -1,4 +1,5 @@
 import Dexie from 'dexie';
+import { differenceInMinutes } from 'date-fns'
 import { Message, Profile } from '../types';
 
 export const session = {
@@ -21,9 +22,9 @@ export class DexieStorage extends Dexie {
   constructor(perspectiveId: string, version = 1) {
     super(perspectiveId);
     this.version(version).stores({
-      messages: 'id, expression',
-      profile: 'id, expression',
-      ui: 'id, data'
+      messages: 'id, expression, timestamp',
+      profile: 'id, expression, timestamp',
+      ui: 'id, data, timestamp'
     });
   }
 }
@@ -31,6 +32,7 @@ export class DexieStorage extends Dexie {
 export interface IDexieProfile {
   id: string;
   expression: Profile;
+  timestamp: Date;
 }
 
 export class DexieProfile {
@@ -42,20 +44,27 @@ export class DexieProfile {
   async save(url: string, profile: Profile) {
     await this.db.profile.put({
       id: url,
-      expression: profile
+      expression: profile,
+      timestamp: new Date()
     });
   }
 
   async get(url: string) {
     const item = await this.db.profile.get(url);
-    if (item) return item.expression;
-    else return undefined;
+    const now = new Date();
+
+    if (item && differenceInMinutes(now, item.timestamp) <= 5) {
+      return item.expression;
+    } else {
+      return undefined;
+    }
   }
 }
 
 export interface IDexieMessage {
   id: string;
   expression: Message;
+  timestamp: Date;
 }
 
 export class DexieMessages {
@@ -67,25 +76,36 @@ export class DexieMessages {
   async save(url: string, message: Message) {
     await this.db.messages.put({
       id: url,
-      expression: message
+      expression: message,
+      timestamp: new Date()
     });
   }
 
   async saveAll(messages: Message[]) {
-    const formattedMessages = messages.map(e => ({id: e.id, expression: e}))
+    const formattedMessages = messages.map(e => ({id: e.id, expression: e, timestamp: new Date()}))
     await this.db.messages.bulkPut(formattedMessages)
   }
 
   async get(url: string) {
     const item = await this.db.messages.get(url);
-    if (item) return item.expression;
-    else return undefined;
+    const now = new Date();
+
+    if (item && differenceInMinutes(now, item.timestamp) <= 5) {
+      return item.expression;
+    } else {
+      return undefined;
+    }
   }
 
   async getAll() {
     const formattedMessages = await this.db.messages.toArray();
     return formattedMessages.reduce((acc, expression) => {
-      return { ...acc, [expression.id]: expression.expression };
+      const now = new Date();
+      if (expression && differenceInMinutes(now, expression.timestamp) <= 5) {
+        return { ...acc, [expression.id]: expression.expression };
+      }
+
+      return acc;
     }, {});
   }
 }
