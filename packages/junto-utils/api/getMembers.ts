@@ -20,7 +20,7 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
     )}, { defaultValue: [] });
 
     const linkPromises = expressionLinks.map((link) =>
-      getMember({ did: link.author, languageAddress: link.data.target.split("://")[0] })
+      getMember({ did: link.author, languageAddress: link.data.target.split("://")[0], perspectiveUuid })
     );
 
     const members = await Promise.all(linkPromises);

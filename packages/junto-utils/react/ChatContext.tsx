@@ -12,12 +12,12 @@ import createMessageReaction from "../api/createMessageReaction";
 import createReply from "../api/createReply";
 import getReactions from "../api/getReactions";
 import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
-import getProfile from "../api/getProfile";
 import retry from "../helpers/retry";
 import ad4mClient from "../api/client";
 import getMe from "../api/getMe";
 import { PROFILE_EXPRESSION, SHORT_FORM_EXPRESSION } from "../helpers/languageHelpers";
 import getReplyTo from "../api/getReplyTo";
+import { DexieMessages, DexieUI } from "../helpers/storageHelpers";
 
 type State = {
   isFetchingMessages: boolean;
@@ -65,6 +65,9 @@ const initialState: ContextProps = {
 
 const ChatContext = createContext(initialState);
 
+let dexieUI: DexieUI;
+let dexieMessages: DexieMessages;
+
 export function ChatProvider({ perspectiveUuid, children }: any) {
   const [shortFormHash, setShortFormHash] = useState("");
   const [profileHash, setProfileHash] = useState("");
@@ -78,6 +81,13 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     fetchAgent();
   }, []);
 
+  useEffect(() => {
+    if (perspectiveUuid) {
+      dexieUI = new DexieUI(perspectiveUuid);
+      dexieMessages = new DexieMessages(perspectiveUuid);
+    }
+  }, [perspectiveUuid])
+
   async function fetchAgent() {
     const agent = await getMe();
 
@@ -89,14 +99,13 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   useEffect(() => {
     if (perspectiveUuid) {
       fetchLanguages();
-      
-      const scrollPosition = sessionStorage.getItem(
-        `chat-scroll-position-${perspectiveUuid}`,
-      ) ?? "0";
-      setState((oldState) => ({
-        ...oldState,
-        scrollPosition: parseInt(scrollPosition)
-      }))
+
+      dexieUI.get('scroll-position').then((position) => {
+        setState((oldState) => ({
+          ...oldState,
+          scrollPosition: parseInt(position)
+        }))
+      })
     }
 
     if (perspectiveUuid && profileHash) {
@@ -139,17 +148,11 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   }
 
   useEffect(() => {
-    sessionStorage.setItem(
-      `chat-messages-${perspectiveUuid}`,
-      JSON.stringify(state.keyedMessages)
-    );
+    dexieMessages.saveAll(Object.values(state.keyedMessages))
   }, [JSON.stringify(state.keyedMessages)]);
 
   useEffect(() => {
-    sessionStorage.setItem(
-      `chat-scroll-position-${perspectiveUuid}`,
-      state.scrollPosition
-    );
+    dexieUI.save('scroll-position', state.scrollPosition)
   }, [state.scrollPosition]);
 
   async function fetchLanguages() {
@@ -316,14 +319,9 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       ...oldState,
       isFetchingMessages: true,
     }));
-
     
-    const storedMessages = sessionStorage.getItem(
-      `chat-messages-${perspectiveUuid}`
-      );
-      
-      const cachedMessages = storedMessages ? JSON.parse(storedMessages) : [];
-      const oldMessages = {...state.keyedMessages, ...cachedMessages};
+    const cachedMessages = await dexieMessages.getAll();
+    const oldMessages = {...state.keyedMessages, ...cachedMessages};
 
     const newMessages = await getMessages({
       perspectiveUuid,
@@ -366,7 +364,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
             url,
             perspectiveUuid,
           });
-    
+
           setState((oldState) => addReactionToState(oldState, url, reactions));
         } else {
           const reactions = oldMessages[key]['reactions']
