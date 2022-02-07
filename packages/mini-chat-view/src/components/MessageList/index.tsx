@@ -31,7 +31,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
   } = useContext(ChatContext);
 
   useEffect(() => {
-    if (scroller.current && messages.length > 0 && !initialScroll &&!isNaN(scrollPosition)) {
+    if (scroller.current && messages.length > 0 && !initialScroll) {
       if (!scrollPosition) {
         scroller.current.scrollToIndex({
           index: messages.length,
