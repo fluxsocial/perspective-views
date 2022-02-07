@@ -229,7 +229,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
         }));
 
         const replyUrl = await getReplyTo({
-          url: message.replyUrl,
+          url: message.url,
           perspectiveUuid,
         });
 
