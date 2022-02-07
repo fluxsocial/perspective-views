@@ -15,7 +15,7 @@ export interface Reaction {
 export interface Message {
   id: string;
   url: string;
-  author: Profile;
+  author: string; // did
   reactions: Array<LinkExpression>;
   timestamp: string;
   content: string;

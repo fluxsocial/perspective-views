@@ -121,29 +121,6 @@ export default function MessageItem({
     }
   }, [messageRef]);
 
-  const getDateTimeOptions = (options: timeOptions) => {
-    if (options.dateStyle) {
-      return {
-        dateStyle: options.dateStyle,
-        ...(options.timeStyle && { timeStyle: options.timeStyle }),
-      };
-    }
-
-    return {
-      ...(options.dayPeriod && { dayPeriod: options.dayPeriod }),
-      ...(options.timeZone && { timeZone: options.timeZone }),
-      ...(options.weekday && { weekday: options.weekday }),
-      ...(options.era && { era: options.era }),
-      ...(options.year && { year: options.year }),
-      ...(options.month && { month: options.month }),
-      ...(options.day && { day: options.day }),
-      ...(options.second && { second: options.second }),
-      ...(options.hour && { hour: options.hour }),
-      ...(options.minute && { minute: options.minute }),
-      ...(options.hourCycle && { hourCycle: options.hourCycle }),
-    };
-  };
-
   function onProfileClick(did) {
     const event = new CustomEvent("agent-click", {
       detail: {

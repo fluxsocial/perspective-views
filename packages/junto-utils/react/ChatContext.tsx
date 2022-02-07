@@ -228,6 +228,15 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
           isMessageFromSelf: link.author === agent.did,
         }));
 
+        const replyUrl = await getReplyTo({
+          url: message.url,
+          perspectiveUuid,
+        });
+
+        setState((oldState) =>
+          addReplyToState(oldState, link.data.target, replyUrl)
+        );
+
         const reactions = await getReactions({
           url: link.data.target,
           perspectiveUuid,
