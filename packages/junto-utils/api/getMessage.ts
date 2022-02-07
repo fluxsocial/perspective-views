@@ -2,8 +2,6 @@ import ad4mClient from "./client";
 import { LinkExpression, LinkQuery } from "@perspect3vism/ad4m";
 import { getExpression } from "../helpers/expressionHelpers";
 import { Message } from "../types";
-import getProfile from "./getProfile";
-import { session } from "../helpers/storageHelpers";
 import retry from "../helpers/retry";
 
 export interface Payload {

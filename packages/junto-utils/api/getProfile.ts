@@ -1,23 +1,27 @@
 import { Profile } from "../types";
 import ad4mClient from "../api/client";
 import { parseProfile } from "../helpers/profileHelpers";
-import { session } from "../helpers/storageHelpers";
+import { DexieProfile } from "../helpers/storageHelpers";
 
 export interface Payload {
   did: string;
   languageAddress: string;
+  perspectiveUuid: string
 }
 
 export default async function getProfile({
   did,
   languageAddress,
+  perspectiveUuid
 }: Payload): Promise<Profile> {
+  const dexie = new DexieProfile(perspectiveUuid, 1);
+
   try {
     const url = `${languageAddress}://${did}`;
 
     //  TODO: How do we handle localstorage
     //  in web components and not create name clashes?
-    let cachedProfile = session.get(url);
+    let cachedProfile = await dexie.get(url);
 
     if (cachedProfile) {
       return cachedProfile as Profile;
@@ -38,7 +42,7 @@ export default async function getProfile({
       ...partialProfile,
     } as Profile;
 
-    session.set(url, profile);
+    await dexie.save(url, profile);
 
     return profile;
   } catch (e: any) {

@@ -176,7 +176,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
       return state.members[did]
     } else {
       if (profileHash) {      
-        const profile = await getPerspectiveProfile({did, languageAddress: profileHash});
+        const profile = await getPerspectiveProfile({did, languageAddress: profileHash, perspectiveUuid});
 
         setState((oldState) => ({...oldState, members: {...oldState.members, [profile.did]: profile}}))
     
