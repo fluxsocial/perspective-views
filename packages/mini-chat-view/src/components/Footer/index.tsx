@@ -21,6 +21,7 @@ export default function Footer() {
   } = useContext(UIContext);
 
   const currentReplyMessage = keyedMessages[currentReply];
+  const currentReplyProfile = members[currentReplyMessage?.author] || {};
 
   function handleSendMessage(value) {
     const escapedMessage = value.replace(/( |<([^>]+)>)/gi, "");
@@ -31,7 +32,7 @@ export default function Footer() {
       } else {
         sendMessage(value);
       }
-  
+
       setInputValue("");
       setCurrentReply("");
     }
@@ -70,7 +71,7 @@ export default function Footer() {
       {currentReply && (
         <div class={styles.currentReply}>
           <j-text size="400" nomargin>
-            Replying to @{currentReplyMessage.author.username}
+            Replying to @{currentReplyProfile.username}
           </j-text>
           <j-button
             onClick={() => setCurrentReply("")}
