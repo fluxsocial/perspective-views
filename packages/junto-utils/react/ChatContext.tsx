@@ -84,10 +84,18 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     fetchAgent();
   }, []);
 
+  async function setCachedMessages() {
+    const cachedMessages = await dexieMessages.getAll();
+    setState({ ...state, keyedMessages: { ...cachedMessages } });
+  }
+
   useEffect(() => {
     if (perspectiveUuid) {
       dexieUI = new DexieUI(perspectiveUuid);
       dexieMessages = new DexieMessages(perspectiveUuid);
+      // Set messages to cached messages
+      // so we have something before we load more
+      setCachedMessages();
     }
   }, [perspectiveUuid]);
 
