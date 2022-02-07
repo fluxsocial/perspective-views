@@ -50,11 +50,11 @@ export default function MessageItem({
   } = useContext(UIContext);
 
   const message = messages[index] || {
-    id: "",
+    id: "unknown",
     url: "",
     author: "",
     reactions: [],
-    timestamp: "",
+    timestamp: "'1995-12-17T03:24:00'",
     content: "",
     replyUrl: "",
   };
