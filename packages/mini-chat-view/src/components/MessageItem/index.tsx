@@ -51,7 +51,9 @@ export default function MessageItem({
 
   const message = messages[index];
 
-  if (!message) return null;
+  // try to fix the virtuoso bug
+  // https://github.com/petyosi/react-virtuoso/issues/206
+  if (!message) return <div>this actually won't be seen</div>;
 
   function onReplyClick() {
     setCurrentReply(message.url);
