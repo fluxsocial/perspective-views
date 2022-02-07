@@ -49,11 +49,15 @@ export default function MessageItem({
     methods: { setCurrentReply },
   } = useContext(UIContext);
 
-  const message = messages[index];
-
-  // try to fix the virtuoso bug
-  // https://github.com/petyosi/react-virtuoso/issues/206
-  if (!message) return <div>this actually won't be seen</div>;
+  const message = messages[index] || {
+    id: "",
+    url: "",
+    author: "",
+    reactions: [],
+    timestamp: "",
+    content: "",
+    replyUrl: "",
+  };
 
   function onReplyClick() {
     setCurrentReply(message.url);
