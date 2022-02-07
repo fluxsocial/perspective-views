@@ -8,6 +8,7 @@ import MessageReactions from "./MessageReactions";
 import { getRelativeTime } from "./getRelativeTime";
 import UIContext from "../../context/UIContext";
 import styles from "./index.scss";
+import { format, formatRelative } from "date-fns/esm";
 
 type timeOptions = {
   dateStyle?: string;
@@ -26,27 +27,6 @@ type timeOptions = {
   relative?: boolean;
 };
 
-function getAuthor(did?: string) {
-  const {
-    methods: { getProfile },
-  } = useContext(PerspectiveContext);
-  const [author, setAuthor] = useState({});
-
-  useEffect(() => {
-    getAuthor();
-  }, [did])
-
-  const getAuthor = async () => {
-    if (did) {
-      const author = await getProfile(did);
-  
-      setAuthor(author);
-    }
-  }
-
-  return author;
-}
-
 export default function MessageItem({
   index,
   showAvatar,
@@ -55,6 +35,9 @@ export default function MessageItem({
 }) {
   const [showToolbar, setShowToolbar] = useState(false);
   const messageRef = useRef<any>(null);
+  const {
+    state: { members },
+  } = useContext(PerspectiveContext);
   const {
     state: { messages, keyedMessages },
     methods: { addReaction, removeReaction, getReplyMessage },
@@ -161,22 +144,6 @@ export default function MessageItem({
     };
   };
 
-  const getTime = (value: string, timeOptions: timeOptions) => {
-    if (timeOptions.relative) {
-      const rtf = new Intl.RelativeTimeFormat("en-US", {
-        numeric: "auto",
-        style: "long",
-      });
-      return getRelativeTime(new Date(value), new Date(), rtf);
-    } else {
-      // @ts-ignore
-      return new Intl.DateTimeFormat(
-        "en-US",
-        getDateTimeOptions(timeOptions)
-      ).format(new Date(value));
-    }
-  };
-
   function onProfileClick(did) {
     const event = new CustomEvent("agent-click", {
       detail: {
@@ -189,16 +156,16 @@ export default function MessageItem({
 
   useEffect(() => {
     getReply();
-  }, [message])
+  }, [message]);
 
   const getReply = async () => {
     const reply = await getReplyMessage(message.replyUrl);
 
     setReplyMessage(reply);
-  }
+  };
 
-  const author = getAuthor(message.author);
-  const replyAuthor = getAuthor(replyMessage?.author)
+  const author = members[message.author] || {};
+  const replyAuthor = members[replyMessage?.author] || {};
 
   return (
     <div
@@ -248,12 +215,12 @@ export default function MessageItem({
           <small
             class={styles.timestampLeft}
             data-rh
-            data-timestamp={getTime(message.timestamp, {
-              dateStyle: "medium",
-              timeStyle: "short",
-            })}
+            data-timestamp={format(
+              new Date(message.timestamp),
+              "EEEE, MMMM d, yyyy, HH:MM"
+            )}
           >
-            {getTime(message.timestamp, { hour: "numeric", minute: "numeric" })}
+            {format(new Date(message.timestamp), "HH:MM ")}
           </small>
         )}
       </div>
@@ -269,12 +236,12 @@ export default function MessageItem({
             <small
               class={styles.timestamp}
               data-rh
-              data-timestamp={getTime(message.timestamp, {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })}
+              data-timestamp={format(
+                new Date(message.timestamp),
+                "EEEE, MMMM d, yyyy, HH:MM"
+              )}
             >
-              {getTime(message.timestamp, { relative: true })}
+              {formatRelative(new Date(message.timestamp), new Date())}
             </small>
           </header>
         )}
