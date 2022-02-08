@@ -46,10 +46,12 @@
   }
 
   & .messageItemContent p:first-of-type {
+    user-select: text !important;
     margin-top: 0;
   }
 
   & .messageItemContent p:last-of-type {
+    user-select: text !important;
     margin-bottom: 0;
   }
 

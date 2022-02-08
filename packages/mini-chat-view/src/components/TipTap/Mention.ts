@@ -60,7 +60,7 @@ export default (name: string) =>
 
     inline: true,
 
-    selectable: false,
+    selectable: true,
 
     atom: true,
 
@@ -99,7 +99,7 @@ export default (name: string) =>
     parseHTML() {
       return [
         {
-          tag: "span[data-mention]",
+          tag: `span[data-mention="${name}"]`,
         },
       ];
     },
@@ -108,7 +108,7 @@ export default (name: string) =>
       return [
         "span",
         mergeAttributes(
-          { "data-mention": "" },
+          { "data-mention": name },
           this.options.HTMLAttributes,
           HTMLAttributes
         ),
