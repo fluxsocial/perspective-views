@@ -19,7 +19,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
   const scroller = useRef();
 
   const {
-    state: { messages, isFetchingMessages, scrollPosition, hasNewMessage, isMessageFromSelf },
+    state: { messages, isFetchingMessages, scrollPosition, hasNewMessage, isMessageFromSelf, showLoadMore },
     methods: {
       loadMore,
       removeReaction,
@@ -160,7 +160,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
       <Virtuoso
         components={{
           Header: () => (
-            <j-box py="500">
+            showLoadMore ? (<j-box py="500">
               <j-flex a="center" j="center">
                 {isFetchingMessages ? (
                   <j-flex a="center" gap="300">
@@ -173,7 +173,12 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
                   </j-button>
                 )}
               </j-flex>
-            </j-box>
+            </j-box>) : (
+            <j-box py="500">
+              <j-flex a="center" j="center">
+                <j-text>You have reached the end...</j-text>
+              </j-flex>
+            </j-box>)
           ),
         }}
         ref={scroller}

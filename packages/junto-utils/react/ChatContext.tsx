@@ -28,6 +28,7 @@ type State = {
   scrollPosition?: number;
   hasNewMessage: boolean;
   isMessageFromSelf: boolean;
+  showLoadMore: boolean;
 };
 
 type ContextProps = {
@@ -52,6 +53,7 @@ const initialState: ContextProps = {
     scrollPosition: 0,
     hasNewMessage: false,
     isMessageFromSelf: false,
+    showLoadMore: true
   },
   methods: {
     loadMore: () => null,
@@ -351,7 +353,10 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     }));
 
     const cachedMessages = await dexieMessages.getAll();
-    const oldMessages = { ...state.keyedMessages, ...cachedMessages };
+    const oldMessages = { 
+      ...state.keyedMessages, 
+      ...cachedMessages 
+    };
 
     const newMessages = await getMessages({
       perspectiveUuid,
@@ -370,6 +375,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
     setState((oldState) => ({
       ...oldState,
+      showLoadMore: Object.values(newMessages).length === 35,
       isFetchingMessages: false,
     }));
 
