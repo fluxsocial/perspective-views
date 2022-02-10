@@ -1,4 +1,4 @@
-import { useState, useRef } from "preact/hooks";
+import { useState, useRef, useContext } from "preact/hooks";
 import { useEditor, EditorContent } from "@tiptap/react";
 import BulletList from "@tiptap/extension-bullet-list";
 import ListItem from "@tiptap/extension-list-item";
@@ -21,6 +21,7 @@ import emojiList from "node-emoji/lib/emoji";
 import { useEffect } from "preact/hooks";
 
 import styles from "./index.scss";
+import UIContext from "../../context/UIContext";
 
 export default function Tiptap({
   value,
@@ -32,6 +33,10 @@ export default function Tiptap({
   const [showToolbar, setShowToolbar] = useState(false);
 
   const emojiPicker = useRef();
+
+  const {
+    state: { currentReply },
+  } = useContext(UIContext);
 
   // This is needed because React ugh.
   const sendCB = useRef(onSend);
@@ -164,10 +169,16 @@ export default function Tiptap({
   );
 
   useEffect(() => {
-    if (editor) {
+    if (editor && value.length === 0) {
       editor.commands.setContent(value);
     }
   }, [value]);
+
+  useEffect(() => {
+    if (currentReply) {
+      editor.commands.focus();
+    }
+  }, [currentReply])
 
   function onEmojiClick(event: CustomEvent) {
     if (editor) {
