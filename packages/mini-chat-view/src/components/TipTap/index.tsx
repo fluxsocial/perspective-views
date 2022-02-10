@@ -169,7 +169,7 @@ export default function Tiptap({
   );
 
   useEffect(() => {
-    if (editor) {
+    if (editor && value.length === 0) {
       editor.commands.setContent(value);
     }
   }, [value]);
