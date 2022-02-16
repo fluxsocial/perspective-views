@@ -1,5 +1,5 @@
 import ad4mClient from "./client";
-import { LinkQuery, Link } from "@perspect3vism/ad4m";
+import { Link } from "@perspect3vism/ad4m";
 
 export interface Payload {
   perspectiveUuid: string;
