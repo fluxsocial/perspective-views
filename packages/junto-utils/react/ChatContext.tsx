@@ -21,6 +21,7 @@ import {
 } from "../helpers/languageHelpers";
 import getReplyTo from "../api/getReplyTo";
 import { DexieMessages, DexieUI } from "../helpers/storageHelpers";
+import { getNeighbourhoodCardHidden } from "../api/getNeighbourhoodLink";
 
 type State = {
   isFetchingMessages: boolean;
@@ -201,6 +202,18 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     return newState;
   }
 
+  function addHiddenToMessageToState(oldState, messageId, isNeighbourhoodCardHidden) {
+    const newState = {
+      ...oldState,
+      hasNewMessage: false,
+      keyedMessages: {
+        ...oldState.keyedMessages,
+        [messageId]: { ...oldState.keyedMessages[messageId], isNeighbourhoodCardHidden },
+      },
+    };
+    return newState;
+  }
+
   function addReplyToState(oldState, messageId, replyUrl) {
     const newState = {
       ...oldState,
@@ -247,6 +260,15 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
         setState((oldState) =>
           addReactionToState(oldState, message.id, reactions)
         );
+
+        const isHidden = await getNeighbourhoodCardHidden({
+          perspectiveUuid,
+          messageUrl: link.data.target
+        });
+
+        setState((oldState) =>
+          addHiddenToMessageToState(oldState, message.id, isHidden)
+        );
       }
     }
 
@@ -280,6 +302,14 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
         return oldState;
       });
+    }
+
+    if (linkIs.hideNeighbourhoodCard(link)) {
+      const id = link.data.source;
+
+      setState((oldState) =>
+        addHiddenToMessageToState(oldState, id, false)
+      );
     }
   }
 
@@ -402,11 +432,22 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
           });
 
           setState((oldState) => addReactionToState(oldState, url, reactions));
+
+          const isHidden = await getNeighbourhoodCardHidden({
+            perspectiveUuid,
+            messageUrl: url
+          });
+  
+          setState((oldState) =>
+            addHiddenToMessageToState(oldState, url, isHidden)
+          );
         } else {
           const reactions = oldMessages[key]["reactions"];
           const replyUrl = oldMessages[key]["replyUrl"];
+          const isNeighbourhoodCardHidden = oldMessages[key]["isNeighbourhoodCardHidden"];
           setState((oldState) => addReactionToState(oldState, url, reactions));
           setState((oldState) => addReplyToState(oldState, url, replyUrl));
+          setState((oldState) => addHiddenToMessageToState(oldState, url, isNeighbourhoodCardHidden));
         }
       }
     } else {
@@ -426,6 +467,15 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
         });
 
         setState((oldState) => addReactionToState(oldState, url, reactions));
+
+        const isHidden = await getNeighbourhoodCardHidden({
+          perspectiveUuid,
+          messageUrl: url
+        });
+
+        setState((oldState) =>
+          addHiddenToMessageToState(oldState, url, isHidden)
+        );
       }
     }
   }

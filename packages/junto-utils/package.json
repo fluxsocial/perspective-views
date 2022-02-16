@@ -15,6 +15,7 @@
     "date-fns": "^2.28.0",
     "dexie": "^3.2.0",
     "dexie-react-hooks": "^1.1.1",
+    "fetch-opengraph": "^1.0.35",
     "subscriptions-transport-ws": "^0.9.19"
   },
   "peerDependencies": {
