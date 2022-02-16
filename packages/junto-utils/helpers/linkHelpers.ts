@@ -20,7 +20,8 @@ export const linkIs = {
   channel: (link: LinkExpression) => 
   link.data.predicate === "sioc://has_space",
   member: (link: LinkExpression) => 
-  link.data.predicate === "sioc://has_member"
-
+  link.data.predicate === "sioc://has_member",
+  hideNeighbourhoodCard: (link: LinkExpression) =>
+    link.data.predicate === 'sioc://is_hidden'
   // TODO: SHould we check if the link is proof.valid?
 };
