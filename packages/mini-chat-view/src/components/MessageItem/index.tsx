@@ -1,11 +1,12 @@
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
-import { ChatContext, PerspectiveContext } from "junto-utils/react";
+import { AgentContext, ChatContext, PerspectiveContext } from "junto-utils/react";
 import { Reaction } from "junto-utils/types";
 import getMe from "junto-utils/api/getMe";
+import getNeighbourhoodLink from "junto-utils/api/getNeighbourhoodLink";
+import hideEmbeds from "junto-utils/api/hideEmbeds";
 
 import MessageToolbar from "./MessageToolbar";
 import MessageReactions from "./MessageReactions";
-import { getRelativeTime } from "./getRelativeTime";
 import UIContext from "../../context/UIContext";
 import styles from "./index.scss";
 import { format, formatRelative } from "date-fns/esm";
@@ -32,6 +33,7 @@ export default function MessageItem({
   showAvatar,
   onOpenEmojiPicker,
   mainRef,
+  perspectiveUuid
 }) {
   const [showToolbar, setShowToolbar] = useState(false);
   const messageRef = useRef<any>(null);
@@ -43,11 +45,14 @@ export default function MessageItem({
     methods: { addReaction, removeReaction, getReplyMessage },
   } = useContext(ChatContext);
   const [replyMessage, setReplyMessage] = useState();
+  const [neighbourhoodCards, setNeighbourhoodCards] = useState<any[]>([]);
 
   const {
     state: { currentReply },
     methods: { setCurrentReply },
   } = useContext(UIContext);
+
+  const { state: agentState } = useContext(AgentContext);
 
   const message = messages[index] || {
     id: "unknown",
@@ -139,13 +144,25 @@ export default function MessageItem({
 
   useEffect(() => {
     getReply();
+    getNeighbourhoodCards()
   }, [message]);
+
+  useEffect(() => {
+    getNeighbourhoodCards()
+  }, [message.isNeighbourhoodCardHidden]);
 
   const getReply = async () => {
     const reply = await getReplyMessage(message.replyUrl);
 
     setReplyMessage(reply);
   };
+
+  const getNeighbourhoodCards = async () => {
+    const links = await getNeighbourhoodLink({perspectiveUuid, messageUrl: message.id, message: message.content, isHidden: message.isNeighbourhoodCardHidden });
+
+    setNeighbourhoodCards(links);
+  };
+
 
   const author = members[message.author] || {};
   const replyAuthor = members[replyMessage?.author] || {};
@@ -241,6 +258,24 @@ export default function MessageItem({
               reactions={message.reactions}
             />
           </j-box>
+        )}
+        {neighbourhoodCards.length > 0 && (
+          <div style={{position: 'relative'}}>
+            {
+              neighbourhoodCards.map(e => (
+                <div class={styles.neighbourhoodCards} size="300">
+                  <j-text variant="footnote">{e.type === 'neighbourhood' ? "Neighbourhood" : "Link"}</j-text>
+                  <j-text>{e.name}</j-text>
+                  {(e.description && e.description !== '-') && (<j-text>{e.description}</j-text>)}
+                </div>
+              ))
+            }
+            {agentState.did === message.author && (
+            <div class={styles.neighbourhoodCardsClose} onClick={() => hideEmbeds({perspectiveUuid, messageUrl: message.id})}>
+              <j-icon name="x"></j-icon>
+            </div>)}
+          </div>
+
         )}
       </div>
       <div>
