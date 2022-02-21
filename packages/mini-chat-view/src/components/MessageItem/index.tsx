@@ -142,6 +142,27 @@ export default function MessageItem({
     mainRef?.dispatchEvent(event);
   }
 
+  function onLinkClick(link: any) {
+    if (link.type === 'link') {
+      const event = new CustomEvent("url-click", {
+        detail: {
+          url: link.url,
+        },
+        bubbles: true,
+      });
+      mainRef?.dispatchEvent(event);
+    } else {
+      const event = new CustomEvent("perspective-click", {
+        detail: {
+          uuid: link.url,
+          link
+        },
+        bubbles: true,
+      });
+      mainRef?.dispatchEvent(event);
+    }
+  }
+
   useEffect(() => {
     getReply();
     getNeighbourhoodCards()
@@ -263,7 +284,7 @@ export default function MessageItem({
           <div style={{position: 'relative'}}>
             {
               neighbourhoodCards.map(e => (
-                <div class={styles.neighbourhoodCards} size="300">
+                <div class={styles.neighbourhoodCards} size="300" onClick={() => onLinkClick(e)}>
                   <j-text variant="footnote">{e.type === 'neighbourhood' ? "Neighbourhood" : "Link"}</j-text>
                   <j-text>{e.name}</j-text>
                   {(e.description && e.description !== '-') && (<j-text>{e.description}</j-text>)}
