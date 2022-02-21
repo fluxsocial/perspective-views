@@ -202,6 +202,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
               showAvatar={showAvatar(index)}
               index={index}
               mainRef={mainRef}
+              perspectiveUuid={perspectiveUuid}
             />
           );
         }}

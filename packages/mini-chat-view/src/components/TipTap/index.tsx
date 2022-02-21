@@ -22,6 +22,7 @@ import { useEffect } from "preact/hooks";
 
 import styles from "./index.scss";
 import UIContext from "../../context/UIContext";
+import { NeighbourhoddLink } from "./NeighourhoodPlugin";
 
 export default function Tiptap({
   value,
@@ -87,6 +88,7 @@ export default function Tiptap({
           },
         }),
         Link,
+        NeighbourhoddLink,
         Bold,
         Strike,
         Italic,

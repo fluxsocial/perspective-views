@@ -1,26 +1,22 @@
 import ad4mClient from "./client";
-import { Link } from "@perspect3vism/ad4m";
+import { LinkQuery, Link } from "@perspect3vism/ad4m";
 
 export interface Payload {
   perspectiveUuid: string;
-  languageAddress: string;
-  message: Object;
+  messageUrl: string;
 }
 
 export default async function ({
   perspectiveUuid,
-  languageAddress,
-  message,
+  messageUrl,
 }: Payload) {
   try {
-    const expUrl = await ad4mClient.expression.create(message, languageAddress);
-
     await ad4mClient.perspective.addLink(
       perspectiveUuid,
       new Link({
-        source: "sioc://chatchannel",
-        target: expUrl,
-        predicate: "sioc://content_of",
+        source: messageUrl,
+        target: "-",
+        predicate: "sioc://is_hidden",
       })
     );
   } catch (e: any) {

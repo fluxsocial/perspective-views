@@ -36,6 +36,7 @@ export interface Profile {
   familyName: string;
   thumbnailPicture: string;
   profilePicture: string;
+  isNeighbourhoodCardHidden: boolean;
 }
 export interface Profiles {
   [x: string]: Profile;
