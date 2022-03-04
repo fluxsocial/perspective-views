@@ -28,7 +28,7 @@ export default class MentionList extends Component<MentionListProps, MentionList
       return true;
     }
 
-    if (event.key === "Enter") {
+    if (event.key === "Enter" || event.key === 'Tab') {
       this.enterHandler();
       return true;
     }
