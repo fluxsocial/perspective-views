@@ -13,9 +13,7 @@ export interface Payload {
 
 
 export default async function ({
-  link,
-  perspectiveUuid,
-  profileLangAddress,
+  link
 }: Payload): Promise<Message | undefined> {
   try {
     const expression = await retry(async () => {

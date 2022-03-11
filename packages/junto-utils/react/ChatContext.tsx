@@ -214,8 +214,6 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   }
 
   async function handleLinkAdded(link) {
-    console.log("handle link added 1", link);
-
     if (linkIs.message(link)) {
       const message = await getMessage({
         link,
@@ -347,6 +345,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     to?: Date;
     again: boolean;
   }) {
+    console.log("Fetch messages with from: ", payload.from, "and to: ", payload.to);
     setState((oldState) => ({
       ...oldState,
       isFetchingMessages: true,
@@ -358,7 +357,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       ...cachedMessages 
     };
 
-    const newMessages = await getMessages({
+    const {keyedMessages: newMessages, expressionLinkLength} = await getMessages({
       perspectiveUuid,
       from: payload?.from,
       to: payload?.to,
@@ -375,7 +374,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
     setState((oldState) => ({
       ...oldState,
-      showLoadMore: Object.values(newMessages).length === 35,
+      showLoadMore: expressionLinkLength === 35,
       isFetchingMessages: false,
     }));
 
@@ -476,6 +475,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
   async function loadMore() {
     const oldestMessage = messages[0];
+    console.log("Loading more messages with oldest timestamp", oldestMessage);
     fetchMessages({
       from: oldestMessage ? new Date(oldestMessage.timestamp) : new Date(),
       again: false,

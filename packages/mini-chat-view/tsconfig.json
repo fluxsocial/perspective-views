@@ -3,5 +3,14 @@
     "jsx": "preserve",
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment"
-  }
+  },
+  "include": [
+    "**/*",
+    "../junto-utils/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "../junto-utils/node_modules",
+    "**/*.spec.ts"
+  ]
 }
