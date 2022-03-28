@@ -194,7 +194,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
         overscan={20}
         totalCount={messages.length}
         rangeChanged={rangeChanged}
-        initialTopMostItemIndex={scrollPosition}
+        initialTopMostItemIndex={scrollPosition || 0}
         itemContent={(index) => {
           return (
             <MessageItem

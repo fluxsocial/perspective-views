@@ -49,15 +49,7 @@ export default function MessageItem({
     methods: { setCurrentReply },
   } = useContext(UIContext);
 
-  const message = messages[index] || {
-    id: "unknown",
-    url: "",
-    author: "",
-    reactions: [],
-    timestamp: "'1995-12-17T03:24:00'",
-    content: "",
-    replyUrl: "",
-  };
+  const message = messages[index];
 
   function onReplyClick() {
     setCurrentReply(message.url);
