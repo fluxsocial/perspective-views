@@ -13,7 +13,7 @@ export default async function getProfile({
   did,
   languageAddress,
   perspectiveUuid
-}: Payload): Promise<Profile> {
+}: Payload): Promise<Profile | null> {
   const dexie = new DexieProfile(perspectiveUuid, 1);
 
   try {
@@ -28,23 +28,26 @@ export default async function getProfile({
     }
 
     const expression = await ad4mClient.expression.get(url);
+    if (expression) {
+      const data = JSON.parse(expression.data);
 
-    const data = JSON.parse(expression.data);
-
-    const partialProfile = parseProfile(data.profile);
-
-    const profile = {
-      did: did,
-      timestamp: expression.timestamp,
-      url: `${languageAddress}://${did}`,
-      profilePicture: null,
-      thumbnailPicture: null,
-      ...partialProfile,
-    } as Profile;
-
-    await dexie.save(url, profile);
-
-    return profile;
+      const partialProfile = parseProfile(data.profile);
+  
+      const profile = {
+        did: did,
+        timestamp: expression.timestamp,
+        url: `${languageAddress}://${did}`,
+        profilePicture: null,
+        thumbnailPicture: null,
+        ...partialProfile,
+      } as Profile;
+  
+      await dexie.save(url, profile);
+  
+      return profile;
+    } else {
+      return null
+    }
   } catch (e: any) {
     throw new Error(e);
   }
