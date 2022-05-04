@@ -121,15 +121,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     }
 
     if (linkIs.member(link)) {
-      const member = await getProfile(link.data.target);
-
-      setState((oldState) => ({
-        ...oldState,
-        members: {
-          ...oldState.members,
-          [member.did]: member,
-        },
-      }));
+      await getProfile(link.data.target);
     }
   }
 
@@ -178,9 +170,13 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
       if (profileHash) {      
         const profile = await getPerspectiveProfile({did, languageAddress: profileHash, perspectiveUuid});
 
-        setState((oldState) => ({...oldState, members: {...oldState.members, [profile.did]: profile}}))
+        if (profile) {
+          setState((oldState) => ({...oldState, members: {...oldState.members, [profile.did]: profile}}))
     
-        return profile;
+          return profile;
+        } else {
+          return null
+        }
       }
     }
 
