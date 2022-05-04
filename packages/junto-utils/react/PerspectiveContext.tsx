@@ -163,24 +163,22 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     });
   }
 
-  async function getProfile(did: string) {
+  async function getProfile(url: string) {
+    const did = url.split("://").length > 1 ? url.split("://")[1] : url;
+
     if (state.members[did]) {
       return state.members[did]
     } else {
-      if (profileHash) {      
-        const profile = await getPerspectiveProfile({did, languageAddress: profileHash, perspectiveUuid});
+      const profile = await getPerspectiveProfile({url: url, perspectiveUuid});
 
-        if (profile) {
-          setState((oldState) => ({...oldState, members: {...oldState.members, [profile.did]: profile}}))
-    
-          return profile;
-        } else {
-          return null
-        }
+      if (profile) {
+        setState((oldState) => ({...oldState, members: {...oldState.members, [profile.did]: profile}}))
+  
+        return profile;
+      } else {
+        return null
       }
     }
-
-    return null;
   }
 
   return (
