@@ -24,9 +24,9 @@ export default async function getProfile({
       return cachedProfile as Profile;
     }
 
-    const expression = await retry(async () => {
+    const expression: any = await retry(async () => {
       return await ad4mClient.expression.get(url)
-    }, { defaultValue: {} });
+    }, { defaultValue: undefined });
 
     if (expression) {
       const data = JSON.parse(expression.data);
