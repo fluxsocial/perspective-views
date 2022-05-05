@@ -130,9 +130,8 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
       const members = await getMembers({
         perspectiveUuid: state.sourceUuid || perspectiveUuid,
         neighbourhoodUrl: state.sourceUrl || state.url,
+        addProfile: (profile: any) => setState((prev) => ({...prev, members: {...prev.members, [profile.did]: profile}}))
       });
-
-      setState((prev, curr) => ({ ...prev, members }));
     }
   };
 

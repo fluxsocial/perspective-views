@@ -6,9 +6,10 @@ import retry from "../helpers/retry";
 export interface Payload {
   perspectiveUuid: string;
   neighbourhoodUrl: string;
+  addProfile: (profile: any) => {};
 }
 
-export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
+export default async function ({ perspectiveUuid, neighbourhoodUrl, addProfile }: Payload) {
   try {
     const expressionLinks = await ad4mClient.perspective.queryLinks(
       perspectiveUuid,
@@ -18,21 +19,13 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
       })
     );
 
-    const linkPromises = expressionLinks.map((link) => {
-      return getMember({ url: link.data.target, perspectiveUuid })
-    });
-
-    const members = await Promise.all(linkPromises);
-
-    return members.filter((member) => { 
-      if (member){
-        return true
-      } else {
-        return false
-      }
-    }).reduce((acc, member) => {
-      return { ...acc, [member.did]: member };
-    }, {});
+    for (const link of expressionLinks) {
+      getMember({ url: link.data.target, perspectiveUuid }).then((member) => {
+        if (member) {
+          addProfile(member)
+        }
+      });
+    }
   } catch (e) {
     throw new Error(e);
   }
