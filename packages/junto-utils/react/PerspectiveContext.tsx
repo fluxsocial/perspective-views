@@ -168,7 +168,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     if (state.members[did]) {
       return state.members[did]
     } else {
-      const profile = await getPerspectiveProfile({url: url, perspectiveUuid});
+      const profile = await getPerspectiveProfile(url);
 
       if (profile) {
         setState((oldState) => ({...oldState, members: {...oldState.members, [profile.did]: profile}}))

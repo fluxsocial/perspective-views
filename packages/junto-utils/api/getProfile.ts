@@ -1,54 +1,99 @@
 import { Profile } from "../types";
 import ad4mClient from "../api/client";
-import { parseProfile } from "../helpers/profileHelpers";
-import { DexieProfile } from "../helpers/storageHelpers";
-import retry from "../helpers/retry";
+import { LinkExpression } from "@perspect3vism/ad4m";
 
 export interface Payload {
   url: string;
   perspectiveUuid: string
 }
 
-export default async function getProfile({
-  url,
-  perspectiveUuid
-}: Payload): Promise<Profile | null> {
-  const dexie = new DexieProfile(perspectiveUuid, 1);
+export default async function getProfile(url: string): Promise<Profile | null> {
+  const did =  url.split('://')[1];
 
-  try {
-    //  TODO: How do we handle localstorage
-    //  in web components and not create name clashes?
-    let cachedProfile = await dexie.get(url);
+  const agentPerspective = await ad4mClient.agent.byDID(did);
 
-    if (cachedProfile) {
-      return cachedProfile as Profile;
-    }
+  const agentLinks = agentPerspective!.perspective!.links;
 
-    const expression: any = await retry(async () => {
-      return await ad4mClient.expression.get(url)
-    }, { defaultValue: undefined });
+  const links = agentLinks;
 
-    if (expression) {
-      const data = JSON.parse(expression.data);
+  const profile: Profile = {
+    did,
+    url,
+    author: did,
+    username: '',
+    email: '',
+    givenName: '',
+    familyName: '',
+    timestamp: new Date().toISOString(),
+    thumbnailPicture: '',
+    profilePicture: ''
+  };
 
-      const partialProfile = parseProfile(data.profile);
-  
-      const profile = {
-        did: url.split('://')[1],
-        timestamp: expression.timestamp,
-        url: url,
-        profilePicture: null,
-        thumbnailPicture: null,
-        ...partialProfile,
-      } as Profile;
-  
-      await dexie.save(url, profile);
-  
-      return profile;
-    } else {
-      return null
-    }
-  } catch (e: any) {
-    throw new Error(e);
+  const usernameLink = links.find(
+    (e: any) => e.data.predicate === "sioc://has_username"
+  ) as LinkExpression;
+
+  const givenNameLink = links.find(
+    (e: any) => e.data.predicate === "sioc://has_given_name"
+  ) as LinkExpression;
+
+  const familyNameLink = links.find(
+    (e: any) => e.data.predicate === "sioc://has_family_name"
+  ) as LinkExpression;
+
+  const profilePictureLink = links.find(
+    (e: any) => e.data.predicate === "sioc://has_profile_image"
+  ) as LinkExpression;
+
+  const thumbnailLink = links.find(
+    (e: any) => e.data.predicate === "sioc://has_profile_thumbnail_image"
+  ) as LinkExpression;
+
+  const emailLink = links.find(
+    (e: any) => e.data.predicate === "sioc://has_email"
+  ) as LinkExpression;
+
+  if (usernameLink) {
+    profile!.username = usernameLink.data.target;
   }
+
+  if (givenNameLink) {
+    profile!.givenName = givenNameLink.data.target;
+  }
+
+  if (familyNameLink) {
+    profile!.familyName = familyNameLink.data.target;
+  }
+  
+  if (profilePictureLink) {
+    const expUrl = profilePictureLink.data.target;
+    const image = await ad4mClient.expression.get(expUrl);
+
+    if (image) {
+      if (profilePictureLink.data.source === "flux://profile") {
+        profile!.profilePicture = image.data.slice(1, -1);
+      }
+    }
+  } else {
+    profile!.profilePicture = '';
+  }
+
+  if (thumbnailLink) {
+    const expUrl = thumbnailLink.data.target;
+    const image = await ad4mClient.expression.get(expUrl);
+
+    if (image) {
+      if (thumbnailLink.data.source === "flux://profile") {
+        profile!.thumbnailPicture = image.data.slice(1, -1);
+      }
+    }
+  } else {
+    profile!.thumbnailPicture = '';
+  }
+  
+  if (emailLink) {
+    profile!.email = emailLink.data.target;
+  }
+
+  return profile
 }
