@@ -11,7 +11,7 @@ import createMessageReaction from "../api/createMessageReaction";
 import getPerspectiveMeta from "../api/getPerspectiveMeta";
 import { session } from "../helpers/storageHelpers";
 import deleteMessageReaction from "../api/deleteMessageReaction";
-import { PROFILE_EXPRESSION, SHORT_FORM_EXPRESSION } from "../helpers/languageHelpers";
+import { SHORT_FORM_EXPRESSION } from "../helpers/languageHelpers";
 
 export function sortMessages(
   messages: Messages,
@@ -36,7 +36,6 @@ export default function useMessages({
   const fetchingMessages = ref(false);
 
   const shortFormLangAddress = ref("");
-  const profileLangAddress = ref("");
 
   const messages = ref<Messages>({});
 
@@ -48,7 +47,6 @@ export default function useMessages({
     if (perspectiveUuid.value) {
       const meta = await getPerspectiveMeta(perspectiveUuid.value);
       shortFormLangAddress.value = meta.languages[SHORT_FORM_EXPRESSION];
-      profileLangAddress.value = meta.languages[PROFILE_EXPRESSION];
     }
   });
 
@@ -94,11 +92,7 @@ export default function useMessages({
             link.data.predicate === "sioc://content_of" &&
             link.proof.valid
           ) {
-            const message = await getMessage({
-              link,
-              perspectiveUuid: perspectiveUuid.value,
-              profileLangAddress: profileLangAddress.value,
-            });
+            const message = await getMessage(link);
 
             messages.value = {
               ...messages.value,
