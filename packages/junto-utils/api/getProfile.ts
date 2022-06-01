@@ -14,8 +14,6 @@ export default async function getProfile(url: string): Promise<Profile | null> {
 
   const agentLinks = agentPerspective!.perspective!.links;
 
-  const links = agentLinks;
-
   const profile: Profile = {
     did,
     url,
@@ -29,70 +27,44 @@ export default async function getProfile(url: string): Promise<Profile | null> {
     profilePicture: ''
   };
 
-  const usernameLink = links.find(
-    (e: any) => e.data.predicate === "sioc://has_username"
-  ) as LinkExpression;
+  for (const link of agentLinks.filter(e => e.data.source === 'flux://profile')) {
+    let expUrl;
+    let image;
 
-  const givenNameLink = links.find(
-    (e: any) => e.data.predicate === "sioc://has_given_name"
-  ) as LinkExpression;
+    switch (link.data.predicate) {
+      case "sioc://has_username":
+        profile!.username = link.data.target;
+        break;
+      case "sioc://has_given_name":
+        profile!.givenName = link.data.target;
+        break;
+      case "sioc://has_family_name":
+        profile!.familyName = link.data.target;
+        break;
+      case "sioc://has_profile_image":
+        expUrl = link.data.target;
+        image = await ad4mClient.expression.get(expUrl);
+    
+        if (image) {
+          profile!.profilePicture = image.data.slice(1, -1);
+        }
+        break;
+      case "sioc://has_profile_thumbnail_image":
+        expUrl = link.data.target;
+        image = await ad4mClient.expression.get(expUrl);
 
-  const familyNameLink = links.find(
-    (e: any) => e.data.predicate === "sioc://has_family_name"
-  ) as LinkExpression;
-
-  const profilePictureLink = links.find(
-    (e: any) => e.data.predicate === "sioc://has_profile_image"
-  ) as LinkExpression;
-
-  const thumbnailLink = links.find(
-    (e: any) => e.data.predicate === "sioc://has_profile_thumbnail_image"
-  ) as LinkExpression;
-
-  const emailLink = links.find(
-    (e: any) => e.data.predicate === "sioc://has_email"
-  ) as LinkExpression;
-
-  if (usernameLink) {
-    profile!.username = usernameLink.data.target;
-  }
-
-  if (givenNameLink) {
-    profile!.givenName = givenNameLink.data.target;
-  }
-
-  if (familyNameLink) {
-    profile!.familyName = familyNameLink.data.target;
-  }
-  
-  if (profilePictureLink) {
-    const expUrl = profilePictureLink.data.target;
-    const image = await ad4mClient.expression.get(expUrl);
-
-    if (image) {
-      if (profilePictureLink.data.source === "flux://profile") {
-        profile!.profilePicture = image.data.slice(1, -1);
-      }
+        if (image) {
+          if (link.data.source === "flux://profile") {
+            profile!.thumbnailPicture = image.data.slice(1, -1);
+          }
+        }
+        break;
+      case "sioc://has_email":
+        profile!.email = link.data.target;
+        break;
+      default:
+        break;
     }
-  } else {
-    profile!.profilePicture = '';
-  }
-
-  if (thumbnailLink) {
-    const expUrl = thumbnailLink.data.target;
-    const image = await ad4mClient.expression.get(expUrl);
-
-    if (image) {
-      if (thumbnailLink.data.source === "flux://profile") {
-        profile!.thumbnailPicture = image.data.slice(1, -1);
-      }
-    }
-  } else {
-    profile!.thumbnailPicture = '';
-  }
-  
-  if (emailLink) {
-    profile!.email = emailLink.data.target;
   }
 
   return profile
