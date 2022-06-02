@@ -20,7 +20,7 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl, addProfile }
     );
 
     for (const link of expressionLinks) {
-      getMember({ url: link.data.target, perspectiveUuid }).then((member) => {
+      getMember(link.data.target).then((member) => {
         if (member) {
           addProfile(member)
         }

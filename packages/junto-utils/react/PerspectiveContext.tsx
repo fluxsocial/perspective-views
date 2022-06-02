@@ -6,7 +6,7 @@ import getPerspectiveMeta from "../api/getPerspectiveMeta";
 import subscribeToLinks from "../api/subscribeToLinks";
 import { findLink, linkIs } from "../helpers/linkHelpers";
 import ad4mClient from "../api/client";
-import { getMetaFromLinks, keyedLanguages, PROFILE_EXPRESSION } from "../helpers/languageHelpers";
+import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
 import getPerspectiveProfile from "../api/getProfile";
 
 type State = {
@@ -49,7 +49,6 @@ const PerspectiveContext = createContext(initialState);
 
 export function PerspectiveProvider({ perspectiveUuid, children }: any) {
   const [state, setState] = useState(initialState.state);
-  const [profileHash, setProfileHash] = useState("");
   const memberInterval = useRef();
   const channelInterval = useRef();
   const linkSubscriberRef = useRef();
@@ -148,7 +147,6 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
 
   async function fetchMeta() {
     const meta = await getPerspectiveMeta(perspectiveUuid);
-    setProfileHash(meta.languages[PROFILE_EXPRESSION]);
     setState({
       ...state,
       name: meta.name,
@@ -168,7 +166,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     if (state.members[did]) {
       return state.members[did]
     } else {
-      const profile = await getPerspectiveProfile({url: url, perspectiveUuid});
+      const profile = await getPerspectiveProfile(url);
 
       if (profile) {
         setState((oldState) => ({...oldState, members: {...oldState.members, [profile.did]: profile}}))

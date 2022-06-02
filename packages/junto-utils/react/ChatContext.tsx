@@ -16,7 +16,6 @@ import retry from "../helpers/retry";
 import ad4mClient from "../api/client";
 import getMe from "../api/getMe";
 import {
-  PROFILE_EXPRESSION,
   SHORT_FORM_EXPRESSION,
 } from "../helpers/languageHelpers";
 import getReplyTo from "../api/getReplyTo";
@@ -75,7 +74,6 @@ let dexieMessages: DexieMessages;
 
 export function ChatProvider({ perspectiveUuid, children }: any) {
   const [shortFormHash, setShortFormHash] = useState("");
-  const [profileHash, setProfileHash] = useState("");
   const messageInterval = useRef();
   const linkSubscriberRef = useRef();
 
@@ -121,7 +119,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       });
     }
 
-    if (perspectiveUuid && profileHash) {
+    if (perspectiveUuid) {
       fetchMessages({ again: false });
       setupSubscribers();
     }
@@ -133,7 +131,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
         handleLinkRemoved
       );
     };
-  }, [perspectiveUuid, profileHash, agent]);
+  }, [perspectiveUuid, agent]);
 
   async function setupSubscribers() {
     linkSubscriberRef.current = await subscribeToLinks({
@@ -174,7 +172,6 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   async function fetchLanguages() {
     const { languages } = await getPerspectiveMeta(perspectiveUuid);
     setShortFormHash(languages[SHORT_FORM_EXPRESSION]);
-    setProfileHash(languages[PROFILE_EXPRESSION]);
   }
 
   function addMessage(oldState, message) {
@@ -215,11 +212,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
   async function handleLinkAdded(link) {
     if (linkIs.message(link)) {
-      const message = await getMessage({
-        link,
-        perspectiveUuid: perspectiveUuid,
-        profileLangAddress: profileHash,
-      });
+      const message = await getMessage(link);
       if (message) {
         setState((oldState) => addMessage(oldState, message));
 

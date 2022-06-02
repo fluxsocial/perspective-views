@@ -1,6 +1,5 @@
 import ad4mClient from "./client";
 import { LinkQuery } from "@perspect3vism/ad4m";
-import getMember from "./getProfile";
 import getPerspectiveMeta from "./getPerspectiveMeta";
 import { findLink } from "../helpers/linkHelpers";
 import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
