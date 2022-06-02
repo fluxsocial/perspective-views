@@ -8,7 +8,7 @@ export interface Payload {
 }
 
 export default async function getProfile(url: string): Promise<Profile | null> {
-  const did =  url.split('://')[1];
+  const did =  url.includes('://') ? url.split('://')[1] : url;
 
   const agentPerspective = await ad4mClient.agent.byDID(did);
 
