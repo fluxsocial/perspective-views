@@ -1,28 +1,116 @@
 import { Ad4mClient } from "@perspect3vism/ad4m";
-import { ApolloClient, ApolloLink, InMemoryCache } from "@apollo/client";
+import {
+  ApolloClient,
+  InMemoryCache,
+  NormalizedCacheObject,
+} from "@apollo/client";
 import { WebSocketLink } from "@apollo/client/link/ws";
 
-const PORT = 12000;
+type PortSearchStateType = "na" | "searching" | "found" | "not_found";
 
-const apolloClient = new ApolloClient({
-  link: new WebSocketLink({
-    uri: `ws://localhost:${PORT}/graphql`,
-    options: {
-      reconnect: true,
-      connectionParams: async () => {
-        return {
-          headers: {
-            authorization: localStorage.getItem("ad4minToken") || "",
-          },
-        };
+let ad4mClient: Ad4mClient;
+let apolloClient: ApolloClient<NormalizedCacheObject>;
+
+class Client {
+  apolloClient: ApolloClient<NormalizedCacheObject>;
+  ad4mClient: Ad4mClient;
+  requestId: string;
+  isFullyInitialized = false;
+  port = 12000;
+  portSearchState: PortSearchStateType = "na";
+
+  constructor() {
+    this.buildClient();
+  }
+
+  setPort(port: number) {
+    console.log("2");
+    this.portSearchState = "found";
+    this.port = port;
+    this.buildClient();
+  }
+
+  url() {
+    return `ws://localhost:${this.port}/graphql`;
+  }
+
+  setToken(jwt: string) {
+    console.log("1", jwt);
+    localStorage.setItem("ad4minToken", jwt);
+    this.buildClient();
+  }
+
+  token() {
+    return localStorage.getItem("ad4minToken") || "";
+  }
+
+  setPortSearchState(state: PortSearchStateType) {
+    this.portSearchState = state;
+  }
+
+  buildClient() {
+    const wsLink = new WebSocketLink({
+      uri: this.url(),
+      options: {
+        reconnect: true,
+        connectionParams: () => {
+          return {
+            headers: {
+              authorization: this.token(),
+            },
+          };
+        },
       },
-    },
-  }),
-  cache: new InMemoryCache({ resultCaching: false, addTypename: false }),
-  defaultOptions: {
-    watchQuery: { fetchPolicy: "no-cache" },
-    query: { fetchPolicy: "no-cache" },
-  },
-});
+    });
+    this.apolloClient = new ApolloClient({
+      link: wsLink,
+      cache: new InMemoryCache({ resultCaching: false }),
+      defaultOptions: {
+        watchQuery: {
+          errorPolicy: "ignore",
+          fetchPolicy: "no-cache",
+        },
+        query: {
+          errorPolicy: "all",
+          fetchPolicy: "no-cache",
+        },
+        mutate: {
+          fetchPolicy: "no-cache",
+        },
+      },
+    });
 
-export default new Ad4mClient(apolloClient);
+    // @ts-ignore
+    this.ad4mClient = new Ad4mClient(this.apolloClient);
+
+    ad4mClient = this.ad4mClient;
+    apolloClient = this.apolloClient;
+  }
+
+  async requestCapability() {
+    if (!this.token()) {
+      this.requestId = await this.ad4mClient.agent.requestCapability(
+        "flux",
+        "flux-desc",
+        "fluxsocial.io",
+        '[{"with":{"domain":"*","pointers":["*"]},"can":["*"]}]'
+      );
+
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  async generateJwt(code: string) {
+    const jwt = await this.ad4mClient.agent.generateJwt(this.requestId, code);
+    this.setToken(jwt);
+    this.isFullyInitialized = true;
+  }
+}
+
+const MainClient = new Client();
+
+export default ad4mClient;
+
+export { ad4mClient, MainClient, apolloClient };
