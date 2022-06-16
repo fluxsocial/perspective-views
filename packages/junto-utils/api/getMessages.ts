@@ -1,5 +1,4 @@
-import ad4mClient from "./client";
-import { LinkQuery } from "@perspect3vism/ad4m";
+import { Ad4mClient, LinkQuery } from "@perspect3vism/ad4m";
 import getMessage from "./getMessage";
 
 export interface Payload {
@@ -8,7 +7,7 @@ export interface Payload {
   to?: Date;
 }
 
-export default async function ({ perspectiveUuid, from, to }: Payload) {
+export default async function (ad4mClient: Ad4mClient, { perspectiveUuid, from, to }: Payload) {
   try {
     const expressionLinks = await ad4mClient.perspective.queryLinks(
         perspectiveUuid,
@@ -22,7 +21,7 @@ export default async function ({ perspectiveUuid, from, to }: Payload) {
     );
 
     const linkPromises = expressionLinks.map((link) =>
-      getMessage(link)
+      getMessage(ad4mClient, link)
     );
 
     const messages = await Promise.all(linkPromises);

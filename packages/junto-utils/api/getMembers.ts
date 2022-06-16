@@ -1,5 +1,4 @@
-import ad4mClient from "./client";
-import { LinkQuery } from "@perspect3vism/ad4m";
+import { Ad4mClient, LinkQuery } from "@perspect3vism/ad4m";
 import getMember from "./getProfile";
 import retry from "../helpers/retry";
 
@@ -9,7 +8,7 @@ export interface Payload {
   addProfile: (profile: any) => {};
 }
 
-export default async function ({ perspectiveUuid, neighbourhoodUrl, addProfile }: Payload) {
+export default async function (ad4mClient: Ad4mClient, { perspectiveUuid, neighbourhoodUrl, addProfile }: Payload) {
   try {
     const expressionLinks = await ad4mClient.perspective.queryLinks(
       perspectiveUuid,
@@ -20,7 +19,7 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl, addProfile }
     );
 
     for (const link of expressionLinks) {
-      getMember(link.data.target).then((member) => {
+      getMember(ad4mClient, link.data.target).then((member) => {
         if (member) {
           addProfile(member)
         }

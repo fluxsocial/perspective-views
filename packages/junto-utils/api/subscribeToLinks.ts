@@ -1,5 +1,4 @@
-import ad4mClient from "./client";
-import { LinkExpression } from "@perspect3vism/ad4m";
+import { Ad4mClient, LinkExpression } from "@perspect3vism/ad4m";
 
 export interface Payload {
   perspectiveUuid: string;
@@ -7,7 +6,7 @@ export interface Payload {
   removed?: Function;
 }
 
-export default async function ({ perspectiveUuid, added, removed }: Payload) {
+export default async function (ad4mClient: Ad4mClient, { perspectiveUuid, added, removed }: Payload) {
   try {
     const perspective = await ad4mClient.perspective.byUUID(perspectiveUuid);
     

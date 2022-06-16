@@ -10,10 +10,10 @@ import {
 import { UIProvider } from "./context/UIContext";
 import { useState } from "preact/hooks";
 import styles from "./index.scss";
-import { MainClient } from "junto-utils/api/client";
+import { Ad4mProvider } from "junto-utils/react/AdminContext";
 
 const MainComponent = ({ perspectiveUuid }) => {
-  const [ref, setRef] = useState(null);
+  const [ref, setRef] = useState(null)
 
   return (
     <div class={styles.container} ref={setRef}>
@@ -22,20 +22,22 @@ const MainComponent = ({ perspectiveUuid }) => {
       <Footer />
     </div>
   );
-};
+}
 
-export default ({ perspectiveUuid = "", port }) => {
-  MainClient.setPort(parseInt(port));
-
+export default ({ perspectiveUuid = "", port = "" }) => {
   return (
     <UIProvider>
-      <AgentProvider>
-        <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
-          <ChatProvider perspectiveUuid={perspectiveUuid}>
-            <MainComponent perspectiveUuid={perspectiveUuid}></MainComponent>
-          </ChatProvider>
-        </PerspectiveProvider>
-      </AgentProvider>
+      <Ad4mProvider port={port}>
+        <AgentProvider>
+          <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
+            <ChatProvider perspectiveUuid={perspectiveUuid}>
+              <MainComponent
+                perspectiveUuid={perspectiveUuid}
+              ></MainComponent>
+            </ChatProvider>
+          </PerspectiveProvider>
+        </AgentProvider>
+      </Ad4mProvider>
     </UIProvider>
   );
 };

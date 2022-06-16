@@ -1,6 +1,5 @@
 import { Profile } from "../types";
-import ad4mClient from "../api/client";
-import { LinkExpression } from "@perspect3vism/ad4m";
+import { Ad4mClient, LinkExpression } from "@perspect3vism/ad4m";
 import {
   USERNAME,
   GIVEN_NAME,
@@ -18,7 +17,7 @@ export interface Payload {
   perspectiveUuid: string;
 }
 
-export default async function getProfile(did: string): Promise<any | null> {
+export default async function getProfile(ad4mClient: Ad4mClient, did: string): Promise<any | null> {
   const agentPerspective = await ad4mClient.agent.byDID(did);
   const links = agentPerspective!.perspective!.links;
 

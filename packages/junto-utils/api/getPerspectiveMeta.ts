@@ -1,10 +1,9 @@
-import ad4mClient from "./client";
 import { findLink } from "../helpers/linkHelpers";
 import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
 import retry from "../helpers/retry";
-import { LinkQuery } from "@perspect3vism/ad4m";
+import { Ad4mClient, LinkQuery } from "@perspect3vism/ad4m";
 
-export default async function getPerspectiveMeta(uuid: string) {
+export default async function getPerspectiveMeta(ad4mClient: Ad4mClient, uuid: string) {
   const perspective = await ad4mClient.perspective.byUUID(uuid);
   
   if (!perspective || !perspective.neighbourhood) {
@@ -31,7 +30,7 @@ export default async function getPerspectiveMeta(uuid: string) {
 
   const links = (neighbourhood.meta?.links as Array<any>) || [];
   const languageLinks = links.filter(findLink.language);
-  const langs = await getMetaFromLinks(languageLinks);
+  const langs = await getMetaFromLinks(ad4mClient, languageLinks);
   
   return {
     name: links.find(findLink.name).data.target,

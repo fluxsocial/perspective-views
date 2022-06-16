@@ -1,13 +1,12 @@
-import { useQuery } from "@apollo/client";
-import React, { createContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useState, useEffect,useContext, useRef } from "react";
 import getMembers from "../api/getMembers";
 import getChannels from "../api/getChannels";
 import getPerspectiveMeta from "../api/getPerspectiveMeta";
 import subscribeToLinks from "../api/subscribeToLinks";
 import { findLink, linkIs } from "../helpers/linkHelpers";
-import ad4mClient from "../api/client";
 import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
 import getPerspectiveProfile from "../api/getProfile";
+import { Ad4mContext } from "./AdminContext";
 
 type State = {
   name: string;
@@ -49,33 +48,37 @@ const PerspectiveContext = createContext(initialState);
 
 export function PerspectiveProvider({ perspectiveUuid, children }: any) {
   const [state, setState] = useState(initialState.state);
-  const memberInterval = useRef();
-  const channelInterval = useRef();
   const linkSubscriberRef = useRef();
+  const {state: {
+    client,
+    state: clientState
+  }} = useContext(Ad4mContext);
 
   useEffect(() => {
-    if (perspectiveUuid) {
+    if (perspectiveUuid && clientState === 'connected') {
       fetchMeta();
     }
-  }, [perspectiveUuid]);
+  }, [perspectiveUuid, clientState]);
 
   useEffect(() => {
-    fetchChannels();
-    fetchMembers();
-  }, [state.url, state.sourceUrl]);
+    if (clientState === 'connected') {
+      fetchChannels();
+      fetchMembers();
+    }
+  }, [state.url, state.sourceUrl, clientState]);
 
   useEffect(() => {
-    if (perspectiveUuid) {
+    if (perspectiveUuid && clientState === 'connected') {
       setupSubscribers();
     }
 
     return () => {
       linkSubscriberRef.current?.removeListener('link-added', handleLinkAdded);
     };
-  }, [perspectiveUuid, state.sourceUuid]);
+  }, [perspectiveUuid, state.sourceUuid, clientState]);
 
   async function setupSubscribers() {
-    linkSubscriberRef.current = await subscribeToLinks({
+    linkSubscriberRef.current = await subscribeToLinks(client, {
       perspectiveUuid: state.sourceUuid || perspectiveUuid,
       added: handleLinkAdded,
     });
@@ -85,12 +88,12 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     console.log("handle link added", link);
 
     if (linkIs.channel(link)) {
-      const all = await ad4mClient.perspective.all();
+      const all = await client.perspective.all();
       const neighbourhood = all.find((e) => e.sharedUrl === link.data.target);
       const links =
         ((neighbourhood.neighbourhood as any).meta?.links as Array<any>) || [];
       const languageLinks = links.filter(findLink.language);
-      const langs = await getMetaFromLinks(languageLinks);
+      const langs = await getMetaFromLinks(client, languageLinks);
 
       const channelObj = {
         name: links.find(findLink.name).data.target,
@@ -126,7 +129,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
 
   const fetchMembers = async () => {
     if (state.url) {
-      const members = await getMembers({
+      const members = await getMembers(client, {
         perspectiveUuid: state.sourceUuid || perspectiveUuid,
         neighbourhoodUrl: state.sourceUrl || state.url,
         addProfile: (profile: any) => setState((prev) => ({...prev, members: {...prev.members, [profile.did]: profile}}))
@@ -136,7 +139,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
 
   const fetchChannels = async () => {
     if (state.url) {
-      const channels = await getChannels({
+      const channels = await getChannels(client, {
         perspectiveUuid: state.sourceUuid || perspectiveUuid,
         neighbourhoodUrl: state.sourceUrl || state.url,
       });
@@ -146,7 +149,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
   };
 
   async function fetchMeta() {
-    const meta = await getPerspectiveMeta(perspectiveUuid);
+    const meta = await getPerspectiveMeta(client, perspectiveUuid);
     setState({
       ...state,
       name: meta.name,
@@ -166,7 +169,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     if (state.members[did]) {
       return state.members[did]
     } else {
-      const profile = await getPerspectiveProfile(url);
+      const profile = await getPerspectiveProfile(client, url);
 
       if (profile) {
         setState((oldState) => ({...oldState, members: {...oldState.members, [profile.did]: profile}}))
