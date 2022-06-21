@@ -2,11 +2,11 @@ import { Ad4mClient } from "@perspect3vism/ad4m";
 import {
   ApolloClient,
   InMemoryCache,
-  NormalizedCacheObject,
 } from "@apollo/client";
 import { WebSocketLink } from "@apollo/client/link/ws";
 
-export function buildAd4mClient(port = 12000) {
+export function buildAd4mClient() {
+  const port = parseInt(localStorage.getItem('ad4minPort'))
   const apolloClient = new ApolloClient({
     link: new WebSocketLink({
       uri: `ws://localhost:${port}/graphql`,
@@ -31,3 +31,7 @@ export function buildAd4mClient(port = 12000) {
   // @ts-ignore
   return new Ad4mClient(apolloClient);    
 }
+
+const ad4mClient = buildAd4mClient();
+
+export default ad4mClient;

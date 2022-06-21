@@ -1,4 +1,5 @@
-import { LinkQuery, Link, Ad4mClient } from "@perspect3vism/ad4m";
+import { Link } from "@perspect3vism/ad4m";
+import ad4mClient from "./client";
 
 export interface Payload {
   perspectiveUuid: string;
@@ -6,7 +7,7 @@ export interface Payload {
   messageUrl: string;
 }
 
-export default async function (ad4mClient: Ad4mClient, {
+export default async function ({
   perspectiveUuid,
   messageUrl,
   reaction,

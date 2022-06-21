@@ -1,6 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import getMe from "../api/getMe";
-import { Ad4mContext } from "./AdminContext";
 
 type State = {
   did: string;
@@ -26,19 +25,13 @@ const AgentContext = createContext(initialState);
 
 export function AgentProvider({ children }: any) {
   const [state, setState] = useState(initialState.state);
-  const {state: {
-    client,
-    state: clientState
-  }} = useContext(Ad4mContext);
 
   useEffect(() => {
-    if (clientState === 'connected') {
-      fetchAgent();
-    }
-  }, [clientState]);
+    fetchAgent();
+  }, []);
 
   async function fetchAgent() {
-    const agent = await getMe(client);
+    const agent = await getMe();
 
     setState({ ...state, ...agent });
   }

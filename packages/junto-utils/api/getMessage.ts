@@ -1,4 +1,4 @@
-import { Ad4mClient, LinkExpression, LinkQuery } from "@perspect3vism/ad4m";
+import { LinkExpression } from "@perspect3vism/ad4m";
 import { getExpression } from "../helpers/expressionHelpers";
 import { Message } from "../types";
 import retry from "../helpers/retry";
@@ -10,10 +10,10 @@ export interface Payload {
 
 
 
-export default async function (ad4mClient: Ad4mClient, link: LinkExpression): Promise<Message | undefined> {
+export default async function (link: LinkExpression): Promise<Message | undefined> {
   try {
     const expression = await retry(async () => {
-      return await getExpression(ad4mClient, link);
+      return await getExpression(link);
     }, {});
 
     if (!expression) {

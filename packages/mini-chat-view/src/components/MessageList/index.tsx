@@ -11,7 +11,6 @@ import ReactHintFactory from "react-hint";
 const ReactHint = ReactHintFactory({ createElement: h, Component, createRef });
 import "react-hint/css/index.css";
 import styles from "./index.scss";
-import { Ad4mContext } from "junto-utils/react/AdminContext";
 import { Reaction } from "junto-utils/types";
 
 export default function MessageList({ perspectiveUuid, mainRef }) {
@@ -19,9 +18,6 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
   const [atBottom, setAtBottom] = useState(true);
   const [initialScroll, setinitialScroll] = useState(false);
   const scroller = useRef();
-  const {state: {
-    client,
-  }} = useContext(Ad4mContext);
 
   const {
     state: { messages, isFetchingMessages, scrollPosition, hasNewMessage, isMessageFromSelf, showLoadMore },
@@ -131,7 +127,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
     const index = e.target.getAttribute("message-index");
     const message = messages[parseInt(index)];
 
-    const me = await getMe(client);
+    const me = await getMe();
 
     const alreadyMadeReaction = message.reactions.find((reaction: Reaction) => {
       return reaction.author === me.did && reaction.data.target === unicode;

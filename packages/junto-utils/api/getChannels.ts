@@ -1,17 +1,18 @@
-import { Ad4mClient, LinkQuery } from "@perspect3vism/ad4m";
+import { LinkQuery } from "@perspect3vism/ad4m";
 import getPerspectiveMeta from "./getPerspectiveMeta";
 import { findLink } from "../helpers/linkHelpers";
 import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
 import retry from "../helpers/retry";
+import ad4mClient from "./client";
 
 export interface Payload {
   perspectiveUuid: string;
   neighbourhoodUrl: string;
 }
 
-export default async function (ad4mClient: Ad4mClient, { perspectiveUuid, neighbourhoodUrl }: Payload) {
+export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
   try {
-    const home = await getPerspectiveMeta(ad4mClient, perspectiveUuid)
+    const home = await getPerspectiveMeta(perspectiveUuid)
     const expressionLinks = await retry(async () => {
       return await ad4mClient.perspective.queryLinks(
         perspectiveUuid,
@@ -27,7 +28,7 @@ export default async function (ad4mClient: Ad4mClient, { perspectiveUuid, neighb
       const neighbourhood = all.find(e => e.sharedUrl === link.data.target);
       const links = ((neighbourhood.neighbourhood as any).meta.links as Array<any>) || [];
       const languageLinks = links.filter(findLink.language);
-      const langs = await getMetaFromLinks(ad4mClient, languageLinks);
+      const langs = await getMetaFromLinks(languageLinks);
     
       return {
         name: links.find(findLink.name).data.target,

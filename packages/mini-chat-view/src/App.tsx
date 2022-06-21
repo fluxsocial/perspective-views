@@ -10,7 +10,6 @@ import {
 import { UIProvider } from "./context/UIContext";
 import { useState } from "preact/hooks";
 import styles from "./index.scss";
-import { Ad4mProvider } from "junto-utils/react/AdminContext";
 
 const MainComponent = ({ perspectiveUuid }) => {
   const [ref, setRef] = useState(null)
@@ -27,7 +26,6 @@ const MainComponent = ({ perspectiveUuid }) => {
 export default ({ perspectiveUuid = "", port = "" }) => {
   return (
     <UIProvider>
-      <Ad4mProvider port={port}>
         <AgentProvider>
           <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
             <ChatProvider perspectiveUuid={perspectiveUuid}>
@@ -37,7 +35,6 @@ export default ({ perspectiveUuid = "", port = "" }) => {
             </ChatProvider>
           </PerspectiveProvider>
         </AgentProvider>
-      </Ad4mProvider>
     </UIProvider>
   );
 };

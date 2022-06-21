@@ -19,7 +19,6 @@ import {
 } from "../helpers/languageHelpers";
 import getReplyTo from "../api/getReplyTo";
 import { DexieMessages, DexieUI } from "../helpers/storageHelpers";
-import { Ad4mContext } from "./AdminContext";
 
 type State = {
   isFetchingMessages: boolean;
@@ -80,16 +79,9 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   const [state, setState] = useState(initialState.state);
   const [agent, setAgent] = useState();
 
-  const {state: {
-    client,
-    state: clientState
-  }} = useContext(Ad4mContext);
-
   useEffect(() => {
-    if (clientState === 'connected') {
-      fetchAgent();
-    }
-  }, [clientState]);
+    fetchAgent();
+  }, []);
 
   async function setCachedMessages() {
     const cachedMessages = await dexieMessages.getAll();
@@ -107,7 +99,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   }, [perspectiveUuid]);
 
   async function fetchAgent() {
-    const agent = await getMe(client);
+    const agent = await getMe();
 
     setAgent({ ...agent });
   }
@@ -115,7 +107,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   const messages = sortExpressionsByTimestamp(state.keyedMessages, "asc");
 
   useEffect(() => {
-    if (perspectiveUuid && clientState === 'connected') {
+    if (perspectiveUuid) {
       fetchLanguages();
 
       dexieUI.get("scroll-position").then((position) => {
@@ -137,10 +129,10 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
         handleLinkRemoved
       );
     };
-  }, [perspectiveUuid, agent, clientState]);
+  }, [perspectiveUuid, agent]);
 
   async function setupSubscribers() {
-    linkSubscriberRef.current = await subscribeToLinks(client, {
+    linkSubscriberRef.current = await subscribeToLinks({
       perspectiveUuid,
       added: handleLinkAdded,
       removed: handleLinkRemoved,
@@ -176,7 +168,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   }, [state.scrollPosition]);
 
   async function fetchLanguages() {
-    const { languages } = await getPerspectiveMeta(client, perspectiveUuid);
+    const { languages } = await getPerspectiveMeta(perspectiveUuid);
     setShortFormHash(languages[SHORT_FORM_EXPRESSION]);
   }
 
@@ -218,7 +210,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
   async function handleLinkAdded(link) {
     if (linkIs.message(link)) {
-      const message = await getMessage(client, link);
+      const message = await getMessage(link);
       if (message) {
         setState((oldState) => addMessage(oldState, message));
 
@@ -227,7 +219,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
           isMessageFromSelf: link.author === agent.did,
         }));
 
-        const replyUrl = await getReplyTo(client, {
+        const replyUrl = await getReplyTo({
           url: message.url,
           perspectiveUuid,
         });
@@ -236,7 +228,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
           addReplyToState(oldState, link.data.target, replyUrl)
         );
 
-        const reactions = await getReactions(client, {
+        const reactions = await getReactions({
           url: link.data.target,
           perspectiveUuid,
         });
@@ -356,7 +348,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       ...cachedMessages 
     };
 
-    const {keyedMessages: newMessages, expressionLinkLength} = await getMessages(client, {
+    const {keyedMessages: newMessages, expressionLinkLength} = await getMessages({
       perspectiveUuid,
       from: payload?.from,
       to: payload?.to,
@@ -387,14 +379,14 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       for (const [key, message] of Object.entries(newMessages)) {
         const url = (message as any).id;
         if (!oldMessages[key]) {
-          const replyUrl = await getReplyTo(client, {
+          const replyUrl = await getReplyTo({
             url,
             perspectiveUuid,
           });
 
           setState((oldState) => addReplyToState(oldState, url, replyUrl));
 
-          const reactions = await getReactions(client, {
+          const reactions = await getReactions({
             url,
             perspectiveUuid,
           });
@@ -411,14 +403,14 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       for (const message of Object.values(messages)) {
         const url = (message as any).id;
 
-        const replyUrl = await getReplyTo(client, {
+        const replyUrl = await getReplyTo({
           url,
           perspectiveUuid,
         });
 
         setState((oldState) => addReplyToState(oldState, url, replyUrl));
 
-        const reactions = await getReactions(client, {
+        const reactions = await getReactions({
           url,
           perspectiveUuid,
         });
@@ -430,9 +422,9 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
   async function sendMessage(value) {
     // TODO: Why is sendMessage initialized with old shortformhas value
-    const { languages } = await getPerspectiveMeta(client, perspectiveUuid);
+    const { languages } = await getPerspectiveMeta(perspectiveUuid);
 
-    createMessage(client, {
+    createMessage({
       perspectiveUuid,
       languageAddress: languages[SHORT_FORM_EXPRESSION],
       message: { background: [""], body: value },
@@ -440,7 +432,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   }
 
   async function sendReply(message: string, replyUrl: string) {
-    return createReply(client, {
+    return createReply({
       perspectiveUuid: perspectiveUuid,
       languageAddress: shortFormHash,
       message: { background: [""], body: message },
@@ -450,7 +442,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
   async function addReaction(messageUrl: string, reaction: string) {
     console.log("addReaction");
-    createMessageReaction(client, {
+    createMessageReaction({
       perspectiveUuid,
       messageUrl,
       reaction,
@@ -466,7 +458,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
   async function removeReaction(linkExpression: LinkExpression) {
     console.log("removeReaction", linkExpression);
-    return deleteMessageReaction(client, {
+    return deleteMessageReaction({
       perspectiveUuid,
       linkExpression,
     });
