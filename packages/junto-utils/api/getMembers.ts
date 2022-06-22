@@ -1,7 +1,7 @@
-import ad4mClient from "./client";
-import { LinkQuery } from "@perspect3vism/ad4m";
+import {  LinkQuery } from "@perspect3vism/ad4m";
 import getMember from "./getProfile";
 import retry from "../helpers/retry";
+import ad4mClient from "./client";
 
 export interface Payload {
   perspectiveUuid: string;

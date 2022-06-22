@@ -1,5 +1,5 @@
-import ad4mClient from "../api/client";
 import { LinkExpression, LanguageMeta } from "@perspect3vism/ad4m";
+import ad4mClient from "../api/client";
 
 export const SHORT_FORM_EXPRESSION = "shortform-expression";
 
@@ -11,7 +11,7 @@ export function getLanguageMeta(link: LinkExpression) {
 }
 
 export function getMetaFromLinks(links: LinkExpression[]) {
-  const langs = links.map(getLanguageMeta);
+  const langs = links.map((link) => getLanguageMeta(link));
   return Promise.all(langs);
 }
 

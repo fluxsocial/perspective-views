@@ -1,8 +1,8 @@
-import ad4mClient from "./client";
 import { findLink } from "../helpers/linkHelpers";
 import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
 import retry from "../helpers/retry";
 import { LinkQuery } from "@perspect3vism/ad4m";
+import ad4mClient from "./client";
 
 export default async function getPerspectiveMeta(uuid: string) {
   const perspective = await ad4mClient.perspective.byUUID(uuid);

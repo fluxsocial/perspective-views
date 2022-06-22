@@ -12,29 +12,29 @@ import { useState } from "preact/hooks";
 import styles from "./index.scss";
 
 const MainComponent = ({ perspectiveUuid }) => {
-    const [ref, setRef] = useState(null)
+  const [ref, setRef] = useState(null)
 
-    return (
-      <div class={styles.container} ref={setRef}>
-        <Header />
-        <MessageList perspectiveUuid={perspectiveUuid} mainRef={ref} />
-        <Footer />
-      </div>
-    );
-  }
+  return (
+    <div class={styles.container} ref={setRef}>
+      <Header />
+      <MessageList perspectiveUuid={perspectiveUuid} mainRef={ref} />
+      <Footer />
+    </div>
+  );
+}
 
-export default ({ perspectiveUuid = "" }) => {
+export default ({ perspectiveUuid = "", port = "" }) => {
   return (
     <UIProvider>
-      <AgentProvider>
-        <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
-          <ChatProvider perspectiveUuid={perspectiveUuid}>
-            <MainComponent
-              perspectiveUuid={perspectiveUuid}
-            ></MainComponent>
-          </ChatProvider>
-        </PerspectiveProvider>
-      </AgentProvider>
+        <AgentProvider>
+          <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
+            <ChatProvider perspectiveUuid={perspectiveUuid}>
+              <MainComponent
+                perspectiveUuid={perspectiveUuid}
+              ></MainComponent>
+            </ChatProvider>
+          </PerspectiveProvider>
+        </AgentProvider>
     </UIProvider>
   );
 };

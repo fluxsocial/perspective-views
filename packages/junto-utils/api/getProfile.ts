@@ -1,6 +1,3 @@
-import { Profile } from "../types";
-import ad4mClient from "../api/client";
-import { LinkExpression } from "@perspect3vism/ad4m";
 import {
   USERNAME,
   GIVEN_NAME,
@@ -9,65 +6,83 @@ import {
   PROFILE_IMAGE,
   PROFILE_THUMBNNAIL_IMAGE,
   FLUX_PROFILE,
+  BG_IMAGE,
+  BIO,
 } from "../constants/profile";
+import ad4mClient from "./client";
 
 export interface Payload {
   url: string;
   perspectiveUuid: string;
 }
 
-export default async function getProfile(url: string): Promise<Profile | null> {
-  const did = url.includes("://") ? url.split("://")[1] : url;
-
+export default async function getProfile(did: string): Promise<any | null> {
   const agentPerspective = await ad4mClient.agent.byDID(did);
+  const links = agentPerspective!.perspective!.links;
 
-  const agentLinks = agentPerspective!.perspective!.links;
-
-  let profile: Profile = {
-    did,
-    url,
-    author: did,
+  const profile: any = {
     username: "",
+    bio: "",
     email: "",
+    profileBg: "",
+    profilePicture: "",
+    thumbnailPicture: "",
     givenName: "",
     familyName: "",
-    timestamp: new Date().toISOString(),
-    thumbnailPicture: "",
-    profilePicture: "",
   };
 
-  const profileLinks = agentLinks.filter((e) => e.data.source === FLUX_PROFILE);
+  for (const link of links.filter((e) => e.data.source === FLUX_PROFILE)) {
+    let expUrl;
+    let image;
 
-  for (const { data: target, predicate, source } of profileLinks) {
-    switch (predicate) {
+    switch (link.data.predicate) {
       case USERNAME:
-        profile!.username = target;
+        profile!.username = link.data.target;
+        break;
+      case BIO:
+        profile!.username = link.data.target;
         break;
       case GIVEN_NAME:
-        profile!.givenName = target;
+        profile!.givenName = link.data.target;
         break;
       case FAMILY_NAME:
-        profile!.familyName = target;
+        profile!.familyName = link.data.target;
         break;
       case PROFILE_IMAGE:
-        var image = await ad4mClient.expression.get(target);
+        expUrl = link.data.target;
+        image = await ad4mClient.expression.get(expUrl);
+
         if (image) {
           profile!.profilePicture = image.data.slice(1, -1);
         }
         break;
       case PROFILE_THUMBNNAIL_IMAGE:
-        var image = await ad4mClient.expression.get(target);
+        expUrl = link.data.target;
+        image = await ad4mClient.expression.get(expUrl);
+
         if (image) {
-          profile!.thumbnailPicture = image.data.slice(1, -1);
+          if (link.data.source === FLUX_PROFILE) {
+            profile!.thumbnailPicture = image.data.slice(1, -1);
+          }
+        }
+        break;
+      case BG_IMAGE:
+        expUrl = link.data.target;
+        image = await ad4mClient.expression.get(expUrl);
+
+        if (image) {
+          if (link.data.source === FLUX_PROFILE) {
+            profile!.profileBg = image.data.slice(1, -1);
+          }
         }
         break;
       case EMAIL:
-        profile!.email = target;
+        profile!.email = link.data.target;
         break;
       default:
         break;
     }
   }
 
-  return profile;
+  return { ...profile, did };
 }

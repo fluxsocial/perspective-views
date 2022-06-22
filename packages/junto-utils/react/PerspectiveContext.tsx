@@ -1,13 +1,12 @@
-import { useQuery } from "@apollo/client";
-import React, { createContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useState, useEffect,useContext, useRef } from "react";
 import getMembers from "../api/getMembers";
 import getChannels from "../api/getChannels";
 import getPerspectiveMeta from "../api/getPerspectiveMeta";
 import subscribeToLinks from "../api/subscribeToLinks";
 import { findLink, linkIs } from "../helpers/linkHelpers";
-import ad4mClient from "../api/client";
 import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
 import getPerspectiveProfile from "../api/getProfile";
+import ad4mClient from "../api/client";
 
 type State = {
   name: string;
@@ -49,8 +48,6 @@ const PerspectiveContext = createContext(initialState);
 
 export function PerspectiveProvider({ perspectiveUuid, children }: any) {
   const [state, setState] = useState(initialState.state);
-  const memberInterval = useRef();
-  const channelInterval = useRef();
   const linkSubscriberRef = useRef();
 
   useEffect(() => {
@@ -60,8 +57,8 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
   }, [perspectiveUuid]);
 
   useEffect(() => {
-    fetchChannels();
-    fetchMembers();
+      fetchChannels();
+      fetchMembers();
   }, [state.url, state.sourceUrl]);
 
   useEffect(() => {

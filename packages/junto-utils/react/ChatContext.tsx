@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useState, useEffect, useContext, useRef } from "react";
 import { Messages, Message } from "../types";
 import { Link, LinkExpression, LinkQuery } from "@perspect3vism/ad4m";
 import getMessages from "../api/getMessages";
@@ -13,7 +13,6 @@ import createReply from "../api/createReply";
 import getReactions from "../api/getReactions";
 import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
 import retry from "../helpers/retry";
-import ad4mClient from "../api/client";
 import getMe from "../api/getMe";
 import {
   SHORT_FORM_EXPRESSION,
@@ -117,10 +116,9 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
           scrollPosition: parseInt(position),
         }));
       });
-    }
-
-    if (perspectiveUuid) {
+  
       fetchMessages({ again: false });
+  
       setupSubscribers();
     }
 
@@ -305,7 +303,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     if (!replyMessage && url) {
       try {
         const expression = await retry(async () => {
-          const expression = await ad4mClient.expression.get(url);
+          const expression = await client.expression.get(url);
           return { ...expression, data: JSON.parse(expression.data) };
         }, {});
 

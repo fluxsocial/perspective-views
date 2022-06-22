@@ -1,4 +1,4 @@
-import { LinkExpression, LinkQuery } from "@perspect3vism/ad4m";
+import { LinkExpression } from "@perspect3vism/ad4m";
 import { getExpression } from "../helpers/expressionHelpers";
 import { Message } from "../types";
 import retry from "../helpers/retry";

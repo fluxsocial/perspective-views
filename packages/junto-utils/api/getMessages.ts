@@ -1,5 +1,5 @@
-import ad4mClient from "./client";
 import { LinkQuery } from "@perspect3vism/ad4m";
+import ad4mClient from "./client";
 import getMessage from "./getMessage";
 
 export interface Payload {
