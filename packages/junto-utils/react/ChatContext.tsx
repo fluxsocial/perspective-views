@@ -19,6 +19,7 @@ import {
 } from "../helpers/languageHelpers";
 import getReplyTo from "../api/getReplyTo";
 import { DexieMessages, DexieUI } from "../helpers/storageHelpers";
+import ad4mClient from "../api/client";
 
 type State = {
   isFetchingMessages: boolean;
@@ -303,7 +304,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     if (!replyMessage && url) {
       try {
         const expression = await retry(async () => {
-          const expression = await client.expression.get(url);
+          const expression = await ad4mClient.expression.get(url);
           return { ...expression, data: JSON.parse(expression.data) };
         }, {});
 
