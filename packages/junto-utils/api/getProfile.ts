@@ -31,7 +31,7 @@ export default async function getProfile(did: string): Promise<any | null> {
     familyName: "",
   };
 
-  for (const link of links.filter((e) => e.data.source === "flux://profile")) {
+  for (const link of links.filter((e) => e.data.source === FLUX_PROFILE)) {
     let expUrl;
     let image;
 
