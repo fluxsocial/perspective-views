@@ -11,7 +11,7 @@ import { UIProvider } from "./context/UIContext";
 import { useState } from "preact/hooks";
 import styles from "./index.scss";
 
-const MainComponent = ({ perspectiveUuid }) => {
+const MainComponent = ({ perspectiveUuid, channel }) => {
   const [ref, setRef] = useState(null)
 
   return (
@@ -23,12 +23,12 @@ const MainComponent = ({ perspectiveUuid }) => {
   );
 }
 
-export default ({ perspectiveUuid = "", port = "" }) => {
+export default ({ perspectiveUuid = "", port = "", channel="" }) => {
   return (
     <UIProvider>
         <AgentProvider>
           <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
-            <ChatProvider perspectiveUuid={perspectiveUuid}>
+            <ChatProvider perspectiveUuid={perspectiveUuid} channel={channel}>
               <MainComponent
                 perspectiveUuid={perspectiveUuid}
               ></MainComponent>

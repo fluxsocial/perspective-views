@@ -22,25 +22,31 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
         })
     )}, { defaultValue: [] });
 
-    const all = await ad4mClient.perspective.all();
 
-    const linkPromises = expressionLinks.map(async (link) => {
-      const neighbourhood = all.find(e => e.sharedUrl === link.data.target);
-      const links = ((neighbourhood.neighbourhood as any).meta.links as Array<any>) || [];
-      const languageLinks = links.filter(findLink.language);
-      const langs = await getMetaFromLinks(languageLinks);
-    
-      return {
-        name: links.find(findLink.name).data.target,
-        description: links.find(findLink.description).data.target,
-        languages: keyedLanguages(langs),
-        url: neighbourhood.sharedUrl || "",
-        id: neighbourhood.uuid
-      };
-    });
+    const linkPromises = []
+
+    for (const channel of expressionLinks as []) {
+      linkPromises.push(new Promise(async (resolve) => {
+        const links = await ad4mClient.perspective.queryLinks(
+          perspectiveUuid,
+          new LinkQuery({
+            source: channel.data.target,
+            fromDate: new Date(),
+            untilDate: new Date("August 19, 1975 23:15:30"),
+            limit: 35
+          })
+        );
+
+        resolve({
+          id: links[0].data.source,
+          name: links.find(e => e.data.predicate === "flux://name")?.data.target,
+          creatorDid: links.find(e => e.data.predicate === "flux://creator_did")?.data.target,
+        })
+      }))
+    }
 
     const channels = await Promise.all(linkPromises);
-    
+
     return channels.reduce((acc, channel) => {
       return { ...acc, [channel.id]: channel };
     }, {[perspectiveUuid]: home});

@@ -427,6 +427,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
     createMessage({
       perspectiveUuid,
+      lastMessage: messages[messages.length - 1].id,
       languageAddress: languages[SHORT_FORM_EXPRESSION],
       message: { background: [""], body: value },
     });
