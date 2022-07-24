@@ -72,7 +72,7 @@ const ChatContext = createContext(initialState);
 let dexieUI: DexieUI;
 let dexieMessages: DexieMessages;
 
-export function ChatProvider({ perspectiveUuid, children }: any) {
+export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   const [shortFormHash, setShortFormHash] = useState("");
   const messageInterval = useRef();
   const linkSubscriberRef = useRef();
@@ -427,7 +427,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
 
     createMessage({
       perspectiveUuid,
-      lastMessage: messages[messages.length - 1].id,
+      lastMessage: messages.length === 0 ? channelId : messages[messages.length - 1].id,
       languageAddress: languages[SHORT_FORM_EXPRESSION],
       message: { background: [""], body: value },
     });

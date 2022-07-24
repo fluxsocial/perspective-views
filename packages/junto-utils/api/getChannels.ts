@@ -49,7 +49,7 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
 
     return channels.reduce((acc, channel) => {
       return { ...acc, [channel.id]: channel };
-    }, {[perspectiveUuid]: home});
+    }, {});
   } catch (e) {
     throw new Error(e);
   }

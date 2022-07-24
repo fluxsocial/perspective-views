@@ -17,7 +17,7 @@ const MainComponent = ({ perspectiveUuid, channel }) => {
   return (
     <div class={styles.container} ref={setRef}>
       <Header />
-      <MessageList perspectiveUuid={perspectiveUuid} mainRef={ref} />
+      <MessageList perspectiveUuid={perspectiveUuid} channelId={channel} mainRef={ref} />
       <Footer />
     </div>
   );
@@ -28,9 +28,10 @@ export default ({ perspectiveUuid = "", port = "", channel="" }) => {
     <UIProvider>
         <AgentProvider>
           <PerspectiveProvider perspectiveUuid={perspectiveUuid}>
-            <ChatProvider perspectiveUuid={perspectiveUuid} channel={channel}>
+            <ChatProvider perspectiveUuid={perspectiveUuid} channelId={channel}>
               <MainComponent
                 perspectiveUuid={perspectiveUuid}
+                channel={channel}
               ></MainComponent>
             </ChatProvider>
           </PerspectiveProvider>

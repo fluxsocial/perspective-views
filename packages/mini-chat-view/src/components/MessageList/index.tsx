@@ -13,7 +13,7 @@ import "react-hint/css/index.css";
 import styles from "./index.scss";
 import { Reaction } from "junto-utils/types";
 
-export default function MessageList({ perspectiveUuid, mainRef }) {
+export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
   const emojiPicker = useRef(document.createElement("emoji-picker"));
   const [atBottom, setAtBottom] = useState(true);
   const [initialScroll, setinitialScroll] = useState(false);
@@ -51,7 +51,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
     if (atBottom && hasNewMessage) {
       scrollToBottom();
       const event = new CustomEvent("hide-notification-indicator", {
-        detail: { uuid: perspectiveUuid },
+        detail: { uuid: channelId },
         bubbles: true,
       });
       mainRef?.dispatchEvent(event);
@@ -62,7 +62,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
     if (isMessageFromSelf) {
       scrollToBottom();
       const event = new CustomEvent("hide-notification-indicator", {
-        detail: { uuid: perspectiveUuid },
+        detail: { uuid: channelId },
         bubbles: true,
       });
       mainRef?.dispatchEvent(event);
@@ -72,7 +72,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
   useEffect(() => {
     if (atBottom) {
       const event = new CustomEvent("hide-notification-indicator", {
-        detail: { uuid: perspectiveUuid },
+        detail: { uuid: channelId },
         bubbles: true,
       });
       mainRef?.dispatchEvent(event);
