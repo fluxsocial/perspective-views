@@ -90,14 +90,14 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   }
 
   useEffect(() => {
-    if (perspectiveUuid) {
-      dexieUI = new DexieUI(perspectiveUuid);
-      dexieMessages = new DexieMessages(perspectiveUuid);
+    if (channelId) {
+      dexieUI = new DexieUI(channelId);
+      dexieMessages = new DexieMessages(channelId);
       // Set messages to cached messages
       // so we have something before we load more
       setCachedMessages();
     }
-  }, [perspectiveUuid]);
+  }, [channelId]);
 
   async function fetchAgent() {
     const agent = await getMe();
@@ -108,7 +108,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   const messages = sortExpressionsByTimestamp(state.keyedMessages, "asc");
 
   useEffect(() => {
-    if (perspectiveUuid) {
+    if (channelId) {
       fetchLanguages();
 
       dexieUI.get("scroll-position").then((position) => {
@@ -117,9 +117,9 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
           scrollPosition: parseInt(position),
         }));
       });
-  
+
       fetchMessages({ again: false });
-  
+
       setupSubscribers();
     }
 
@@ -130,7 +130,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
         handleLinkRemoved
       );
     };
-  }, [perspectiveUuid, agent]);
+  }, [perspectiveUuid, channelId, agent]);
 
   async function setupSubscribers() {
     linkSubscriberRef.current = await subscribeToLinks({
@@ -141,14 +141,14 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   }
 
   useEffect(() => {
-    if (perspectiveUuid.length > 0) {
+    if (perspectiveUuid.length > 0 && channelId.length > 0) {
       messageInterval.current = fetchMessagesAgain();
     }
 
     return () => {
       clearInterval(messageInterval.current);
     };
-  }, [perspectiveUuid, messages]);
+  }, [perspectiveUuid, channelId, messages]);
 
   function fetchMessagesAgain() {
     return setInterval(async () => {
@@ -344,9 +344,9 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     }));
 
     const cachedMessages = await dexieMessages.getAll();
-    const oldMessages = { 
-      ...state.keyedMessages, 
-      ...cachedMessages 
+    const oldMessages = {
+      ...state.keyedMessages,
+      ...cachedMessages
     };
 
     const {keyedMessages: newMessages, expressionLinkLength} = await getMessages({
