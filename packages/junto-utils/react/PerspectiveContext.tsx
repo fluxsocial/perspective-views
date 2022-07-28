@@ -82,24 +82,15 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     console.log("handle link added", link);
 
     if (linkIs.channel(link)) {
-      const all = await ad4mClient.perspective.all();
-      const neighbourhood = all.find((e) => e.sharedUrl === link.data.target);
-      const links =
-        ((neighbourhood.neighbourhood as any).meta?.links as Array<any>) || [];
-      const languageLinks = links.filter(findLink.language);
-      const langs = await getMetaFromLinks(languageLinks);
-
       const channelObj = {
-        name: links.find(findLink.name).data.target,
-        description: links.find(findLink.description).data.target,
-        languages: keyedLanguages(langs),
-        url: neighbourhood.sharedUrl || "",
-        id: neighbourhood.uuid,
+        name: link.data.target,
+        description: '',
+        id: link.data.target,
       };
 
       setState((oldState) => {
         const isAlreadyPartOf = Object.values(oldState.channels).find(
-          (c: any) => c.url === neighbourhood.sharedUrl
+          (c: any) => c.name === link.data.target
         );
 
         if (isAlreadyPartOf) {

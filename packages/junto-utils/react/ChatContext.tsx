@@ -376,7 +376,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       ...newMessages,
     };
 
-    if (payload.again) {
+    if (payload?.again) {
       for (const [key, message] of Object.entries(newMessages)) {
         const url = (message as any).id;
         if (!oldMessages[key]) {
