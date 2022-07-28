@@ -1,4 +1,5 @@
 import { LinkExpression, LinkQuery } from "@perspect3vism/ad4m";
+import { CHANNEL, SELF } from "../constants/ad4m";
 import retry from "../helpers/retry";
 import ad4mClient from "./client";
 
@@ -13,8 +14,8 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
       return await ad4mClient.perspective.queryLinks(
         perspectiveUuid,
         new LinkQuery({
-          source: neighbourhoodUrl!,
-          predicate: "sioc://has_space",
+          source: SELF,
+          predicate: CHANNEL,
         })
     )}, { defaultValue: [] });
 

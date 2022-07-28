@@ -1,4 +1,5 @@
 import { Link } from "@perspect3vism/ad4m";
+import { DIRECTLY_SUCCEEDED_BY } from "../constants/ad4m";
 import ad4mClient from "./client";
 
 export interface Payload {
@@ -22,7 +23,7 @@ export default async function ({
       new Link({
         source: lastMessage,
         target: expUrl,
-        predicate: "temp://succeeded_by",
+        predicate: DIRECTLY_SUCCEEDED_BY,
       })
     );
   } catch (e: any) {
