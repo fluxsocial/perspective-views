@@ -193,18 +193,6 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     return newState;
   }
 
-  function addReplyToState(oldState, messageId, reply) {
-    const newState = {
-      ...oldState,
-      hasNewMessage: false,
-      keyedMessages: {
-        ...oldState.keyedMessages,
-        [messageId]: { ...oldState.keyedMessages[messageId], reply },
-      },
-    };
-    return newState;
-  }
-
   async function handleLinkAdded(link) {
     const agent = await getMe();
 
@@ -356,9 +344,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
           setState((oldState) => addReactionToState(oldState, url, reactions));
         } else {
           const reactions = oldMessages[key]["reactions"];
-          const replyUrl = oldMessages[key]["replyUrl"];
           setState((oldState) => addReactionToState(oldState, url, reactions));
-          setState((oldState) => addReplyToState(oldState, url, replyUrl));
         }
       }
     } else {
