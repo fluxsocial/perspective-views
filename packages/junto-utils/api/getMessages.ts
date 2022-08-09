@@ -1,4 +1,4 @@
-import { LinkQuery } from "@perspect3vism/ad4m";
+import { LinkQuery, Literal } from "@perspect3vism/ad4m";
 import ad4mClient from "./client";
 import getMessage from "./getMessage";
 
@@ -21,11 +21,10 @@ export default async function ({ perspectiveUuid, from, to }: Payload) {
         })
     );
 
-    const linkPromises = expressionLinks.map((link) =>
-      getMessage(link)
+    const messages = expressionLinks.map((link) =>
+      Literal.fromUrl(link.data.target).get()
     );
 
-    const messages = await Promise.all(linkPromises);
     const keyedMessages = messages.filter((message) => { 
       if (message){
         return true

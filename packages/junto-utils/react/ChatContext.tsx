@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, useRef } from "react";
 import { Messages, Message } from "../types";
-import { Link, LinkExpression, LinkQuery } from "@perspect3vism/ad4m";
+import { Link, LinkExpression, LinkQuery, Literal } from "@perspect3vism/ad4m";
 import getMessages from "../api/getMessages";
 import createMessage from "../api/createMessage";
 import subscribeToLinks from "../api/subscribeToLinks";
@@ -211,7 +211,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
 
   async function handleLinkAdded(link) {
     if (linkIs.message(link)) {
-      const message = await getMessage(link);
+      const message = Literal.fromUrl(link.data.target).get()
       if (message) {
         setState((oldState) => addMessage(oldState, message));
 
