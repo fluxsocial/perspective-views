@@ -1,7 +1,8 @@
-import { LinkExpression } from "@perspect3vism/ad4m";
+import { LinkExpression, Literal } from "@perspect3vism/ad4m";
 import { getExpression } from "../helpers/expressionHelpers";
 import { Message } from "../types";
 import retry from "../helpers/retry";
+import { REPLY_TO } from "../constants/ad4m";
 
 export interface Payload {
   perspectiveUuid: string;
@@ -10,14 +11,23 @@ export interface Payload {
 
 
 
-export default async function (link: LinkExpression): Promise<Message | undefined> {
+export default function (link: LinkExpression): Message {
   try {
-    const expression = await retry(async () => {
-      return await getExpression(link);
-    }, {});
+    const expression = Literal.fromUrl(link.data.target).get();
 
-    if (!expression) {
-      return undefined
+    let reply;
+
+    if (link.data.predicate === REPLY_TO) {
+      const expression = Literal.fromUrl(link.data.source).get();
+      reply = {
+        id: link.data.source,
+        timestamp: expression.timestamp,
+        url: link.data.source,
+        author: expression.author,
+        reactions: [],
+        reply: undefined,
+        content: expression.data.body,
+      };
     }
 
     const message = {
@@ -26,7 +36,7 @@ export default async function (link: LinkExpression): Promise<Message | undefine
       url: link.data.target,
       author: link.author,
       reactions: [],
-      replyUrl: undefined,
+      reply,
       content: expression.data.body,
     };
 

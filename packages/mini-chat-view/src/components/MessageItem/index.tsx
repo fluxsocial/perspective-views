@@ -40,9 +40,8 @@ export default function MessageItem({
   } = useContext(PerspectiveContext);
   const {
     state: { messages, keyedMessages },
-    methods: { addReaction, removeReaction, getReplyMessage },
+    methods: { addReaction, removeReaction },
   } = useContext(ChatContext);
-  const [replyMessage, setReplyMessage] = useState();
 
   const {
     state: { currentReply },
@@ -129,18 +128,9 @@ export default function MessageItem({
     mainRef?.dispatchEvent(event);
   }
 
-  useEffect(() => {
-    getReply();
-  }, [message]);
-
-  const getReply = async () => {
-    const reply = await getReplyMessage(message.replyUrl);
-
-    setReplyMessage(reply);
-  };
-
   const author = members[message.author] || {};
-  const replyAuthor = members[replyMessage?.author] || {};
+  const replyAuthor = members[message?.reply?.author] || {};
+  const replyMessage = message?.reply;
 
   return (
     <div

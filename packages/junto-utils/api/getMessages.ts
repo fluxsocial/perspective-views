@@ -22,7 +22,7 @@ export default async function ({ perspectiveUuid, from, to }: Payload) {
     );
 
     const messages = expressionLinks.map((link) =>
-      Literal.fromUrl(link.data.target).get()
+      getMessage(link)
     );
 
     const keyedMessages = messages.filter((message) => { 

@@ -19,7 +19,7 @@ export interface Message {
   reactions: Array<LinkExpression>;
   timestamp: string;
   content: string;
-  replyUrl: string;
+  reply?: string;
 }
 export interface Messages {
   [x: string]: Message;

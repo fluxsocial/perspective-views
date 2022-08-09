@@ -12,12 +12,10 @@ import createMessageReaction from "../api/createMessageReaction";
 import createReply from "../api/createReply";
 import getReactions from "../api/getReactions";
 import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
-import retry from "../helpers/retry";
 import getMe from "../api/getMe";
 import {
   SHORT_FORM_EXPRESSION,
 } from "../helpers/languageHelpers";
-import getReplyTo from "../api/getReplyTo";
 import { DexieMessages, DexieUI } from "../helpers/storageHelpers";
 import ad4mClient from "../api/client";
 
@@ -40,7 +38,6 @@ type ContextProps = {
     sendMessage: (message: string) => void;
     saveScrollPos: (pos?: number) => void;
     setHasNewMessage: (value: boolean) => void;
-    getReplyMessage: (url: string) => void;
     setIsMessageFromSelf: (value: boolean) => void;
   };
 };
@@ -62,7 +59,6 @@ const initialState: ContextProps = {
     sendMessage: () => null,
     saveScrollPos: () => null,
     setHasNewMessage: () => null,
-    getReplyMessage: () => null,
     setIsMessageFromSelf: () => null,
   },
 };
@@ -197,21 +193,24 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     return newState;
   }
 
-  function addReplyToState(oldState, messageId, replyUrl) {
+  function addReplyToState(oldState, messageId, reply) {
     const newState = {
       ...oldState,
       hasNewMessage: false,
       keyedMessages: {
         ...oldState.keyedMessages,
-        [messageId]: { ...oldState.keyedMessages[messageId], replyUrl },
+        [messageId]: { ...oldState.keyedMessages[messageId], reply },
       },
     };
     return newState;
   }
 
   async function handleLinkAdded(link) {
+    const agent = await getMe();
+
     if (linkIs.message(link)) {
-      const message = Literal.fromUrl(link.data.target).get()
+      const message = getMessage(link)
+
       if (message) {
         setState((oldState) => addMessage(oldState, message));
 
@@ -219,15 +218,6 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
           ...oldState,
           isMessageFromSelf: link.author === agent.did,
         }));
-
-        const replyUrl = await getReplyTo({
-          url: message.url,
-          perspectiveUuid,
-        });
-
-        setState((oldState) =>
-          addReplyToState(oldState, link.data.target, replyUrl)
-        );
 
         const reactions = await getReactions({
           url: link.data.target,
@@ -238,6 +228,17 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
           addReactionToState(oldState, message.id, reactions)
         );
       }
+    }
+
+    if (linkIs.reply(link)) {
+      const message = getMessage(link)
+
+      setState((oldState) => addMessage(oldState, message));
+
+      setState((oldState) => ({
+        ...oldState,
+        isMessageFromSelf: link.author === agent.did,
+      }));
     }
 
     if (linkIs.reaction(link)) {
@@ -299,39 +300,6 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     }
   }
 
-  async function getReplyMessage(url: string) {
-    const replyMessage = state.keyedMessages[url];
-    if (!replyMessage && url) {
-      try {
-        const expression = await retry(async () => {
-          const expression = await ad4mClient.expression.get(url);
-          return { ...expression, data: JSON.parse(expression.data) };
-        }, {});
-
-        if (!expression) {
-          console.log("No Expression found for the reply");
-          return null;
-        }
-
-        const message = {
-          id: url,
-          timestamp: expression.timestamp,
-          url: url,
-          author: expression.author,
-          reactions: [],
-          replyUrl: null,
-          content: expression.data.body,
-        };
-
-        return message as Message;
-      } catch (e) {
-        throw new Error(e);
-      }
-    }
-
-    return replyMessage;
-  }
-
   async function fetchMessages(payload?: {
     from?: Date;
     to?: Date;
@@ -380,13 +348,6 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       for (const [key, message] of Object.entries(newMessages)) {
         const url = (message as any).id;
         if (!oldMessages[key]) {
-          const replyUrl = await getReplyTo({
-            url,
-            perspectiveUuid,
-          });
-
-          setState((oldState) => addReplyToState(oldState, url, replyUrl));
-
           const reactions = await getReactions({
             url,
             perspectiveUuid,
@@ -404,13 +365,6 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       for (const message of Object.values(messages)) {
         const url = (message as any).id;
 
-        const replyUrl = await getReplyTo({
-          url,
-          perspectiveUuid,
-        });
-
-        setState((oldState) => addReplyToState(oldState, url, replyUrl));
-
         const reactions = await getReactions({
           url,
           perspectiveUuid,
@@ -422,13 +376,9 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   }
 
   async function sendMessage(value) {
-    // TODO: Why is sendMessage initialized with old shortformhas value
-    const { languages } = await getPerspectiveMeta(perspectiveUuid);
-
     createMessage({
       perspectiveUuid,
       lastMessage: messages.length === 0 ? channelId : messages[messages.length - 1].id,
-      languageAddress: languages[SHORT_FORM_EXPRESSION],
       message: { background: [""], body: value },
     });
   }
@@ -436,7 +386,6 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   async function sendReply(message: string, replyUrl: string) {
     return createReply({
       perspectiveUuid: perspectiveUuid,
-      languageAddress: shortFormHash,
       message: { background: [""], body: message },
       replyUrl,
     });
@@ -501,7 +450,6 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
           removeReaction,
           saveScrollPos,
           setHasNewMessage,
-          getReplyMessage,
           setIsMessageFromSelf,
         },
       }}
