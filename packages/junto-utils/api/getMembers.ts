@@ -2,6 +2,7 @@ import {  LinkQuery } from "@perspect3vism/ad4m";
 import getMember from "./getProfile";
 import retry from "../helpers/retry";
 import ad4mClient from "./client";
+import { SELF } from "../constants/ad4m";
 
 export interface Payload {
   perspectiveUuid: string;
@@ -14,7 +15,7 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl, addProfile }
     const expressionLinks = await ad4mClient.perspective.queryLinks(
       perspectiveUuid,
       new LinkQuery({
-        source: neighbourhoodUrl!,
+        source: SELF,
         predicate: "sioc://has_member",
       })
     );
