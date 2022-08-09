@@ -9,3 +9,5 @@ export const CHANNEL = "flux://has_channel";
 export const DIRECTLY_SUCCEEDED_BY = "temp://directly_succeeded_by";
 
 export const REPLY_TO = "sioc://reply_to";
+
+export const MEMBER = "sioc://has_member";
