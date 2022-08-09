@@ -4,7 +4,6 @@ import ad4mClient from "./client";
 
 export interface Payload {
   perspectiveUuid: string;
-  languageAddress: string;
   lastMessage: string;
   message: Object;
 }
@@ -12,15 +11,16 @@ export interface Payload {
 export default async function ({
   perspectiveUuid,
   lastMessage,
-  languageAddress,
   message,
 }: Payload) {
   try {
+    const exp = await ad4mClient.expression.create(message, 'literal');
+
     await ad4mClient.perspective.addLink(
       perspectiveUuid,
       new Link({
         source: lastMessage,
-        target: Literal.from(message).toUrl(),
+        target: exp,
         predicate: DIRECTLY_SUCCEEDED_BY,
       })
     );
