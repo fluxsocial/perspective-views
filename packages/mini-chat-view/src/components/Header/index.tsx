@@ -1,9 +1,6 @@
-import { PerspectiveContext } from "junto-utils/react";
-import { useContext } from "preact/hooks";
 import styles from "./index.scss";
 
-export default function Header() {
-  const { state: { name, isHome } } = useContext(PerspectiveContext);
+export default function Header({channel}: {channel: string}) {
 
-  return <header class={styles.header}># {isHome ? 'Home' : name}</header>;
+  return <header class={styles.header}># {channel}</header>;
 }

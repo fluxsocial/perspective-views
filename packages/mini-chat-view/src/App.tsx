@@ -16,7 +16,7 @@ const MainComponent = ({ perspectiveUuid, channel }) => {
 
   return (
     <div class={styles.container} ref={setRef}>
-      <Header />
+      <Header channel={channel} />
       <MessageList perspectiveUuid={perspectiveUuid} channelId={channel} mainRef={ref} />
       <Footer />
     </div>
