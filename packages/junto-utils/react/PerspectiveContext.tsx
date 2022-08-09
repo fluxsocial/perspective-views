@@ -14,10 +14,8 @@ type State = {
   languages: Array<any>;
   url: string;
   sourceUrl: string;
-  sourceUuid: string;
   members: { [x: string]: any };
   channels: { [x: string]: any };
-  isHome: boolean;
 };
 
 type ContextProps = {
@@ -33,11 +31,9 @@ const initialState: ContextProps = {
     description: "",
     url: "",
     sourceUrl: "",
-    sourceUuid: "",
     languages: [],
     members: {},
     channels: {},
-    isHome: false
   },
   methods: {
     getProfile: (did: string) => null
@@ -69,11 +65,11 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     return () => {
       linkSubscriberRef.current?.removeListener('link-added', handleLinkAdded);
     };
-  }, [perspectiveUuid, state.sourceUuid]);
+  }, [perspectiveUuid]);
 
   async function setupSubscribers() {
     linkSubscriberRef.current = await subscribeToLinks({
-      perspectiveUuid: state.sourceUuid || perspectiveUuid,
+      perspectiveUuid: perspectiveUuid,
       added: handleLinkAdded,
     });
   }
@@ -115,7 +111,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
   const fetchMembers = async () => {
     if (state.url) {
       const members = await getMembers({
-        perspectiveUuid: state.sourceUuid || perspectiveUuid,
+        perspectiveUuid: perspectiveUuid,
         neighbourhoodUrl: state.sourceUrl || state.url,
         addProfile: (profile: any) => setState((prev) => ({...prev, members: {...prev.members, [profile.did]: profile}}))
       });
@@ -125,7 +121,7 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
   const fetchChannels = async () => {
     if (state.url) {
       const channels = await getChannels({
-        perspectiveUuid: state.sourceUuid || perspectiveUuid,
+        perspectiveUuid: perspectiveUuid,
         neighbourhoodUrl: state.sourceUrl || state.url,
       });
 
@@ -141,10 +137,8 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
       description: meta.description,
       url: meta.url,
       sourceUrl: meta.sourceUrl,
-      sourceUuid: meta.sourceUuid,
       members: {},
       channels: {},
-      isHome: meta.isHome
     });
   }
 

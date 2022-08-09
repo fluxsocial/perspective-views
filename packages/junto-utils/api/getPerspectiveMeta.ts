@@ -1,7 +1,5 @@
 import { findLink } from "../helpers/linkHelpers";
 import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
-import retry from "../helpers/retry";
-import { LinkQuery } from "@perspect3vism/ad4m";
 import ad4mClient from "./client";
 
 export default async function getPerspectiveMeta(uuid: string) {
@@ -12,22 +10,6 @@ export default async function getPerspectiveMeta(uuid: string) {
   }
   
   const neighbourhood = perspective.neighbourhood;
-  
-  const expressionLinks = await retry(async () => {
-    return await ad4mClient.perspective.queryLinks(
-      uuid,
-      new LinkQuery({
-        source: perspective?.sharedUrl!,
-        predicate: "flux://parentCommunity",
-      })
-  )}, { defaultValue: [] });
-
-  let sourceUuid = uuid;
-  if (expressionLinks.length > 0) {
-    const all = await ad4mClient.perspective.all();
-    const neighbourhood = all.find(e => e.sharedUrl === expressionLinks[0].data.target);
-    sourceUuid = neighbourhood.uuid;
-  }
 
   const links = (neighbourhood.meta?.links as Array<any>) || [];
   const languageLinks = links.filter(findLink.language);
@@ -39,8 +21,6 @@ export default async function getPerspectiveMeta(uuid: string) {
     languages: keyedLanguages(langs),
     url: perspective?.sharedUrl || "",
     dateCreated: links.find(findLink.dateCreated).data.target,
-    sourceUrl: expressionLinks.length > 0 ? expressionLinks[0].data.target : perspective?.sharedUrl || "",
-    sourceUuid,
-    isHome :expressionLinks.length === 0 
+    sourceUrl: perspective?.sharedUrl,
   };
 }
