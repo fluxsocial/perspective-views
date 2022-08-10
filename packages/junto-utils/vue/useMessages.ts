@@ -138,14 +138,14 @@ export default function useMessages({
       return createMessage({
         perspectiveUuid: perspectiveUuid.value,
         languageAddress: shortFormLangAddress.value,
-        message: { background: [""], body: message },
+        message,
       });
     },
     createReply: (message: Object, replyUrl: string) => {
       return createReply({
         perspectiveUuid: perspectiveUuid.value,
         languageAddress: shortFormLangAddress.value,
-        message: { background: [""], body: message },
+        message,
         replyUrl,
       });
     },

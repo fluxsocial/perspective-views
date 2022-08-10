@@ -26,7 +26,7 @@ export default function (link: LinkExpression): Message {
         author: expression.author,
         reactions: [],
         reply: undefined,
-        content: expression.data.body,
+        content: expression.data,
       };
     }
 
@@ -37,7 +37,7 @@ export default function (link: LinkExpression): Message {
       author: link.author,
       reactions: [],
       reply,
-      content: expression.data.body,
+      content: expression.data,
     };
 
     return message as Message;

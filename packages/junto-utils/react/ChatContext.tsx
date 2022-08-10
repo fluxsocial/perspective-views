@@ -365,14 +365,14 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     createMessage({
       perspectiveUuid,
       lastMessage: messages.length === 0 ? channelId : messages[messages.length - 1].id,
-      message: { background: [""], body: value },
+      message: value,
     });
   }
 
   async function sendReply(message: string, replyUrl: string) {
     return createReply({
       perspectiveUuid: perspectiveUuid,
-      message: { background: [""], body: message },
+      message: message,
       replyUrl,
     });
   }

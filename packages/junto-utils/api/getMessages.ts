@@ -10,8 +10,6 @@ export interface Payload {
 
 export default async function ({ perspectiveUuid, from, to }: Payload) {
   try {
-    const expressionLinks = await ad4mClient.perspective.queryProlog(perspectiveUuid, 
-      'triple(X, _, "todo-ontology://is-todo").')
     const expressionLinks = await ad4mClient.perspective.queryLinks(
         perspectiveUuid,
         new LinkQuery({
