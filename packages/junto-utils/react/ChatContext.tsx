@@ -87,8 +87,8 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
 
   useEffect(() => {
     if (channelId) {
-      dexieUI = new DexieUI(channelId);
-      dexieMessages = new DexieMessages(channelId);
+      dexieUI = new DexieUI(`${perspectiveUuid}://${channelId}`);
+      dexieMessages = new DexieMessages(`${perspectiveUuid}://${channelId}`);
       // Set messages to cached messages
       // so we have something before we load more
       setCachedMessages();
