@@ -28,7 +28,7 @@ export default function Footer() {
 
     if (escapedMessage) {
       if (currentReplyMessage) {
-        sendReply(value, currentReplyMessage.url);
+        sendReply(value, currentReplyMessage.id);
       } else {
         sendMessage(value);
       }

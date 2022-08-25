@@ -12,6 +12,7 @@ const ReactHint = ReactHintFactory({ createElement: h, Component, createRef });
 import "react-hint/css/index.css";
 import styles from "./index.scss";
 import { Reaction } from "junto-utils/types";
+import { REACTION } from "junto-utils/constants/ad4m";
 
 export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
   const emojiPicker = useRef(document.createElement("emoji-picker"));
@@ -130,13 +131,27 @@ export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
     const me = await getMe();
 
     const alreadyMadeReaction = message.reactions.find((reaction: Reaction) => {
-      return reaction.author === me.did && reaction.data.target === unicode;
+      return reaction.author === me.did && reaction.reaction === unicode;
     });
 
     if (alreadyMadeReaction) {
-      removeReaction(alreadyMadeReaction);
+      removeReaction({
+        author: alreadyMadeReaction.author,
+        data: {
+          predicate: REACTION,
+          target: alreadyMadeReaction.reaction,
+          source: message.id
+        },
+        proof: {
+          invalid: false,
+          key: "",
+          signature: "",
+          valid: true
+        },
+        timestamp: alreadyMadeReaction.timestamp
+      });
     } else {
-      addReaction(message.url, unicode);
+      addReaction(message.id, unicode);
     }
   }
 

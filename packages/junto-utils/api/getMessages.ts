@@ -1,3 +1,4 @@
+import { Literal } from "@perspect3vism/ad4m";
 import ad4mClient from "./client";
 import getMessage from "./getMessage";
 
@@ -57,8 +58,9 @@ export default async function ({ perspectiveUuid, channelId, from, to }: Payload
         };
 
         cleanedLinks.push({
+          "id": message.MessageExpr,
           "author": message.Author,
-          "data": message.MessageExpr,
+          "content": Literal.fromUrl(message.MessageExpr).get().data,
           "timestamp": new Date(message.Timestamp),
           "reactions": reactions,
           "replies": replies
@@ -66,17 +68,8 @@ export default async function ({ perspectiveUuid, channelId, from, to }: Payload
       }
     };
 
-    const messages = expressionLinks.map((link) =>
-      getMessage(link)
-    );
 
-    const keyedMessages = messages.filter((message) => { 
-      if (message){
-        return true
-      } else {
-        return false
-      }
-    }).reduce((acc, message) => {
+    const keyedMessages = cleanedLinks.reduce((acc, message) => {
       //@ts-ignore
       return { ...acc, [message.id]: message };
     }, {});

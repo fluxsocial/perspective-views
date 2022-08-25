@@ -9,6 +9,7 @@ import { getRelativeTime } from "./getRelativeTime";
 import UIContext from "../../context/UIContext";
 import styles from "./index.scss";
 import { format, formatRelative } from "date-fns/esm";
+import { REACTION } from "junto-utils/constants/ad4m";
 
 type timeOptions = {
   dateStyle?: string;
@@ -51,20 +52,35 @@ export default function MessageItem({
   const message = messages[index];
 
   function onReplyClick() {
-    setCurrentReply(message.url);
+    console.log('message', message)
+    setCurrentReply(message.id);
   }
 
   async function onEmojiClick(unicode: string) {
     const me = await getMe();
 
     const alreadyMadeReaction = message.reactions.find((reaction: Reaction) => {
-      return reaction.author === me.did && reaction.data.target === unicode;
+      return reaction.author === me.did && reaction.reaction === unicode;
     });
 
     if (alreadyMadeReaction) {
-      removeReaction(alreadyMadeReaction);
+      removeReaction({
+        author: alreadyMadeReaction.author,
+        data: {
+          predicate: REACTION,
+          target: alreadyMadeReaction.reaction,
+          source: message.id
+        },
+        proof: {
+          invalid: false,
+          key: "",
+          signature: "",
+          valid: true
+        },
+        timestamp: alreadyMadeReaction.timestamp
+      });
     } else {
-      addReaction(message.url, unicode);
+      addReaction(message.id, unicode);
     }
   }
 
@@ -129,15 +145,15 @@ export default function MessageItem({
   }
 
   const author = members[message.author] || {};
-  const replyAuthor = members[message?.reply?.author] || {};
-  const replyMessage = message?.reply;
+  const replyAuthor = members[message?.replies[0]?.author] || {};
+  const replyMessage = message?.replies[0];
 
   return (
     <div
       onMouseOver={() => setShowToolbar(true)}
       onMouseLeave={() => setShowToolbar(false)}
       class={styles.message}
-      isReplying={keyedMessages[currentReply]?.url === message.url}
+      isReplying={keyedMessages[currentReply]?.id === message.id}
     >
       {replyMessage && (
         <>

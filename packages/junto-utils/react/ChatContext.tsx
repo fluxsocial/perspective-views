@@ -92,7 +92,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       dexieMessages = new DexieMessages(`${perspectiveUuid}://${channelId}`);
       // Set messages to cached messages
       // so we have something before we load more
-      setCachedMessages();
+      // setCachedMessages();
     }
   }, [channelId]);
 
@@ -219,8 +219,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
         if (message) {
           const linkFound = message.reactions.find(
             (e) =>
-              e.data.source === link.data.source &&
-              e.data.target === link.data.target &&
+              e.reaction === link.data.target &&
               e.author === link.author
           );
 
@@ -232,7 +231,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
               ...oldState.keyedMessages,
               [id]: {
                 ...message,
-                reactions: [...message.reactions, { ...link }],
+                reactions: [...message.reactions, { author: link.author, reaction: link.data.target, timestamp: link.timestamp }],
               },
             },
           };
@@ -260,7 +259,9 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
             [id]: {
               ...message,
               reactions: message.reactions.filter(
-                (reaction) => reaction.proof.signature !== link.proof.signature
+                (e) =>
+                e.reaction !== link.data.target &&
+                e.author === link.author
               ),
             },
           },
@@ -280,10 +281,8 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       isFetchingMessages: true,
     }));
 
-    const cachedMessages = await dexieMessages.getAll();
     const oldMessages = {
       ...state.keyedMessages,
-      ...cachedMessages
     };
 
     const {keyedMessages: newMessages, expressionLinkLength} = await getMessages({
@@ -296,7 +295,6 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     setState((oldState) => ({
       ...oldState,
       keyedMessages: {
-        ...cachedMessages,
         ...oldState.keyedMessages,
         ...newMessages,
       },
@@ -307,40 +305,6 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       showLoadMore: expressionLinkLength === 35,
       isFetchingMessages: false,
     }));
-
-    const messages = {
-      ...cachedMessages,
-      ...state.keyedMessages,
-      ...newMessages,
-    };
-
-    if (payload?.again) {
-      for (const [key, message] of Object.entries(newMessages)) {
-        const url = (message as any).id;
-        if (!oldMessages[key]) {
-          const reactions = await getReactions({
-            url,
-            perspectiveUuid,
-          });
-
-          setState((oldState) => addReactionToState(oldState, url, reactions));
-        } else {
-          const reactions = oldMessages[key]["reactions"];
-          setState((oldState) => addReactionToState(oldState, url, reactions));
-        }
-      }
-    } else {
-      for (const message of Object.values(messages)) {
-        const url = (message as any).id;
-
-        const reactions = await getReactions({
-          url,
-          perspectiveUuid,
-        });
-
-        setState((oldState) => addReactionToState(oldState, url, reactions));
-      }
-    }
   }
 
   async function sendMessage(value) {
