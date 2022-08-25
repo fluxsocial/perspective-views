@@ -18,6 +18,7 @@ import {
 } from "../helpers/languageHelpers";
 import { DexieMessages, DexieUI } from "../helpers/storageHelpers";
 import ad4mClient from "../api/client";
+import { REACTION } from "../constants/ad4m";
 
 type State = {
   isFetchingMessages: boolean;
@@ -137,26 +138,6 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   }
 
   useEffect(() => {
-    if (perspectiveUuid.length > 0 && channelId.length > 0) {
-      messageInterval.current = fetchMessagesAgain();
-    }
-
-    return () => {
-      clearInterval(messageInterval.current);
-    };
-  }, [perspectiveUuid, channelId, messages]);
-
-  function fetchMessagesAgain() {
-    return setInterval(async () => {
-      await fetchMessages({
-        from: new Date(),
-        to: new Date("August 19, 1975 23:15:30"),
-        again: true,
-      });
-    }, 60000);
-  }
-
-  useEffect(() => {
     dexieMessages.saveAll(Object.values(state.keyedMessages));
   }, [JSON.stringify(state.keyedMessages)]);
 
@@ -266,7 +247,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     console.log("handle link removed", link);
     //TODO: link.proof.valid === false when we recive
     // the remove link somehow. Ad4m bug?
-    if (link.data.predicate === "sioc://reaction_to") {
+    if (link.data.predicate === REACTION) {
       const id = link.data.source;
 
       setState((oldState) => {
@@ -307,6 +288,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
 
     const {keyedMessages: newMessages, expressionLinkLength} = await getMessages({
       perspectiveUuid,
+      channelId,
       from: payload?.from,
       to: payload?.to,
     });
@@ -364,7 +346,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   async function sendMessage(value) {
     createMessage({
       perspectiveUuid,
-      lastMessage: messages.length === 0 ? channelId : messages[messages.length - 1].id,
+      lastMessage: channelId,
       message: value,
     });
   }

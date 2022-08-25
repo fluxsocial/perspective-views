@@ -1,7 +1,5 @@
-import { Link, LinkExpression } from "@perspect3vism/ad4m";
-import { getMetaFromLinks, keyedLanguages } from "./languageHelpers";
-import ad4mClient from "../api/client";
-import { DIRECTLY_SUCCEEDED_BY, REPLY_TO } from "../constants/ad4m";
+import { LinkExpression } from "@perspect3vism/ad4m";
+import { CHANNEL, DIRECTLY_SUCCEEDED_BY, MEMBER, REACTION, REPLY_TO } from "../constants/ad4m";
 
 export const findLink = {
   name: (link: LinkExpression) => link.data.predicate === "rdf://name",
@@ -18,11 +16,11 @@ export const linkIs = {
     link.data.predicate === REPLY_TO,
   // TODO: SHould we check if the link is proof.valid?
   reaction: (link: LinkExpression) =>
-    link.data.predicate === "sioc://reaction_to",
+    link.data.predicate === REACTION,
   channel: (link: LinkExpression) => 
-  link.data.predicate === "sioc://has_space",
+    link.data.predicate === CHANNEL,
   member: (link: LinkExpression) => 
-  link.data.predicate === "sioc://has_member"
+    link.data.predicate === MEMBER
 
   // TODO: SHould we check if the link is proof.valid?
 };
