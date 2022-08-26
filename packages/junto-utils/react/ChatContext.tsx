@@ -320,6 +320,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       perspectiveUuid: perspectiveUuid,
       message: message,
       replyUrl,
+      channelId
     });
   }
 
