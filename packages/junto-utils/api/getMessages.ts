@@ -11,7 +11,7 @@ export interface Payload {
 
 export default async function ({ perspectiveUuid, channelId, from, to }: Payload) {
   try {
-    const expressionLinks = await ad4mClient.perspective.queryProlog(perspectiveUuid, `limit(50, order_by([desc(Timestamp)], flux_message("${channelId}", MessageExpr, Timestamp, Author, Reactions, Replies))).`);
+    const expressionLinks = await ad4mClient.perspective.queryProlog(perspectiveUuid, `limit(200, order_by([desc(Timestamp)], flux_message("${channelId}", MessageExpr, Timestamp, Author, Reactions, Replies))).`);
     let cleanedLinks = [];
 
     //TODO; the below extracting of data from head & tail can likely happen in ad4m-executor, it currently gets returned like this since this is how the node.js swipl wrapper serializes results from swipl
