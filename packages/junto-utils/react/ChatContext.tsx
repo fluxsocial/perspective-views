@@ -76,15 +76,11 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
 
   const [state, setState] = useState(initialState.state);
   const [agent, setAgent] = useState();
+  const ranOnce = useRef(false);
 
   useEffect(() => {
     fetchAgent();
   }, []);
-
-  async function setCachedMessages() {
-    const cachedMessages = await dexieMessages.getAll();
-    setState({ ...state, keyedMessages: { ...cachedMessages } });
-  }
 
   useEffect(() => {
     if (channelId) {
@@ -92,7 +88,6 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       dexieMessages = new DexieMessages(`${perspectiveUuid}://${channelId}`);
       // Set messages to cached messages
       // so we have something before we load more
-      // setCachedMessages();
     }
   }, [channelId]);
 
@@ -105,9 +100,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   const messages = sortExpressionsByTimestamp(state.keyedMessages, "asc");
 
   useEffect(() => {
-    if (channelId) {
-      fetchLanguages();
-
+    if (channelId && !ranOnce.current) {
       dexieUI.get("scroll-position").then((position) => {
         setState((oldState) => ({
           ...oldState,
@@ -118,16 +111,18 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       fetchMessages({ again: false });
 
       setupSubscribers();
-    }
 
-    return () => {
-      linkSubscriberRef.current?.removeListener("link-added", handleLinkAdded);
-      linkSubscriberRef.current?.removeListener(
-        "link-removed",
-        handleLinkRemoved
-      );
-    };
-  }, [perspectiveUuid, channelId, agent]);
+      ranOnce.current = true;
+
+      return () => {
+        linkSubscriberRef.current?.removeListener("link-added", handleLinkAdded);
+        linkSubscriberRef.current?.removeListener(
+          "link-removed",
+          handleLinkRemoved
+        );
+      };
+    }
+  }, [perspectiveUuid, channelId, agent, ranOnce]);
 
   async function setupSubscribers() {
     linkSubscriberRef.current = await subscribeToLinks({
