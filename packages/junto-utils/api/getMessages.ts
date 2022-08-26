@@ -41,7 +41,7 @@ export default async function ({ perspectiveUuid, channelId, from, to }: Payload
         if (typeof message.Replies != "string") {
           if (message.Replies.head) {
             replies.push({
-              "data": message.Replies.head.args[0],
+              "content": Literal.fromUrl(message.Replies.head.args[0]).get().data,
               "timestamp": new Date(message.Replies.head.args[1].args[0]),
               "author": message.Replies.head.args[1].args[1],
             });
@@ -49,7 +49,7 @@ export default async function ({ perspectiveUuid, channelId, from, to }: Payload
           let tail = message.Replies.tail;
           while (typeof tail != "string") {
             replies.push({
-              "data": tail.head.args[0],
+              "content": Literal.fromUrl(tail.head.args[0]).get().data,
               "timestamp": new Date(tail.head.args[1].args[0]),
               "author": tail.head.args[1].args[1],
             });
