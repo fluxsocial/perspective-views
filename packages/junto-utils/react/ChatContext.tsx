@@ -122,7 +122,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
         );
       };
     }
-  }, [perspectiveUuid, channelId, agent, ranOnce]);
+  }, [perspectiveUuid, channelId, agent, ranOnce.current]);
 
   async function setupSubscribers() {
     linkSubscriberRef.current = await subscribeToLinks({
@@ -170,6 +170,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   }
 
   async function handleLinkAdded(link) {
+    console.log('link', link)
     const agent = await getMe();
 
     if (linkIs.message(link)) {
