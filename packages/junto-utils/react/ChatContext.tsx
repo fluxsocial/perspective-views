@@ -168,28 +168,30 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   }
 
   async function handleLinkAdded(link) {
-    console.log('link', link)
+    console.log('Got message link', link);
     const agent = await getMe();
 
     if (linkIs.message(link)) {
-      const message = getMessage(link)
+      if (link.data.source == channelId) {
+        const message = getMessage(link)
 
-      if (message) {
-        setState((oldState) => addMessage(oldState, message));
-
-        setState((oldState) => ({
-          ...oldState,
-          isMessageFromSelf: link.author === agent.did,
-        }));
-
-        const reactions = await getReactions({
-          url: link.data.target,
-          perspectiveUuid,
-        });
-
-        setState((oldState) =>
-          addReactionToState(oldState, message.id, reactions)
-        );
+        if (message) {
+          setState((oldState) => addMessage(oldState, message));
+  
+          setState((oldState) => ({
+            ...oldState,
+            isMessageFromSelf: link.author === agent.did,
+          }));
+  
+          const reactions = await getReactions({
+            url: link.data.target,
+            perspectiveUuid,
+          });
+  
+          setState((oldState) =>
+            addReactionToState(oldState, message.id, reactions)
+          );
+        }
       }
     }
 
