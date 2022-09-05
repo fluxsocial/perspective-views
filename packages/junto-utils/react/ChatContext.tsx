@@ -100,7 +100,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   const messages = sortExpressionsByTimestamp(state.keyedMessages, "asc");
 
   useEffect(() => {
-    if (channelId && !ranOnce.current) {
+    if (perspectiveUuid && channelId) {
       dexieUI.get("scroll-position").then((position) => {
         setState((oldState) => ({
           ...oldState,
@@ -109,20 +109,18 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       });
 
       fetchMessages({ again: false });
-
-      setupSubscribers();
-
-      ranOnce.current = true;
-
-      return () => {
-        linkSubscriberRef.current?.removeListener("link-added", handleLinkAdded);
-        linkSubscriberRef.current?.removeListener(
-          "link-removed",
-          handleLinkRemoved
-        );
-      };
     }
-  }, [perspectiveUuid, channelId, agent, ranOnce.current]);
+  }, [perspectiveUuid, channelId, agent]);
+
+  useEffect(() => {
+    if (perspectiveUuid) {
+      setupSubscribers();
+    }
+
+    return () => {
+      linkSubscriberRef.current?.removeListener('link-added', handleLinkAdded);
+    };
+  }, [perspectiveUuid]);
 
   async function setupSubscribers() {
     linkSubscriberRef.current = await subscribeToLinks({
