@@ -170,11 +170,11 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   }
 
   async function handleLinkAdded(link) {
-    console.log('link', link)
+    console.log('Got message link', link);
     const agent = await getMe();
 
     if (linkIs.message(link)) {
-      if (link.data.source != channelId) {
+      if (link.data.source == channelId) {
         const message = getMessage(link)
 
         if (message) {
