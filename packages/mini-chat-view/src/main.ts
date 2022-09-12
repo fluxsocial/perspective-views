@@ -10,7 +10,7 @@ import MyComponent from "./App";
 
 const CustomElement = register.toCustomElement(
   MyComponent,
-  ["perspective-uuid", "port"],
+  ["perspective-uuid", "port", "channel"],
   { shadow: false }
 );
 
