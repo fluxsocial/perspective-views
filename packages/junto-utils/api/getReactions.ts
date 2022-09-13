@@ -1,4 +1,5 @@
 import { LinkQuery } from "@perspect3vism/ad4m";
+import { REACTION } from "../constants/ad4m";
 import retry from "../helpers/retry";
 import ad4mClient from "./client";
 
@@ -17,9 +18,9 @@ export default async function ({
         perspectiveUuid,
         new LinkQuery({
           source: url,
-          predicate: "sioc://reaction_to",
+          predicate: REACTION,
         })
-    )}, { defaultValue: [] });
+    )}, { defaultValue: [] }) as any[];
 
     return reactionLinks;
   } catch (e: any) {

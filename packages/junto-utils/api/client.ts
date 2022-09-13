@@ -3,24 +3,25 @@ import {
   ApolloClient,
   InMemoryCache,
 } from "@apollo/client";
-import { WebSocketLink } from "@apollo/client/link/ws";
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { createClient } from 'graphql-ws';
 
 export function buildAd4mClient() {
-  const port = parseInt(localStorage.getItem('ad4minPort'))
-  const apolloClient = new ApolloClient({
-    link: new WebSocketLink({
-      uri: `ws://localhost:${port}/graphql`,
-      options: {
-        reconnect: true,
-        connectionParams: async () => {
-          return {
-            headers: {
-              authorization: localStorage.getItem("ad4minToken") || "",
-            },
-          };
+  const port = parseInt(localStorage.getItem('ad4minPort')!)
+  const wsLink = new GraphQLWsLink(
+    createClient({
+        url: `ws://localhost:${port}/graphql`,
+        connectionParams: () => {
+            return {
+                headers: {
+                    authorization: localStorage.getItem("ad4minToken") || ""
+                }
+            }
         },
-      },
-    }),
+    }));
+
+  const apolloClient = new ApolloClient({
+    link: wsLink,
     cache: new InMemoryCache({ resultCaching: false, addTypename: false }),
     defaultOptions: {
       watchQuery: { fetchPolicy: "no-cache" },
@@ -28,7 +29,6 @@ export function buildAd4mClient() {
     },
   });
 
-  // @ts-ignore
   return new Ad4mClient(apolloClient);    
 }
 

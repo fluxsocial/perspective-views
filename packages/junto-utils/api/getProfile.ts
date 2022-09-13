@@ -16,6 +16,27 @@ export interface Payload {
   perspectiveUuid: string;
 }
 
+async function getImage(expUrl: string): Promise<string> {
+  return new Promise(async (resolve, reject) => {
+    setTimeout(() => {
+      resolve("");
+    }, 1000);
+
+    try {
+      const image = await ad4mClient.expression.get(expUrl);
+      
+      if (image) {
+        resolve(image.data.slice(1, -1));
+      }
+
+      resolve("")
+    } catch (e) {
+      console.error(e)
+      resolve("");
+    }
+  })
+}
+
 export default async function getProfile(did: string): Promise<any | null> {
   const agentPerspective = await ad4mClient.agent.byDID(did);
   const links = agentPerspective!.perspective!.links;
@@ -50,31 +71,18 @@ export default async function getProfile(did: string): Promise<any | null> {
         break;
       case PROFILE_IMAGE:
         expUrl = link.data.target;
-        image = await ad4mClient.expression.get(expUrl);
+        profile!.profilePicture = await getImage(expUrl);
 
-        if (image) {
-          profile!.profilePicture = image.data.slice(1, -1);
-        }
         break;
       case PROFILE_THUMBNNAIL_IMAGE:
         expUrl = link.data.target;
-        image = await ad4mClient.expression.get(expUrl);
+        profile!.thumbnailPicture = await getImage(expUrl);
 
-        if (image) {
-          if (link.data.source === FLUX_PROFILE) {
-            profile!.thumbnailPicture = image.data.slice(1, -1);
-          }
-        }
         break;
       case BG_IMAGE:
         expUrl = link.data.target;
-        image = await ad4mClient.expression.get(expUrl);
+        profile!.profileBg = await getImage(expUrl);
 
-        if (image) {
-          if (link.data.source === FLUX_PROFILE) {
-            profile!.profileBg = image.data.slice(1, -1);
-          }
-        }
         break;
       case EMAIL:
         profile!.email = link.data.target;

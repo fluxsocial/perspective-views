@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, useRef } from "react";
 import { Messages, Message } from "../types";
-import { Link, LinkExpression, LinkQuery } from "@perspect3vism/ad4m";
+import { Link, LinkExpression, LinkQuery, Literal } from "@perspect3vism/ad4m";
 import getMessages from "../api/getMessages";
 import createMessage from "../api/createMessage";
 import subscribeToLinks from "../api/subscribeToLinks";
@@ -12,14 +12,13 @@ import createMessageReaction from "../api/createMessageReaction";
 import createReply from "../api/createReply";
 import getReactions from "../api/getReactions";
 import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
-import retry from "../helpers/retry";
 import getMe from "../api/getMe";
 import {
   SHORT_FORM_EXPRESSION,
 } from "../helpers/languageHelpers";
-import getReplyTo from "../api/getReplyTo";
 import { DexieMessages, DexieUI } from "../helpers/storageHelpers";
 import ad4mClient from "../api/client";
+import { REACTION } from "../constants/ad4m";
 
 type State = {
   isFetchingMessages: boolean;
@@ -40,7 +39,6 @@ type ContextProps = {
     sendMessage: (message: string) => void;
     saveScrollPos: (pos?: number) => void;
     setHasNewMessage: (value: boolean) => void;
-    getReplyMessage: (url: string) => void;
     setIsMessageFromSelf: (value: boolean) => void;
   };
 };
@@ -62,7 +60,6 @@ const initialState: ContextProps = {
     sendMessage: () => null,
     saveScrollPos: () => null,
     setHasNewMessage: () => null,
-    getReplyMessage: () => null,
     setIsMessageFromSelf: () => null,
   },
 };
@@ -72,32 +69,27 @@ const ChatContext = createContext(initialState);
 let dexieUI: DexieUI;
 let dexieMessages: DexieMessages;
 
-export function ChatProvider({ perspectiveUuid, children }: any) {
+export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   const [shortFormHash, setShortFormHash] = useState("");
   const messageInterval = useRef();
   const linkSubscriberRef = useRef();
 
   const [state, setState] = useState(initialState.state);
   const [agent, setAgent] = useState();
+  const ranOnce = useRef(false);
 
   useEffect(() => {
     fetchAgent();
   }, []);
 
-  async function setCachedMessages() {
-    const cachedMessages = await dexieMessages.getAll();
-    setState({ ...state, keyedMessages: { ...cachedMessages } });
-  }
-
   useEffect(() => {
-    if (perspectiveUuid) {
-      dexieUI = new DexieUI(perspectiveUuid);
-      dexieMessages = new DexieMessages(perspectiveUuid);
+    if (channelId) {
+      dexieUI = new DexieUI(`${perspectiveUuid}://${channelId}`);
+      dexieMessages = new DexieMessages(`${perspectiveUuid}://${channelId}`);
       // Set messages to cached messages
       // so we have something before we load more
-      setCachedMessages();
     }
-  }, [perspectiveUuid]);
+  }, [channelId]);
 
   async function fetchAgent() {
     const agent = await getMe();
@@ -108,29 +100,27 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
   const messages = sortExpressionsByTimestamp(state.keyedMessages, "asc");
 
   useEffect(() => {
-    if (perspectiveUuid) {
-      fetchLanguages();
-
+    if (perspectiveUuid && channelId) {
       dexieUI.get("scroll-position").then((position) => {
         setState((oldState) => ({
           ...oldState,
           scrollPosition: parseInt(position),
         }));
       });
-  
+
       fetchMessages({ again: false });
-  
+    }
+  }, [perspectiveUuid, channelId, agent]);
+
+  useEffect(() => {
+    if (perspectiveUuid) {
       setupSubscribers();
     }
 
     return () => {
-      linkSubscriberRef.current?.removeListener("link-added", handleLinkAdded);
-      linkSubscriberRef.current?.removeListener(
-        "link-removed",
-        handleLinkRemoved
-      );
+      linkSubscriberRef.current?.removeListener('link-added', handleLinkAdded);
     };
-  }, [perspectiveUuid, agent]);
+  }, [perspectiveUuid]);
 
   async function setupSubscribers() {
     linkSubscriberRef.current = await subscribeToLinks({
@@ -138,26 +128,6 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       added: handleLinkAdded,
       removed: handleLinkRemoved,
     });
-  }
-
-  useEffect(() => {
-    if (perspectiveUuid.length > 0) {
-      messageInterval.current = fetchMessagesAgain();
-    }
-
-    return () => {
-      clearInterval(messageInterval.current);
-    };
-  }, [perspectiveUuid, messages]);
-
-  function fetchMessagesAgain() {
-    return setInterval(async () => {
-      await fetchMessages({
-        from: new Date(),
-        to: new Date("August 19, 1975 23:15:30"),
-        again: true,
-      });
-    }, 60000);
   }
 
   useEffect(() => {
@@ -197,47 +167,43 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     return newState;
   }
 
-  function addReplyToState(oldState, messageId, replyUrl) {
-    const newState = {
-      ...oldState,
-      hasNewMessage: false,
-      keyedMessages: {
-        ...oldState.keyedMessages,
-        [messageId]: { ...oldState.keyedMessages[messageId], replyUrl },
-      },
-    };
-    return newState;
-  }
-
   async function handleLinkAdded(link) {
+    console.log('Got message link', link);
+    const agent = await getMe();
+
     if (linkIs.message(link)) {
-      const message = await getMessage(link);
-      if (message) {
-        setState((oldState) => addMessage(oldState, message));
+      if (link.data.source == channelId) {
+        const message = getMessage(link)
 
-        setState((oldState) => ({
-          ...oldState,
-          isMessageFromSelf: link.author === agent.did,
-        }));
-
-        const replyUrl = await getReplyTo({
-          url: message.url,
-          perspectiveUuid,
-        });
-
-        setState((oldState) =>
-          addReplyToState(oldState, link.data.target, replyUrl)
-        );
-
-        const reactions = await getReactions({
-          url: link.data.target,
-          perspectiveUuid,
-        });
-
-        setState((oldState) =>
-          addReactionToState(oldState, message.id, reactions)
-        );
+        if (message) {
+          setState((oldState) => addMessage(oldState, message));
+  
+          setState((oldState) => ({
+            ...oldState,
+            isMessageFromSelf: link.author === agent.did,
+          }));
+  
+          const reactions = await getReactions({
+            url: link.data.target,
+            perspectiveUuid,
+          });
+  
+          setState((oldState) =>
+            addReactionToState(oldState, message.id, reactions)
+          );
+        }
       }
+    }
+
+    if (linkIs.reply(link)) {
+      const message = getMessage(link)
+
+      setState((oldState) => addMessage(oldState, message));
+
+      setState((oldState) => ({
+        ...oldState,
+        isMessageFromSelf: link.author === agent.did,
+      }));
     }
 
     if (linkIs.reaction(link)) {
@@ -249,8 +215,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
         if (message) {
           const linkFound = message.reactions.find(
             (e) =>
-              e.data.source === link.data.source &&
-              e.data.target === link.data.target &&
+              e.reaction === link.data.target &&
               e.author === link.author
           );
 
@@ -262,7 +227,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
               ...oldState.keyedMessages,
               [id]: {
                 ...message,
-                reactions: [...message.reactions, { ...link }],
+                reactions: [...message.reactions, { author: link.author, reaction: link.data.target, timestamp: link.timestamp }],
               },
             },
           };
@@ -277,7 +242,7 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     console.log("handle link removed", link);
     //TODO: link.proof.valid === false when we recive
     // the remove link somehow. Ad4m bug?
-    if (link.data.predicate === "sioc://reaction_to") {
+    if (link.data.predicate === REACTION) {
       const id = link.data.source;
 
       setState((oldState) => {
@@ -290,46 +255,15 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
             [id]: {
               ...message,
               reactions: message.reactions.filter(
-                (reaction) => reaction.proof.signature !== link.proof.signature
+                (e) =>
+                e.reaction !== link.data.target &&
+                e.author === link.author
               ),
             },
           },
         };
       });
     }
-  }
-
-  async function getReplyMessage(url: string) {
-    const replyMessage = state.keyedMessages[url];
-    if (!replyMessage && url) {
-      try {
-        const expression = await retry(async () => {
-          const expression = await ad4mClient.expression.get(url);
-          return { ...expression, data: JSON.parse(expression.data) };
-        }, {});
-
-        if (!expression) {
-          console.log("No Expression found for the reply");
-          return null;
-        }
-
-        const message = {
-          id: url,
-          timestamp: expression.timestamp,
-          url: url,
-          author: expression.author,
-          reactions: [],
-          replyUrl: null,
-          content: expression.data.body,
-        };
-
-        return message as Message;
-      } catch (e) {
-        throw new Error(e);
-      }
-    }
-
-    return replyMessage;
   }
 
   async function fetchMessages(payload?: {
@@ -343,14 +277,13 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       isFetchingMessages: true,
     }));
 
-    const cachedMessages = await dexieMessages.getAll();
-    const oldMessages = { 
-      ...state.keyedMessages, 
-      ...cachedMessages 
+    const oldMessages = {
+      ...state.keyedMessages,
     };
 
     const {keyedMessages: newMessages, expressionLinkLength} = await getMessages({
       perspectiveUuid,
+      channelId,
       from: payload?.from,
       to: payload?.to,
     });
@@ -358,7 +291,6 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
     setState((oldState) => ({
       ...oldState,
       keyedMessages: {
-        ...cachedMessages,
         ...oldState.keyedMessages,
         ...newMessages,
       },
@@ -369,75 +301,22 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
       showLoadMore: expressionLinkLength === 35,
       isFetchingMessages: false,
     }));
-
-    const messages = {
-      ...cachedMessages,
-      ...state.keyedMessages,
-      ...newMessages,
-    };
-
-    if (payload.again) {
-      for (const [key, message] of Object.entries(newMessages)) {
-        const url = (message as any).id;
-        if (!oldMessages[key]) {
-          const replyUrl = await getReplyTo({
-            url,
-            perspectiveUuid,
-          });
-
-          setState((oldState) => addReplyToState(oldState, url, replyUrl));
-
-          const reactions = await getReactions({
-            url,
-            perspectiveUuid,
-          });
-
-          setState((oldState) => addReactionToState(oldState, url, reactions));
-        } else {
-          const reactions = oldMessages[key]["reactions"];
-          const replyUrl = oldMessages[key]["replyUrl"];
-          setState((oldState) => addReactionToState(oldState, url, reactions));
-          setState((oldState) => addReplyToState(oldState, url, replyUrl));
-        }
-      }
-    } else {
-      for (const message of Object.values(messages)) {
-        const url = (message as any).id;
-
-        const replyUrl = await getReplyTo({
-          url,
-          perspectiveUuid,
-        });
-
-        setState((oldState) => addReplyToState(oldState, url, replyUrl));
-
-        const reactions = await getReactions({
-          url,
-          perspectiveUuid,
-        });
-
-        setState((oldState) => addReactionToState(oldState, url, reactions));
-      }
-    }
   }
 
   async function sendMessage(value) {
-    // TODO: Why is sendMessage initialized with old shortformhas value
-    const { languages } = await getPerspectiveMeta(perspectiveUuid);
-
     createMessage({
       perspectiveUuid,
-      languageAddress: languages[SHORT_FORM_EXPRESSION],
-      message: { background: [""], body: value },
+      lastMessage: channelId,
+      message: value,
     });
   }
 
   async function sendReply(message: string, replyUrl: string) {
     return createReply({
       perspectiveUuid: perspectiveUuid,
-      languageAddress: shortFormHash,
-      message: { background: [""], body: message },
+      message: message,
       replyUrl,
+      channelId
     });
   }
 
@@ -500,7 +379,6 @@ export function ChatProvider({ perspectiveUuid, children }: any) {
           removeReaction,
           saveScrollPos,
           setHasNewMessage,
-          getReplyMessage,
           setIsMessageFromSelf,
         },
       }}

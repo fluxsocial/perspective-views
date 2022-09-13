@@ -12,8 +12,9 @@ const ReactHint = ReactHintFactory({ createElement: h, Component, createRef });
 import "react-hint/css/index.css";
 import styles from "./index.scss";
 import { Reaction } from "junto-utils/types";
+import { REACTION } from "junto-utils/constants/ad4m";
 
-export default function MessageList({ perspectiveUuid, mainRef }) {
+export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
   const emojiPicker = useRef(document.createElement("emoji-picker"));
   const [atBottom, setAtBottom] = useState(true);
   const [initialScroll, setinitialScroll] = useState(false);
@@ -51,7 +52,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
     if (atBottom && hasNewMessage) {
       scrollToBottom();
       const event = new CustomEvent("hide-notification-indicator", {
-        detail: { uuid: perspectiveUuid },
+        detail: { uuid: channelId },
         bubbles: true,
       });
       mainRef?.dispatchEvent(event);
@@ -62,7 +63,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
     if (isMessageFromSelf) {
       scrollToBottom();
       const event = new CustomEvent("hide-notification-indicator", {
-        detail: { uuid: perspectiveUuid },
+        detail: { uuid: channelId },
         bubbles: true,
       });
       mainRef?.dispatchEvent(event);
@@ -72,7 +73,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
   useEffect(() => {
     if (atBottom) {
       const event = new CustomEvent("hide-notification-indicator", {
-        detail: { uuid: perspectiveUuid },
+        detail: { uuid: channelId },
         bubbles: true,
       });
       mainRef?.dispatchEvent(event);
@@ -130,13 +131,27 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
     const me = await getMe();
 
     const alreadyMadeReaction = message.reactions.find((reaction: Reaction) => {
-      return reaction.author === me.did && reaction.data.target === unicode;
+      return reaction.author === me.did && reaction.reaction === unicode;
     });
 
     if (alreadyMadeReaction) {
-      removeReaction(alreadyMadeReaction);
+      removeReaction({
+        author: alreadyMadeReaction.author,
+        data: {
+          predicate: REACTION,
+          target: alreadyMadeReaction.reaction,
+          source: message.id
+        },
+        proof: {
+          invalid: false,
+          key: "",
+          signature: "",
+          valid: true
+        },
+        timestamp: alreadyMadeReaction.timestamp
+      });
     } else {
-      addReaction(message.url, unicode);
+      addReaction(message.id, unicode);
     }
   }
 

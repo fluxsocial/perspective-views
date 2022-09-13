@@ -4,12 +4,12 @@ import styles from "./index.scss";
 
 function sortReactions(reactions) {
   const mapped = reactions.reduce((acc: any, reaction: any) => {
-    const previous = acc[reaction.data.target] || { authors: [], count: 0 };
+    const previous = acc[reaction.reaction] || { authors: [], count: 0 };
     return {
       ...acc,
-      [reaction.data.target]: {
+      [reaction.reaction]: {
         authors: [...previous.authors, reaction.author],
-        content: reaction.data.target,
+        content: reaction.reaction,
         count: previous.count + 1,
       },
     };

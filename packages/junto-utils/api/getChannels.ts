@@ -1,7 +1,5 @@
-import { LinkQuery } from "@perspect3vism/ad4m";
-import getPerspectiveMeta from "./getPerspectiveMeta";
-import { findLink } from "../helpers/linkHelpers";
-import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
+import { LinkExpression, LinkQuery } from "@perspect3vism/ad4m";
+import { CHANNEL, SELF } from "../constants/ad4m";
 import retry from "../helpers/retry";
 import ad4mClient from "./client";
 
@@ -12,38 +10,29 @@ export interface Payload {
 
 export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
   try {
-    const home = await getPerspectiveMeta(perspectiveUuid)
     const expressionLinks = await retry(async () => {
       return await ad4mClient.perspective.queryLinks(
         perspectiveUuid,
         new LinkQuery({
-          source: neighbourhoodUrl!,
-          predicate: "sioc://has_space",
+          source: SELF,
+          predicate: CHANNEL,
         })
     )}, { defaultValue: [] });
 
-    const all = await ad4mClient.perspective.all();
 
-    const linkPromises = expressionLinks.map(async (link) => {
-      const neighbourhood = all.find(e => e.sharedUrl === link.data.target);
-      const links = ((neighbourhood.neighbourhood as any).meta.links as Array<any>) || [];
-      const languageLinks = links.filter(findLink.language);
-      const langs = await getMetaFromLinks(languageLinks);
-    
-      return {
-        name: links.find(findLink.name).data.target,
-        description: links.find(findLink.description).data.target,
-        languages: keyedLanguages(langs),
-        url: neighbourhood.sharedUrl || "",
-        id: neighbourhood.uuid
-      };
-    });
+    const channels: {[x: string]: any} = {}
 
-    const channels = await Promise.all(linkPromises);
-    
-    return channels.reduce((acc, channel) => {
-      return { ...acc, [channel.id]: channel };
-    }, {[perspectiveUuid]: home});
+    for (const channel of expressionLinks as LinkExpression[]) {
+      const name = channel.data.target;
+      channels[name] = {
+        id: name,
+        name,
+        creatorDid: channel.author,
+      }
+    }
+
+
+    return channels;
   } catch (e) {
     throw new Error(e);
   }
