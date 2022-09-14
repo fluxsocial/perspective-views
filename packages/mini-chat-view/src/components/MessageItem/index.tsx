@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import { ChatContext, PerspectiveContext } from "junto-utils/react";
-import { Reaction } from "junto-utils/types";
+import { Message, Reaction } from "junto-utils/types";
 import getMe from "junto-utils/api/getMe";
 
 import MessageToolbar from "./MessageToolbar";
@@ -49,18 +49,18 @@ export default function MessageItem({
     methods: { setCurrentReply },
   } = useContext(UIContext);
 
-  const message = messages[index];
+  const message: Message = messages[index];
 
   function onReplyClick() {
-    console.log('message', message)
     setCurrentReply(message.id);
   }
 
-  async function onEmojiClick(unicode: string) {
+  async function onEmojiClick(utf: string) {
     const me = await getMe();
 
-    const alreadyMadeReaction = message.reactions.find((reaction: Reaction) => {
-      return reaction.author === me.did && reaction.reaction === unicode;
+    const alreadyMadeReaction = message.reactions.find((reaction) => {
+      console.log({ reaction });
+      return reaction.author === me.did && reaction.content === utf;
     });
 
     if (alreadyMadeReaction) {
@@ -68,19 +68,19 @@ export default function MessageItem({
         author: alreadyMadeReaction.author,
         data: {
           predicate: REACTION,
-          target: alreadyMadeReaction.reaction,
-          source: message.id
+          target: alreadyMadeReaction.content,
+          source: message.id,
         },
         proof: {
           invalid: false,
           key: "",
           signature: "",
-          valid: true
+          valid: true,
         },
-        timestamp: alreadyMadeReaction.timestamp
+        timestamp: alreadyMadeReaction.timestamp,
       });
     } else {
-      addReaction(message.id, unicode);
+      addReaction(message.id, utf);
     }
   }
 
