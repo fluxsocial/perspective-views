@@ -56,10 +56,11 @@ export default function MessageItem({
   }
 
   async function onEmojiClick(utf: string) {
+    console.log({ utf });
     const me = await getMe();
 
     const alreadyMadeReaction = message.reactions.find((reaction) => {
-      console.log({ reaction });
+      console.log({ reaction, utf });
       return reaction.author === me.did && reaction.content === utf;
     });
 

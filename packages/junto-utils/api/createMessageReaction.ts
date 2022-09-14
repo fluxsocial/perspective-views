@@ -18,7 +18,7 @@ export default async function ({
       perspectiveUuid,
       new Link({
         source: messageUrl,
-        target: reaction.codePointAt(0).toString(16),
+        target: reaction,
         predicate: REACTION,
       })
     );

@@ -221,6 +221,8 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
             (e) => e.content === link.data.target && e.author === link.author
           );
 
+          console.log({ linkFound, link, message });
+
           if (linkFound) return oldState;
 
           return {
@@ -248,7 +250,6 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   }
 
   async function handleLinkRemoved(link) {
-    console.log("handle link removed", link);
     //TODO: link.proof.valid === false when we recive
     // the remove link somehow. Ad4m bug?
     if (link.data.predicate === REACTION) {
@@ -256,6 +257,8 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
 
       setState((oldState) => {
         const message: Message = oldState.keyedMessages[id];
+
+        if (!message) return oldState;
 
         return {
           ...oldState,
