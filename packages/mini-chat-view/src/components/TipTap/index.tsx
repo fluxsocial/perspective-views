@@ -178,7 +178,7 @@ export default function Tiptap({
     if (currentReply) {
       editor.commands.focus();
     }
-  }, [currentReply])
+  }, [currentReply]);
 
   function onEmojiClick(event: CustomEvent) {
     if (editor) {
@@ -206,33 +206,6 @@ export default function Tiptap({
 
   return (
     <div class={styles.editor}>
-      <div class={styles.editorWrapper}>
-        <EditorContent class={styles.editorContent} editor={editor} />
-        <j-flex>
-          <j-popover placement="top">
-            <j-button slot="trigger" variant="ghost" size="sm">
-              <j-icon size="sm" name="emoji-smile"></j-icon>
-            </j-button>
-            <div slot="content">
-              <emoji-picker ref={emojiPicker} onEmojiClick={onEmojiClick} />
-            </div>
-          </j-popover>
-          <j-button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowToolbar(!showToolbar)}
-          >
-            <j-icon size="sm" name="type"></j-icon>
-          </j-button>
-          <j-button
-            onClick={() => sendCB.current(editor.getHTML())}
-            variant="primary"
-            size="sm"
-          >
-            <j-icon name="arrow-right-short"></j-icon>
-          </j-button>
-        </j-flex>
-      </div>
       {showToolbar && (
         <div>
           <j-button
@@ -297,6 +270,35 @@ export default function Tiptap({
           </j-button>
         </div>
       )}
+      <div class={styles.editorWrapper}>
+        <EditorContent class={styles.editorContent} editor={editor} />
+        <j-flex>
+          <j-popover placement="top">
+            <j-button slot="trigger" variant="ghost" size="sm">
+              <j-icon size="sm" name="emoji-smile"></j-icon>
+            </j-button>
+            <div slot="content">
+              <emoji-picker ref={emojiPicker} onEmojiClick={onEmojiClick} />
+            </div>
+          </j-popover>
+          <j-button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowToolbar(!showToolbar)}
+          >
+            <j-icon size="sm" name="type"></j-icon>
+          </j-button>
+          <j-button
+            onClick={() => sendCB.current(editor.getHTML())}
+            variant="primary"
+            size="sm"
+            square
+            circle
+          >
+            <j-icon size="sm" name="send"></j-icon>
+          </j-button>
+        </j-flex>
+      </div>
     </div>
   );
 }
