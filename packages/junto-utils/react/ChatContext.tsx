@@ -123,6 +123,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
 
     return () => {
       linkSubscriberRef.current?.removeListener("link-added", handleLinkAdded);
+      linkSubscriberRef.current?.removeListener("link-removed", handleLinkAdded);
     };
   }, [perspectiveUuid]);
 
