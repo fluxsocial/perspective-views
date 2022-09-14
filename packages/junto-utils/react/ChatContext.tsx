@@ -1,4 +1,10 @@
-import React, { createContext, useState, useEffect, useContext, useRef } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useRef,
+} from "react";
 import { Messages, Message } from "../types";
 import { Link, LinkExpression, LinkQuery, Literal } from "@perspect3vism/ad4m";
 import getMessages from "../api/getMessages";
@@ -13,9 +19,7 @@ import createReply from "../api/createReply";
 import getReactions from "../api/getReactions";
 import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
 import getMe from "../api/getMe";
-import {
-  SHORT_FORM_EXPRESSION,
-} from "../helpers/languageHelpers";
+import { SHORT_FORM_EXPRESSION } from "../helpers/languageHelpers";
 import { DexieMessages, DexieUI } from "../helpers/storageHelpers";
 import ad4mClient from "../api/client";
 import { REACTION } from "../constants/ad4m";
@@ -50,7 +54,7 @@ const initialState: ContextProps = {
     scrollPosition: 0,
     hasNewMessage: false,
     isMessageFromSelf: false,
-    showLoadMore: true
+    showLoadMore: true,
   },
   methods: {
     loadMore: () => null,
@@ -118,7 +122,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     }
 
     return () => {
-      linkSubscriberRef.current?.removeListener('link-added', handleLinkAdded);
+      linkSubscriberRef.current?.removeListener("link-added", handleLinkAdded);
     };
   }, [perspectiveUuid]);
 
@@ -168,26 +172,26 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   }
 
   async function handleLinkAdded(link) {
-    console.log('Got message link', link);
+    console.log("Got message link", link);
     const agent = await getMe();
 
     if (linkIs.message(link)) {
       if (link.data.source == channelId) {
-        const message = getMessage(link)
+        const message = getMessage(link);
 
         if (message) {
           setState((oldState) => addMessage(oldState, message));
-  
+
           setState((oldState) => ({
             ...oldState,
             isMessageFromSelf: link.author === agent.did,
           }));
-  
+
           const reactions = await getReactions({
             url: link.data.target,
             perspectiveUuid,
           });
-  
+
           setState((oldState) =>
             addReactionToState(oldState, message.id, reactions)
           );
@@ -196,7 +200,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     }
 
     if (linkIs.reply(link)) {
-      const message = getMessage(link)
+      const message = getMessage(link);
 
       setState((oldState) => addMessage(oldState, message));
 
@@ -210,13 +214,11 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       const id = link.data.source;
 
       setState((oldState) => {
-        const message = oldState.keyedMessages[id];
+        const message: Message = oldState.keyedMessages[id];
 
         if (message) {
           const linkFound = message.reactions.find(
-            (e) =>
-              e.reaction === link.data.target &&
-              e.author === link.author
+            (e) => e.content === link.data.target && e.author === link.author
           );
 
           if (linkFound) return oldState;
@@ -227,7 +229,14 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
               ...oldState.keyedMessages,
               [id]: {
                 ...message,
-                reactions: [...message.reactions, { author: link.author, reaction: link.data.target, timestamp: link.timestamp }],
+                reactions: [
+                  ...message.reactions,
+                  {
+                    author: link.author,
+                    content: link.data.target,
+                    timestamp: link.timestamp,
+                  },
+                ],
               },
             },
           };
@@ -246,7 +255,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       const id = link.data.source;
 
       setState((oldState) => {
-        const message = oldState.keyedMessages[id];
+        const message: Message = oldState.keyedMessages[id];
 
         return {
           ...oldState,
@@ -256,8 +265,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
               ...message,
               reactions: message.reactions.filter(
                 (e) =>
-                e.reaction !== link.data.target &&
-                e.author === link.author
+                  e.content !== link.data.target && e.author === link.author
               ),
             },
           },
@@ -271,7 +279,12 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     to?: Date;
     again: boolean;
   }) {
-    console.log("Fetch messages with from: ", payload.from, "and to: ", payload.to);
+    console.log(
+      "Fetch messages with from: ",
+      payload.from,
+      "and to: ",
+      payload.to
+    );
     setState((oldState) => ({
       ...oldState,
       isFetchingMessages: true,
@@ -281,12 +294,13 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       ...state.keyedMessages,
     };
 
-    const {keyedMessages: newMessages, expressionLinkLength} = await getMessages({
-      perspectiveUuid,
-      channelId,
-      from: payload?.from,
-      to: payload?.to,
-    });
+    const { keyedMessages: newMessages, expressionLinkLength } =
+      await getMessages({
+        perspectiveUuid,
+        channelId,
+        from: payload?.from,
+        to: payload?.to,
+      });
 
     setState((oldState) => ({
       ...oldState,
@@ -316,7 +330,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       perspectiveUuid: perspectiveUuid,
       message: message,
       replyUrl,
-      channelId
+      channelId,
     });
   }
 
