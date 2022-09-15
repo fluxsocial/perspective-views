@@ -7,10 +7,9 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
 
 export function buildAd4mClient() {
-  const port = parseInt(localStorage.getItem('ad4minPort')!)
   const wsLink = new GraphQLWsLink(
     createClient({
-        url: `ws://localhost:${port}/graphql`,
+        url: localStorage.getItem('ad4minURL')!,
         connectionParams: () => {
             return {
                 headers: {
