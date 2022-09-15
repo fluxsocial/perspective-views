@@ -260,15 +260,21 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
 
         if (!message) return oldState;
 
+        function filterReactions(reaction, link) {
+          const isSameAuthor = reaction.author === link.author;
+          const isSameAuthorAndContent =
+            isSameAuthor && reaction.content === link.data.target;
+          return isSameAuthorAndContent ? false : true;
+        }
+
         return {
           ...oldState,
           keyedMessages: {
             ...oldState.keyedMessages,
             [id]: {
               ...message,
-              reactions: message.reactions.filter(
-                (e) =>
-                  e.content !== link.data.target && e.author === link.author
+              reactions: message.reactions.filter((e) =>
+                filterReactions(e, link)
               ),
             },
           },
