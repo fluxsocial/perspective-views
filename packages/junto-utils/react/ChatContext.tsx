@@ -2,26 +2,23 @@ import React, {
   createContext,
   useState,
   useEffect,
-  useContext,
   useRef,
 } from "react";
 import { Messages, Message } from "../types";
-import { Link, LinkExpression, LinkQuery, Literal } from "@perspect3vism/ad4m";
+import { LinkExpression } from "@perspect3vism/ad4m";
 import getMessages from "../api/getMessages";
 import createMessage from "../api/createMessage";
 import subscribeToLinks from "../api/subscribeToLinks";
 import getPerspectiveMeta from "../api/getPerspectiveMeta";
 import getMessage from "../api/getMessage";
-import { findLink, linkIs } from "../helpers/linkHelpers";
+import { linkIs } from "../helpers/linkHelpers";
 import deleteMessageReaction from "../api/deleteMessageReaction";
 import createMessageReaction from "../api/createMessageReaction";
 import createReply from "../api/createReply";
-import getReactions from "../api/getReactions";
 import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
 import getMe from "../api/getMe";
 import { SHORT_FORM_EXPRESSION } from "../helpers/languageHelpers";
 import { DexieMessages, DexieUI } from "../helpers/storageHelpers";
-import ad4mClient from "../api/client";
 import { REACTION } from "../constants/ad4m";
 
 type State = {
@@ -187,15 +184,6 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
             ...oldState,
             isMessageFromSelf: link.author === agent.did,
           }));
-
-          const reactions = await getReactions({
-            url: link.data.target,
-            perspectiveUuid,
-          });
-
-          setState((oldState) =>
-            addReactionToState(oldState, message.id, reactions)
-          );
         }
       }
     }
