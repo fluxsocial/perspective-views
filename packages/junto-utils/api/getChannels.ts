@@ -10,15 +10,16 @@ export interface Payload {
 export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
   try {
     const expressionLinks = await ad4mClient.perspective.queryProlog(perspectiveUuid, `link("${SELF}", "${CHANNEL}", C, T, A).`);
-
     const channels: {[x: string]: any} = {}
 
-    for (const channel of expressionLinks as LinkExpression[]) {
-      const name = channel.C;
-      channels[name] = {
-        id: name,
-        name,
-        creatorDid: channel.A,
+    if (expressionLinks) {
+      for (const channel of expressionLinks as LinkExpression[]) {
+        const name = channel.C;
+        channels[name] = {
+          id: name,
+          name,
+          creatorDid: channel.A,
+        }
       }
     }
 
