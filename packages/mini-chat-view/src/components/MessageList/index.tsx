@@ -1,4 +1,3 @@
-
 import { useState, useContext, useRef, useEffect } from "preact/hooks";
 import { ChatContext } from "junto-utils/react";
 import MessageItem from "../MessageItem";
@@ -21,14 +20,21 @@ export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
   const scroller = useRef();
 
   const {
-    state: { messages, isFetchingMessages, scrollPosition, hasNewMessage, isMessageFromSelf, showLoadMore },
+    state: {
+      messages,
+      isFetchingMessages,
+      scrollPosition,
+      hasNewMessage,
+      isMessageFromSelf,
+      showLoadMore,
+    },
     methods: {
       loadMore,
       removeReaction,
       addReaction,
       saveScrollPos,
       setHasNewMessage,
-      setIsMessageFromSelf
+      setIsMessageFromSelf,
     },
   } = useContext(ChatContext);
 
@@ -125,13 +131,15 @@ export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
 
   async function onEmojiClick(e: any) {
     const unicode = e.detail.unicode;
+    const utf = unicode.codePointAt(0).toString(16);
+
     const index = e.target.getAttribute("message-index");
     const message = messages[parseInt(index)];
 
     const me = await getMe();
 
     const alreadyMadeReaction = message.reactions.find((reaction: Reaction) => {
-      return reaction.author === me.did && reaction.reaction === unicode;
+      return reaction.author === me.did && reaction.content === utf;
     });
 
     if (alreadyMadeReaction) {
@@ -139,26 +147,26 @@ export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
         author: alreadyMadeReaction.author,
         data: {
           predicate: REACTION,
-          target: alreadyMadeReaction.reaction,
-          source: message.id
+          target: alreadyMadeReaction.content,
+          source: message.id,
         },
         proof: {
           invalid: false,
           key: "",
           signature: "",
-          valid: true
+          valid: true,
         },
-        timestamp: alreadyMadeReaction.timestamp
+        timestamp: alreadyMadeReaction.timestamp,
       });
     } else {
-      addReaction(message.id, unicode);
+      addReaction(message.id, utf);
     }
   }
 
   const rangeChanged = ({ startIndex }) => {
     if (typeof startIndex === "number" && initialScroll) {
       saveScrollPos(startIndex);
-      setIsMessageFromSelf(false)
+      setIsMessageFromSelf(false);
     }
   };
 
@@ -175,27 +183,29 @@ export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
       )}
       <Virtuoso
         components={{
-          Header: () => (
-            showLoadMore ? (<j-box py="500">
-              <j-flex a="center" j="center">
-                {isFetchingMessages ? (
-                  <j-flex a="center" gap="300">
-                    <span>Loading</span>
-                    <j-spinner size="xxs"></j-spinner>
-                  </j-flex>
-                ) : (
-                  <j-button size="sm" onClick={loadMore} variant="subtle">
-                    Load more
-                  </j-button>
-                )}
-              </j-flex>
-            </j-box>) : (
-            <j-box py="500">
-              <j-flex a="center" j="center">
-                <j-text>You have reached the end...</j-text>
-              </j-flex>
-            </j-box>)
-          ),
+          Header: () =>
+            showLoadMore ? (
+              <j-box py="500">
+                <j-flex a="center" j="center">
+                  {isFetchingMessages ? (
+                    <j-flex a="center" gap="300">
+                      <span>Loading</span>
+                      <j-spinner size="xxs"></j-spinner>
+                    </j-flex>
+                  ) : (
+                    <j-button size="sm" onClick={loadMore} variant="subtle">
+                      Load more
+                    </j-button>
+                  )}
+                </j-flex>
+              </j-box>
+            ) : (
+              <j-box py="500">
+                <j-flex a="center" j="center">
+                  <j-text>You have reached the end...</j-text>
+                </j-flex>
+              </j-box>
+            ),
         }}
         ref={scroller}
         alignToBottom
