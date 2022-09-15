@@ -1,6 +1,5 @@
-import { LinkExpression, LinkQuery } from "@perspect3vism/ad4m";
+import { LinkExpression } from "@perspect3vism/ad4m";
 import { CHANNEL, SELF } from "../constants/ad4m";
-import retry from "../helpers/retry";
 import ad4mClient from "./client";
 
 export interface Payload {
@@ -10,27 +9,18 @@ export interface Payload {
 
 export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
   try {
-    const expressionLinks = await retry(async () => {
-      return await ad4mClient.perspective.queryLinks(
-        perspectiveUuid,
-        new LinkQuery({
-          source: SELF,
-          predicate: CHANNEL,
-        })
-    )}, { defaultValue: [] });
-
+    const expressionLinks = await ad4mClient.perspective.queryProlog(perspectiveUuid, `link("${SELF}", "${CHANNEL}", C, T, A).`);
 
     const channels: {[x: string]: any} = {}
 
     for (const channel of expressionLinks as LinkExpression[]) {
-      const name = channel.data.target;
+      const name = channel.C;
       channels[name] = {
         id: name,
         name,
-        creatorDid: channel.author,
+        creatorDid: channel.A,
       }
     }
-
 
     return channels;
   } catch (e) {
