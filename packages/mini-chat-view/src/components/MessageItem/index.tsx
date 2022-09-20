@@ -10,6 +10,7 @@ import UIContext from "../../context/UIContext";
 import styles from "./index.scss";
 import { format, formatRelative } from "date-fns/esm";
 import { REACTION } from "junto-utils/constants/ad4m";
+import Skeleton from "../Skeleton";
 
 type timeOptions = {
   dateStyle?: string;
@@ -166,15 +167,17 @@ export default function MessageItem({
               class={styles.messageFlex}
               onClick={() => onProfileClick(replyAuthor?.did)}
             >
-              <j-avatar
+              {replyAuthor?.did ? <j-avatar
                 class={styles.messageAvatar}
                 style="--j-avatar-size: 20px"
                 src={replyAuthor?.thumbnailPicture}
                 hash={replyAuthor?.did}
-              ></j-avatar>
-              <div class={styles.messageUsernameNoMargin}>
+              ></j-avatar> : <Skeleton variant="circle" width={20} height={20} />}
+              {replyAuthor.username ? <div class={styles.messageUsernameNoMargin}>
                 {replyAuthor?.username}
-              </div>
+              </div> : <div style={{marginBottom: 5}}>
+              <Skeleton width={60} height={20} />
+            </div>}
             </div>
             <div
               class={styles.replyContent}
@@ -186,12 +189,12 @@ export default function MessageItem({
       <div>
         {replyMessage || showAvatar ? (
           <j-flex>
-            <j-avatar
+            {author?.did ? <j-avatar
               class={styles.messageAvatar}
               src={author?.thumbnailPicture}
               hash={author?.did}
               onClick={() => onProfileClick(author?.did)}
-            ></j-avatar>
+            ></j-avatar> : <Skeleton variant="circle" width={42} height={42} />}
           </j-flex>
         ) : (
           <small
@@ -209,12 +212,15 @@ export default function MessageItem({
       <div>
         {(replyMessage || showAvatar) && (
           <header class={styles.messageItemHeader}>
-            <div
+            {author?.username ? <div
               onClick={() => onProfileClick(author?.did)}
               class={styles.messageUsername}
             >
               {author?.username}
-            </div>
+            </div> : 
+            <div style={{marginBottom: 5}}>
+              <Skeleton width={60} height={20} />
+            </div> }
             <small
               class={styles.timestamp}
               data-rh
