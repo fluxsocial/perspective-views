@@ -14,7 +14,8 @@ import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
 import getMe from "../api/getMe";
 import { SHORT_FORM_EXPRESSION } from "../helpers/languageHelpers";
 import { DexieMessages, DexieUI } from "../helpers/storageHelpers";
-import { REACTION } from "../constants/ad4m";
+import { DIRECTLY_SUCCEEDED_BY, REACTION } from "../constants/ad4m";
+import ad4mClient from "../api/client";
 
 type State = {
   isFetchingMessages: boolean;
@@ -172,7 +173,8 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     const agent = await getMe();
 
     if (linkIs.message(link)) {
-      if (link.data.source === channelId) {
+      const isSameChannel = await ad4mClient.perspective.queryProlog(perspectiveUuid, `triple("${channelId}", "${DIRECTLY_SUCCEEDED_BY}", "${link.data.target}").`);
+      if (isSameChannel) {
         const message = getMessage(link);
 
         if (message) {
@@ -187,11 +189,12 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     }
 
     if (linkIs.reply(link)) {
-      if (link.data.source === channelId) {
+      const isSameChannel = await ad4mClient.perspective.queryProlog(perspectiveUuid, `triple("${channelId}", "${DIRECTLY_SUCCEEDED_BY}", "${link.data.source}").`);
+      if (isSameChannel) {
         const message = getMessage(link);
 
         setState((oldState) => addMessage(oldState, message));
-
+  
         setState((oldState) => ({
           ...oldState,
           isMessageFromSelf: link.author === agent.did,

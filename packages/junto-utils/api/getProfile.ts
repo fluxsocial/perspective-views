@@ -9,6 +9,8 @@ import {
   BG_IMAGE,
   BIO,
 } from "../constants/profile";
+import { DexieProfile } from "../helpers/storageHelpers";
+import { Profile } from "../types";
 import ad4mClient from "./client";
 
 export interface Payload {
@@ -41,6 +43,16 @@ export default async function getProfile(did: string): Promise<any | null> {
   const agentPerspective = await ad4mClient.agent.byDID(did);
   const links = agentPerspective!.perspective!.links;
 
+  var communityId = window.location.pathname.split('/')[2];
+
+  const dexie = new DexieProfile(`${communityId}://profile`, 1);
+
+  let cachedProfile = await dexie.get(did);
+
+  if (cachedProfile) {
+    return cachedProfile as Profile;
+  }
+
   const profile: any = {
     username: "",
     bio: "",
@@ -50,6 +62,7 @@ export default async function getProfile(did: string): Promise<any | null> {
     thumbnailPicture: "",
     givenName: "",
     familyName: "",
+    did,
   };
 
   for (const link of links.filter((e) => e.data.source === FLUX_PROFILE)) {
@@ -92,5 +105,7 @@ export default async function getProfile(did: string): Promise<any | null> {
     }
   }
 
-  return { ...profile, did };
+  dexie.save(did, profile);
+
+  return profile;
 }
