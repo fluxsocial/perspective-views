@@ -49,18 +49,20 @@ export default async function ({
         let replies = [];
         if (typeof message.Replies != "string") {
           if (message.Replies.head) {
+            const literal = Literal.fromUrl(message.Replies.head.args[0]).get();
             replies.push({
-              content: Literal.fromUrl(message.Replies.head.args[0]).get().data,
+              content: literal.data,
               timestamp: new Date(message.Replies.head.args[1].args[0]),
-              author: message.Replies.head.args[1].args[1],
+              author: literal.author,
             });
           }
           let tail = message.Replies.tail;
           while (typeof tail != "string") {
+            const literal = Literal.fromUrl(tail.head.args[0]).get();
             replies.push({
-              content: Literal.fromUrl(tail.head.args[0]).get().data,
+              content: literal.data,
               timestamp: new Date(tail.head.args[1].args[0]),
-              author: tail.head.args[1].args[1],
+              author: literal.author,
             });
             tail = tail.tail;
           }
