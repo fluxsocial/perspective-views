@@ -1,9 +1,4 @@
-import React, {
-  createContext,
-  useState,
-  useEffect,
-  useRef,
-} from "react";
+import React, { createContext, useState, useEffect, useRef } from "react";
 import { Messages, Message } from "../types";
 import { LinkExpression } from "@perspect3vism/ad4m";
 import getMessages from "../api/getMessages";
@@ -120,7 +115,10 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
 
     return () => {
       linkSubscriberRef.current?.removeListener("link-added", handleLinkAdded);
-      linkSubscriberRef.current?.removeListener("link-removed", handleLinkAdded);
+      linkSubscriberRef.current?.removeListener(
+        "link-removed",
+        handleLinkAdded
+      );
     };
   }, [perspectiveUuid]);
 
@@ -174,7 +172,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     const agent = await getMe();
 
     if (linkIs.message(link)) {
-      if (link.data.source == channelId) {
+      if (link.data.source === channelId) {
         const message = getMessage(link);
 
         if (message) {
@@ -189,14 +187,16 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     }
 
     if (linkIs.reply(link)) {
-      const message = getMessage(link);
+      if (link.data.source === channelId) {
+        const message = getMessage(link);
 
-      setState((oldState) => addMessage(oldState, message));
+        setState((oldState) => addMessage(oldState, message));
 
-      setState((oldState) => ({
-        ...oldState,
-        isMessageFromSelf: link.author === agent.did,
-      }));
+        setState((oldState) => ({
+          ...oldState,
+          isMessageFromSelf: link.author === agent.did,
+        }));
+      }
     }
 
     if (linkIs.reaction(link)) {
