@@ -188,7 +188,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     }
 
     if (linkIs.reply(link)) {
-      const isSameChannel = await ad4mClient.perspective.queryProlog(perspectiveUuid, `triple(${channelId}, ${DIRECTLY_SUCCEEDED_BY}, ${link.data.source}).`);
+      const isSameChannel = await ad4mClient.perspective.queryProlog(perspectiveUuid, `triple("${channelId}", "${DIRECTLY_SUCCEEDED_BY}", "${link.data.source}").`);
       if (isSameChannel) {
         const message = getMessage(link);
 
