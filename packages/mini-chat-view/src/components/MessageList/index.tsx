@@ -210,8 +210,11 @@ export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
         ref={scroller}
         alignToBottom
         startReached={() => console.log("start reached")}
-        atBottomStateChange={(atBottom) => {
-          if (atBottom) {
+        atBottomStateChange={(bool) => {
+          if (atBottom === bool) {
+            return;
+          }
+          if (bool) {
             setHasNewMessage(false);
           }
           setAtBottom(atBottom);
