@@ -19,7 +19,7 @@
     "build": "NODE_ENV=prod node esbuild.js",
     "dev": "NODE_ENV=dev run-p dev:**",
     "dev:build": "node esbuild.js",
-    "dev:serve": "npx live-server",
+    "dev:serve": "npx live-server --cors",
     "release": "np --no-tests"
   },
   "keywords": [],
@@ -49,7 +49,8 @@
     "node-emoji": "^1.11.0",
     "preact": "^10.5.14",
     "react-hint": "^3.2.1",
-    "react-virtuoso": "^2.8.0",
+    "react-virtuoso": "^2.19.0",
+    "resize-observer-polyfill": "^1.5.1",
     "tippy.js": "^6.3.1"
   },
   "devDependencies": {
