@@ -217,7 +217,7 @@ export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
           if (bool) {
             setHasNewMessage(false);
           }
-          setAtBottom(atBottom);
+          setAtBottom(bool);
         }}
         style={{ height: "100%" }}
         overscan={20}
