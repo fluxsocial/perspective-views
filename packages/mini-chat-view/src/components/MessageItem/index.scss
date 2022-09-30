@@ -48,11 +48,27 @@
   & .messageItemContent p:first-of-type {
     user-select: text !important;
     margin-top: 0;
+
+    & > span[data-mention*="agent-mention"] {
+      cursor: pointer;
+      padding: 2px var(--j-space-200);
+      border-radius: var(--j-border-radius);
+      background: var(--j-color-primary-100);
+      color: var(--j-color-primary-700);
+    }
   }
 
   & .messageItemContent p:last-of-type {
     user-select: text !important;
     margin-bottom: 0;
+
+    & > span[data-mention*="agent-mention"] {
+      cursor: pointer;
+      padding: 2px var(--j-space-200);
+      border-radius: var(--j-border-radius);
+      background: var(--j-color-primary-100);
+      color: var(--j-color-primary-700);
+    }
   }
 
   & .messageUsername {
