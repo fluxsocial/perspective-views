@@ -82,19 +82,9 @@ export default async function getProfile(did: string): Promise<any | null> {
       case FAMILY_NAME:
         profile!.familyName = link.data.target;
         break;
-      case PROFILE_IMAGE:
-        expUrl = link.data.target;
-        profile!.profilePicture = await getImage(expUrl);
-
-        break;
       case PROFILE_THUMBNNAIL_IMAGE:
         expUrl = link.data.target;
         profile!.thumbnailPicture = await getImage(expUrl);
-
-        break;
-      case BG_IMAGE:
-        expUrl = link.data.target;
-        profile!.profileBg = await getImage(expUrl);
 
         break;
       case EMAIL:

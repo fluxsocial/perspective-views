@@ -163,12 +163,40 @@ export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
     }
   }
 
-  const rangeChanged = ({ startIndex }) => {
+  const rangeChanged = ({ startIndex, endIndex }) => {
     if (typeof startIndex === "number" && initialScroll) {
       saveScrollPos(startIndex);
       setIsMessageFromSelf(false);
     }
   };
+
+
+  useEffect(() => {
+    const doc = document.querySelector(`perspective-view[perspective-uuid="${perspectiveUuid}"][channel="${channelId}"]`)
+      let options = {
+        root: document.querySelector('.sidebar-layout__main'),
+        rootMargin: '0px',
+        threshold: 1.0
+      }
+      
+      let observer = new IntersectionObserver(() => {
+        if (atBottom) {
+          const event = new CustomEvent("hide-notification-indicator", {
+            detail: { uuid: channelId },
+            bubbles: true,
+          });
+          mainRef?.dispatchEvent(event);
+        }
+      }, options);
+
+      if (doc) {
+        observer.observe(doc)
+      }
+
+    return () => {
+      observer.disconnect();
+    }
+  }, [atBottom, perspectiveUuid, channelId, mainRef])
 
   return (
     <main class={styles.main}>
