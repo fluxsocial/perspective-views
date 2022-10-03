@@ -13,3 +13,5 @@ export const REPLY_TO = "flux://has_reply";
 export const REACTION = "flux://has_reaction";
 
 export const MEMBER = "sioc://has_member";
+
+export const CARD_HIDDEN = "sioc://is_card_hidden";

@@ -151,7 +151,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       hasNewMessage: true,
       keyedMessages: {
         ...oldState.keyedMessages,
-        [message.id]: { ...message },
+        [message.id]: { ...message, isNeighbourhoodCardHidden: false },
       },
     };
     return newState;
@@ -278,7 +278,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       const id = link.data.source;
 
       setState((oldState) =>
-        addHiddenToMessageToState(oldState, id, false)
+        addHiddenToMessageToState(oldState, id, true)
       );
     }
   }

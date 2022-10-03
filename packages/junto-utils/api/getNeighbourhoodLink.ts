@@ -17,8 +17,8 @@ export interface Payload {
 export function findNeighbourhood(str: string) {
   const URIregexp = /(?<=\<span data-neighbourhood=""\>)(.|\n)*?(?=<\/span\>)/gm
   const URLregexp = /<a[^>]+href=\"(.*?)\"[^>]*>(.*)?<\/a>/gm
-  const uritokens = str.matchAll(URIregexp)
-  const urlTokens = str.matchAll(URLregexp)
+  const uritokens = Array.from(str.matchAll(URIregexp))
+  const urlTokens = Array.from(str.matchAll(URLregexp))
 
   const urifiltered = [];
   const urlfiltered = [];
@@ -47,14 +47,16 @@ export default async function ({
 
     const hoods = []
 
-    if (isHidden) {
+    if (!isHidden) {
       for (const neighbourhood of neighbourhoods) {
-        console.log('neighbourhood', neighbourhood)
         const exp = await ad4mClient.expression.get(neighbourhood);
         const links = JSON.parse(exp.data).meta.links;
 
         const languageLinks = links.filter(findLink.language);
         const langs = await getMetaFromLinks(languageLinks);
+
+        const perspectives = await ad4mClient.perspective.all();
+        const perspectiveUuid = perspectives.find(e => e.sharedUrl === neighbourhood).uuid;
 
         hoods.push({
           type: 'neighbourhood',
@@ -62,24 +64,26 @@ export default async function ({
           description: links.find(findLink.description).data.target,
           languages: keyedLanguages(langs),
           url: neighbourhood || "",
+          perspectiveUuid
         })
       }
 
-      for (const url of urls) {
-        const response = await fetch(url);
-        const html = await response.text();
-        const data = await getOGData(url, html)
+      // for (const url of urls) {
+      //   const response = await fetch(url, {mode: "no-cors"});
+      //   const html = await response.text();
+      //   console.log('wiw', html)
+      //   const data = await getOGData(url, html)
 
-        console.log(data)
+      //   console.log(data)
         
-        hoods.push({
-          type: 'link',
-          name: data.title,
-          description: data.description,
-          image: data.image || data.logo,
-          url
-        })
-      }
+      //   hoods.push({
+      //     type: 'link',
+      //     name: data.title,
+      //     description: data.description,
+      //     image: data.image || data.logo,
+      //     url
+      //   })
+      // }
     }
 
     return hoods;
@@ -100,7 +104,7 @@ export async function getNeighbourhoodCardHidden({
         perspectiveUuid,
         new LinkQuery({
           source: messageUrl,
-          predicate: "sioc://is_hidden",
+          predicate: "sioc://is_card_hidden",
         })
     )}, { defaultValue: [] });
 

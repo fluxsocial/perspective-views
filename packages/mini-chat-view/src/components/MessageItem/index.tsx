@@ -130,7 +130,7 @@ export default function MessageItem({
         if (mention.innerText.startsWith("#")) {
           const event = new CustomEvent("perspective-click", {
             detail: {
-              uuid: mention.dataset["id"],
+              channel: mention.dataset["id"],
             },
             bubbles: true,
           });
@@ -170,7 +170,8 @@ export default function MessageItem({
     } else {
       const event = new CustomEvent("perspective-click", {
         detail: {
-          uuid: link.url,
+          uuid: link.perspectiveUuid,
+          channel: "Home",
           link
         },
         bubbles: true,

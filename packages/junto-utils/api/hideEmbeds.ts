@@ -1,5 +1,6 @@
 import ad4mClient from "./client";
 import { LinkQuery, Link } from "@perspect3vism/ad4m";
+import { CARD_HIDDEN } from "../constants/ad4m";
 
 export interface Payload {
   perspectiveUuid: string;
@@ -16,7 +17,7 @@ export default async function ({
       new Link({
         source: messageUrl,
         target: "-",
-        predicate: "sioc://is_hidden",
+        predicate: CARD_HIDDEN,
       })
     );
   } catch (e: any) {
