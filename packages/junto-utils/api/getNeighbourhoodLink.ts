@@ -5,6 +5,7 @@ import { findLink } from "../helpers/linkHelpers";
 import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
 import { fetch as openFetch } from 'fetch-opengraph';
 import getOGData from '../helpers/getOGData'
+import { CARD_HIDDEN } from "../constants/ad4m";
 
 
 export interface Payload {
@@ -104,7 +105,7 @@ export async function getNeighbourhoodCardHidden({
         perspectiveUuid,
         new LinkQuery({
           source: messageUrl,
-          predicate: "sioc://is_card_hidden",
+          predicate: CARD_HIDDEN,
         })
     )}, { defaultValue: [] });
 
