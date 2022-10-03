@@ -1,13 +1,12 @@
-import { useQuery } from "@apollo/client";
-import React, { createContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useState, useEffect,useContext, useRef } from "react";
 import getMembers from "../api/getMembers";
 import getChannels from "../api/getChannels";
 import getPerspectiveMeta from "../api/getPerspectiveMeta";
 import subscribeToLinks from "../api/subscribeToLinks";
 import { findLink, linkIs } from "../helpers/linkHelpers";
-import ad4mClient from "../api/client";
-import { getMetaFromLinks, keyedLanguages, PROFILE_EXPRESSION } from "../helpers/languageHelpers";
+import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
 import getPerspectiveProfile from "../api/getProfile";
+import ad4mClient from "../api/client";
 
 type State = {
   name: string;
@@ -15,10 +14,8 @@ type State = {
   languages: Array<any>;
   url: string;
   sourceUrl: string;
-  sourceUuid: string;
   members: { [x: string]: any };
   channels: { [x: string]: any };
-  isHome: boolean;
 };
 
 type ContextProps = {
@@ -34,11 +31,9 @@ const initialState: ContextProps = {
     description: "",
     url: "",
     sourceUrl: "",
-    sourceUuid: "",
     languages: [],
     members: {},
     channels: {},
-    isHome: false
   },
   methods: {
     getProfile: (did: string) => null
@@ -49,9 +44,6 @@ const PerspectiveContext = createContext(initialState);
 
 export function PerspectiveProvider({ perspectiveUuid, children }: any) {
   const [state, setState] = useState(initialState.state);
-  const [profileHash, setProfileHash] = useState("");
-  const memberInterval = useRef();
-  const channelInterval = useRef();
   const linkSubscriberRef = useRef();
 
   useEffect(() => {
@@ -61,8 +53,8 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
   }, [perspectiveUuid]);
 
   useEffect(() => {
-    fetchChannels();
-    fetchMembers();
+      fetchChannels();
+      fetchMembers();
   }, [state.url, state.sourceUrl]);
 
   useEffect(() => {
@@ -73,11 +65,11 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     return () => {
       linkSubscriberRef.current?.removeListener('link-added', handleLinkAdded);
     };
-  }, [perspectiveUuid, state.sourceUuid]);
+  }, [perspectiveUuid]);
 
   async function setupSubscribers() {
     linkSubscriberRef.current = await subscribeToLinks({
-      perspectiveUuid: state.sourceUuid || perspectiveUuid,
+      perspectiveUuid: perspectiveUuid,
       added: handleLinkAdded,
     });
   }
@@ -86,24 +78,15 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     console.log("handle link added", link);
 
     if (linkIs.channel(link)) {
-      const all = await ad4mClient.perspective.all();
-      const neighbourhood = all.find((e) => e.sharedUrl === link.data.target);
-      const links =
-        ((neighbourhood.neighbourhood as any).meta?.links as Array<any>) || [];
-      const languageLinks = links.filter(findLink.language);
-      const langs = await getMetaFromLinks(languageLinks);
-
       const channelObj = {
-        name: links.find(findLink.name).data.target,
-        description: links.find(findLink.description).data.target,
-        languages: keyedLanguages(langs),
-        url: neighbourhood.sharedUrl || "",
-        id: neighbourhood.uuid,
+        name: link.data.target,
+        description: '',
+        id: link.data.target,
       };
 
       setState((oldState) => {
         const isAlreadyPartOf = Object.values(oldState.channels).find(
-          (c: any) => c.url === neighbourhood.sharedUrl
+          (c: any) => c.name === link.data.target
         );
 
         if (isAlreadyPartOf) {
@@ -121,33 +104,24 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     }
 
     if (linkIs.member(link)) {
-      const member = await getProfile(link.data.target);
-
-      setState((oldState) => ({
-        ...oldState,
-        members: {
-          ...oldState.members,
-          [member.did]: member,
-        },
-      }));
+      await getProfile(link.data.target);
     }
   }
 
   const fetchMembers = async () => {
     if (state.url) {
       const members = await getMembers({
-        perspectiveUuid: state.sourceUuid || perspectiveUuid,
+        perspectiveUuid: perspectiveUuid,
         neighbourhoodUrl: state.sourceUrl || state.url,
+        addProfile: (profile: any) => setState((prev) => ({...prev, members: {...prev.members, [profile.did]: profile}}))
       });
-
-      setState((prev, curr) => ({ ...prev, members }));
     }
   };
 
   const fetchChannels = async () => {
     if (state.url) {
       const channels = await getChannels({
-        perspectiveUuid: state.sourceUuid || perspectiveUuid,
+        perspectiveUuid: perspectiveUuid,
         neighbourhoodUrl: state.sourceUrl || state.url,
       });
 
@@ -157,34 +131,33 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
 
   async function fetchMeta() {
     const meta = await getPerspectiveMeta(perspectiveUuid);
-    setProfileHash(meta.languages[PROFILE_EXPRESSION]);
     setState({
       ...state,
       name: meta.name,
       description: meta.description,
       url: meta.url,
       sourceUrl: meta.sourceUrl,
-      sourceUuid: meta.sourceUuid,
       members: {},
       channels: {},
-      isHome: meta.isHome
     });
   }
 
-  async function getProfile(did: string) {
+  async function getProfile(url: string) {
+    const did = url.split("://").length > 1 ? url.split("://")[1] : url;
+
     if (state.members[did]) {
       return state.members[did]
     } else {
-      if (profileHash) {      
-        const profile = await getPerspectiveProfile({did, languageAddress: profileHash, perspectiveUuid});
+      const profile = await getPerspectiveProfile(url);
 
+      if (profile) {
         setState((oldState) => ({...oldState, members: {...oldState.members, [profile.did]: profile}}))
-    
+  
         return profile;
+      } else {
+        return null
       }
     }
-
-    return null;
   }
 
   return (

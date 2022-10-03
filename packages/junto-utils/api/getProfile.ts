@@ -1,51 +1,101 @@
-import { Profile } from "../types";
-import ad4mClient from "../api/client";
-import { parseProfile } from "../helpers/profileHelpers";
+import {
+  USERNAME,
+  GIVEN_NAME,
+  FAMILY_NAME,
+  EMAIL,
+  PROFILE_IMAGE,
+  PROFILE_THUMBNNAIL_IMAGE,
+  FLUX_PROFILE,
+  BG_IMAGE,
+  BIO,
+} from "../constants/profile";
 import { DexieProfile } from "../helpers/storageHelpers";
+import { Profile } from "../types";
+import ad4mClient from "./client";
 
 export interface Payload {
-  did: string;
-  languageAddress: string;
-  perspectiveUuid: string
+  url: string;
+  perspectiveUuid: string;
 }
 
-export default async function getProfile({
-  did,
-  languageAddress,
-  perspectiveUuid
-}: Payload): Promise<Profile> {
-  const dexie = new DexieProfile(perspectiveUuid, 1);
+async function getImage(expUrl: string): Promise<string> {
+  return new Promise(async (resolve, reject) => {
+    setTimeout(() => {
+      resolve("");
+    }, 1000);
 
-  try {
-    const url = `${languageAddress}://${did}`;
+    try {
+      const image = await ad4mClient.expression.get(expUrl);
+      
+      if (image) {
+        resolve(image.data.slice(1, -1));
+      }
 
-    //  TODO: How do we handle localstorage
-    //  in web components and not create name clashes?
-    let cachedProfile = await dexie.get(url);
-
-    if (cachedProfile) {
-      return cachedProfile as Profile;
+      resolve("")
+    } catch (e) {
+      console.error(e)
+      resolve("");
     }
+  })
+}
 
-    const expression = await ad4mClient.expression.get(url);
+export default async function getProfile(did: string): Promise<any | null> {
+  const agentPerspective = await ad4mClient.agent.byDID(did);
+  const links = agentPerspective!.perspective!.links;
 
-    const data = JSON.parse(expression.data);
+  var communityId = window.location.pathname.split('/')[2];
 
-    const partialProfile = parseProfile(data.profile);
+  const dexie = new DexieProfile(`${communityId}://profile`, 1);
 
-    const profile = {
-      did: did,
-      timestamp: expression.timestamp,
-      url: `${languageAddress}://${did}`,
-      profilePicture: null,
-      thumbnailPicture: null,
-      ...partialProfile,
-    } as Profile;
+  let cachedProfile = await dexie.get(did);
 
-    await dexie.save(url, profile);
-
-    return profile;
-  } catch (e: any) {
-    throw new Error(e);
+  if (cachedProfile) {
+    return cachedProfile as Profile;
   }
+
+  const profile: any = {
+    username: "",
+    bio: "",
+    email: "",
+    profileBg: "",
+    profilePicture: "",
+    thumbnailPicture: "",
+    givenName: "",
+    familyName: "",
+    did,
+  };
+
+  for (const link of links.filter((e) => e.data.source === FLUX_PROFILE)) {
+    let expUrl;
+    let image;
+
+    switch (link.data.predicate) {
+      case USERNAME:
+        profile!.username = link.data.target;
+        break;
+      case BIO:
+        profile!.username = link.data.target;
+        break;
+      case GIVEN_NAME:
+        profile!.givenName = link.data.target;
+        break;
+      case FAMILY_NAME:
+        profile!.familyName = link.data.target;
+        break;
+      case PROFILE_THUMBNNAIL_IMAGE:
+        expUrl = link.data.target;
+        profile!.thumbnailPicture = await getImage(expUrl);
+
+        break;
+      case EMAIL:
+        profile!.email = link.data.target;
+        break;
+      default:
+        break;
+    }
+  }
+
+  dexie.save(did, profile);
+
+  return profile;
 }

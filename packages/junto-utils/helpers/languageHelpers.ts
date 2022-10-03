@@ -1,9 +1,7 @@
-import ad4mClient from "../api/client";
 import { LinkExpression, LanguageMeta } from "@perspect3vism/ad4m";
+import ad4mClient from "../api/client";
 
 export const SHORT_FORM_EXPRESSION = "shortform-expression";
-
-export const PROFILE_EXPRESSION = "profile-expression";
 
 export const GROUP_EXPRESSION = "group-expression";
 
@@ -13,7 +11,7 @@ export function getLanguageMeta(link: LinkExpression) {
 }
 
 export function getMetaFromLinks(links: LinkExpression[]) {
-  const langs = links.map(getLanguageMeta);
+  const langs = links.map((link) => getLanguageMeta(link));
   return Promise.all(langs);
 }
 
@@ -23,8 +21,6 @@ export function keyedLanguages(languages: LanguageMeta[]) {
 
     if (lang.name.endsWith(SHORT_FORM_EXPRESSION)) {
       langName = SHORT_FORM_EXPRESSION;
-    } else if (lang.name.endsWith(PROFILE_EXPRESSION)) {
-      langName = PROFILE_EXPRESSION;
     } else if (lang.name.endsWith(GROUP_EXPRESSION)) {
       langName = GROUP_EXPRESSION;
     }

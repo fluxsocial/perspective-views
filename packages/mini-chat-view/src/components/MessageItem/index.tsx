@@ -1,6 +1,5 @@
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import { AgentContext, ChatContext, PerspectiveContext } from "junto-utils/react";
-import { Reaction } from "junto-utils/types";
 import getMe from "junto-utils/api/getMe";
 import getNeighbourhoodLink from "junto-utils/api/getNeighbourhoodLink";
 import hideEmbeds from "junto-utils/api/hideEmbeds";
@@ -10,6 +9,8 @@ import MessageReactions from "./MessageReactions";
 import UIContext from "../../context/UIContext";
 import styles from "./index.scss";
 import { format, formatRelative } from "date-fns/esm";
+import { REACTION } from "junto-utils/constants/ad4m";
+import Skeleton from "../Skeleton";
 
 type timeOptions = {
   dateStyle?: string;
@@ -42,9 +43,8 @@ export default function MessageItem({
   } = useContext(PerspectiveContext);
   const {
     state: { messages, keyedMessages },
-    methods: { addReaction, removeReaction, getReplyMessage },
+    methods: { addReaction, removeReaction },
   } = useContext(ChatContext);
-  const [replyMessage, setReplyMessage] = useState();
   const [neighbourhoodCards, setNeighbourhoodCards] = useState<any[]>([]);
 
   const {
@@ -65,20 +65,36 @@ export default function MessageItem({
   };
 
   function onReplyClick() {
-    setCurrentReply(message.url);
+    setCurrentReply(message.id);
   }
 
-  async function onEmojiClick(unicode: string) {
+  async function onEmojiClick(utf: string) {
+    console.log({ utf });
     const me = await getMe();
 
-    const alreadyMadeReaction = message.reactions.find((reaction: Reaction) => {
-      return reaction.author === me.did && reaction.data.target === unicode;
+    const alreadyMadeReaction = message.reactions.find((reaction) => {
+      console.log({ reaction, utf });
+      return reaction.author === me.did && reaction.content === utf;
     });
 
     if (alreadyMadeReaction) {
-      removeReaction(alreadyMadeReaction);
+      removeReaction({
+        author: alreadyMadeReaction.author,
+        data: {
+          predicate: REACTION,
+          target: alreadyMadeReaction.content,
+          source: message.id,
+        },
+        proof: {
+          invalid: false,
+          key: "",
+          signature: "",
+          valid: true,
+        },
+        timestamp: alreadyMadeReaction.timestamp,
+      });
     } else {
-      addReaction(message.url, unicode);
+      addReaction(message.id, utf);
     }
   }
 
@@ -164,7 +180,6 @@ export default function MessageItem({
   }
 
   useEffect(() => {
-    getReply();
     getNeighbourhoodCards()
   }, [message]);
 
@@ -172,11 +187,6 @@ export default function MessageItem({
     getNeighbourhoodCards()
   }, [message.isNeighbourhoodCardHidden]);
 
-  const getReply = async () => {
-    const reply = await getReplyMessage(message.replyUrl);
-
-    setReplyMessage(reply);
-  };
 
   const getNeighbourhoodCards = async () => {
     const links = await getNeighbourhoodLink({perspectiveUuid, messageUrl: message.id, message: message.content, isHidden: message.isNeighbourhoodCardHidden });
@@ -186,14 +196,15 @@ export default function MessageItem({
 
 
   const author = members[message.author] || {};
-  const replyAuthor = members[replyMessage?.author] || {};
+  const replyAuthor = members[message?.replies[0]?.author] || {};
+  const replyMessage = message?.replies[0];
 
   return (
     <div
       onMouseOver={() => setShowToolbar(true)}
       onMouseLeave={() => setShowToolbar(false)}
       class={styles.message}
-      isReplying={keyedMessages[currentReply]?.url === message.url}
+      isReplying={keyedMessages[currentReply]?.id === message.id}
     >
       {replyMessage && (
         <>
@@ -205,15 +216,17 @@ export default function MessageItem({
               class={styles.messageFlex}
               onClick={() => onProfileClick(replyAuthor?.did)}
             >
-              <j-avatar
+              {replyAuthor?.did ? <j-avatar
                 class={styles.messageAvatar}
                 style="--j-avatar-size: 20px"
                 src={replyAuthor?.thumbnailPicture}
                 hash={replyAuthor?.did}
-              ></j-avatar>
-              <div class={styles.messageUsernameNoMargin}>
+              ></j-avatar> : <Skeleton variant="circle" width={20} height={20} />}
+              {replyAuthor.username ? <div class={styles.messageUsernameNoMargin}>
                 {replyAuthor?.username}
-              </div>
+              </div> : <div style={{marginBottom: 5}}>
+              <Skeleton width={60} height={20} />
+            </div>}
             </div>
             <div
               class={styles.replyContent}
@@ -225,12 +238,12 @@ export default function MessageItem({
       <div>
         {replyMessage || showAvatar ? (
           <j-flex>
-            <j-avatar
+            {author?.did ? <j-avatar
               class={styles.messageAvatar}
               src={author?.thumbnailPicture}
               hash={author?.did}
               onClick={() => onProfileClick(author?.did)}
-            ></j-avatar>
+            ></j-avatar> : <Skeleton variant="circle" width={42} height={42} />}
           </j-flex>
         ) : (
           <small
@@ -248,12 +261,15 @@ export default function MessageItem({
       <div>
         {(replyMessage || showAvatar) && (
           <header class={styles.messageItemHeader}>
-            <div
+            {author?.username ? <div
               onClick={() => onProfileClick(author?.did)}
               class={styles.messageUsername}
             >
               {author?.username}
-            </div>
+            </div> : 
+            <div style={{marginBottom: 5}}>
+              <Skeleton width={60} height={20} />
+            </div> }
             <small
               class={styles.timestamp}
               data-rh

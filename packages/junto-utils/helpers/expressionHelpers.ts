@@ -1,14 +1,18 @@
-import ad4mClient from "../api/client";
 import { Message, Messages } from "../types";
 import { Expression, LinkExpression } from "@perspect3vism/ad4m";
+import ad4mClient from "../api/client";
 
-export async function getExpression(link: LinkExpression): Promise<Expression> {
+export async function getExpression(link: LinkExpression): Promise<Expression | null> {
   const expression = await ad4mClient.expression.get(link.data.target);
-  return { ...expression, data: JSON.parse(expression.data) };
+  if (expression) {
+    return { ...expression, data: JSON.parse(expression.data) };
+  } else {
+    return null
+  }
 }
 
 export async function getExpressions(expressionLinks: LinkExpression[]) {
-  const linkPromises = expressionLinks.map(getExpression);
+  const linkPromises = expressionLinks.map((link) => getExpression(link));
   return await Promise.all(linkPromises);
 }
 

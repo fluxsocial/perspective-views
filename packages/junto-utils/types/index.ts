@@ -9,17 +9,17 @@ export interface NeighbourhoodMeta {
 export interface Reaction {
   author: string;
   content: string;
-  linkUrl: string;
+  timestamp: Date;
 }
 
 export interface Message {
   id: string;
   url: string;
   author: string; // did
-  reactions: Array<LinkExpression>;
+  reactions: Reaction[];
   timestamp: string;
   content: string;
-  replyUrl: string;
+  reply?: string;
 }
 export interface Messages {
   [x: string]: Message;

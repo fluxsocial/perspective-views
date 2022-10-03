@@ -1,33 +1,23 @@
-import ad4mClient from "./client";
-import { LinkQuery } from "@perspect3vism/ad4m";
 import getMember from "./getProfile";
-import retry from "../helpers/retry";
+import ad4mClient from "./client";
+import { SELF, MEMBER } from "../constants/ad4m";
 
 export interface Payload {
   perspectiveUuid: string;
   neighbourhoodUrl: string;
+  addProfile: (profile: any) => {};
 }
 
-export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
+export default async function ({ perspectiveUuid, neighbourhoodUrl, addProfile }: Payload) {
   try {
-    const expressionLinks = await retry(async () => {
-      return await ad4mClient.perspective.queryLinks(
-        perspectiveUuid,
-        new LinkQuery({
-          source: neighbourhoodUrl!,
-          predicate: "sioc://has_member",
-        })
-    )}, { defaultValue: [] });
-
-    const linkPromises = expressionLinks.map((link) =>
-      getMember({ did: link.author, languageAddress: link.data.target.split("://")[0], perspectiveUuid })
-    );
-
-    const members = await Promise.all(linkPromises);
-    
-    return members.reduce((acc, member) => {
-      return { ...acc, [member.did]: member };
-    }, {});
+    const memberLinks = await ad4mClient.perspective.queryProlog(perspectiveUuid, `triple("${SELF}", "${MEMBER}", M).`);
+    for (const link of memberLinks) {
+      getMember(link.M).then((member) => {
+        if (member) {
+          addProfile(member)
+        }
+      });
+    }
   } catch (e) {
     throw new Error(e);
   }

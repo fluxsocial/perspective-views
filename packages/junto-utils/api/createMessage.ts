@@ -1,26 +1,27 @@
+import { Link, Literal } from "@perspect3vism/ad4m";
+import { DIRECTLY_SUCCEEDED_BY } from "../constants/ad4m";
 import ad4mClient from "./client";
-import { Link } from "@perspect3vism/ad4m";
 
 export interface Payload {
   perspectiveUuid: string;
-  languageAddress: string;
+  lastMessage: string;
   message: Object;
 }
 
 export default async function ({
   perspectiveUuid,
-  languageAddress,
+  lastMessage,
   message,
 }: Payload) {
   try {
-    const expUrl = await ad4mClient.expression.create(message, languageAddress);
+    const exp = await ad4mClient.expression.create(message, 'literal');
 
     await ad4mClient.perspective.addLink(
       perspectiveUuid,
       new Link({
-        source: "sioc://chatchannel",
-        target: expUrl,
-        predicate: "sioc://content_of",
+        source: lastMessage,
+        target: exp,
+        predicate: DIRECTLY_SUCCEEDED_BY,
       })
     );
   } catch (e: any) {

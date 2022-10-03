@@ -14,24 +14,35 @@ export default async function retry(fn: () => any, {
   count = 50, 
   sleepDuration = 200
 }: RetryOptions) {
-  await sleep(sleepDuration)
-  try {
-    const val = await fn();
+  return new Promise(async (resolve, reject) => {
+    const timeout = sleepDuration * count;
+  
+    await sleep(sleepDuration)
+  
+    try {
+      const id = setTimeout(() => {
+        resolve(defaultValue);
+      }, timeout);
+  
+      const val = await fn();
+  
+      clearTimeout(id);
+      
+      if (!val) {
+        if (count > 0) {
+          resolve(await retry(fn, { count: count - 1 }));
+        }
     
-    if (!val) {
-      if (count > 0) {
-        return await retry(fn, { count: count - 1 });
+        resolve(defaultValue);
       }
   
-      return defaultValue;
+      resolve(val);
+    } catch (e) {
+      if (count > 0) {
+        resolve(await retry(fn, { count: count - 1 }));
+      }
+  
+      resolve(defaultValue);
     }
-
-    return val;
-  } catch (e) {
-    if (count > 0) {
-      return await retry(fn, { count: count - 1 });
-    }
-
-    return defaultValue;
-  }
+  })
 }

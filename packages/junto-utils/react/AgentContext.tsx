@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useState, useEffect, useContext } from "react";
 import getMe from "../api/getMe";
 
 type State = {

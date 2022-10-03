@@ -1,15 +1,16 @@
 import { AgentContext } from "junto-utils/react";
+import { Reaction } from "junto-utils/types";
 import { useContext } from "preact/hooks";
 import styles from "./index.scss";
 
-function sortReactions(reactions) {
-  const mapped = reactions.reduce((acc: any, reaction: any) => {
-    const previous = acc[reaction.data.target] || { authors: [], count: 0 };
+function sortReactions(reactions: Reaction[]) {
+  const mapped = reactions.reduce((acc: any, reaction) => {
+    const previous = acc[reaction.content] || { authors: [], count: 0 };
     return {
       ...acc,
-      [reaction.data.target]: {
+      [reaction.content]: {
         authors: [...previous.authors, reaction.author],
-        content: reaction.data.target,
+        content: reaction.content,
         count: previous.count + 1,
       },
     };
@@ -37,7 +38,9 @@ export default function MessageReactions({ onEmojiClick, reactions = [] }) {
             onClick={() => onEmojiClick(reaction.content)}
             key={i}
           >
-            <span>{reaction.content}</span>
+            <span>
+              {String.fromCodePoint(parseInt(`0x${reaction.content}`))}
+            </span>
             <span>{reaction.count}</span>
           </button>
         );

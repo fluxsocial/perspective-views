@@ -1,4 +1,3 @@
-
 import { useState, useContext, useRef, useEffect } from "preact/hooks";
 import { ChatContext } from "junto-utils/react";
 import MessageItem from "../MessageItem";
@@ -11,22 +10,31 @@ import ReactHintFactory from "react-hint";
 const ReactHint = ReactHintFactory({ createElement: h, Component, createRef });
 import "react-hint/css/index.css";
 import styles from "./index.scss";
+import { Reaction } from "junto-utils/types";
+import { REACTION } from "junto-utils/constants/ad4m";
 
-export default function MessageList({ perspectiveUuid, mainRef }) {
+export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
   const emojiPicker = useRef(document.createElement("emoji-picker"));
   const [atBottom, setAtBottom] = useState(true);
   const [initialScroll, setinitialScroll] = useState(false);
   const scroller = useRef();
 
   const {
-    state: { messages, isFetchingMessages, scrollPosition, hasNewMessage, isMessageFromSelf, showLoadMore },
+    state: {
+      messages,
+      isFetchingMessages,
+      scrollPosition,
+      hasNewMessage,
+      isMessageFromSelf,
+      showLoadMore,
+    },
     methods: {
       loadMore,
       removeReaction,
       addReaction,
       saveScrollPos,
       setHasNewMessage,
-      setIsMessageFromSelf
+      setIsMessageFromSelf,
     },
   } = useContext(ChatContext);
 
@@ -50,7 +58,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
     if (atBottom && hasNewMessage) {
       scrollToBottom();
       const event = new CustomEvent("hide-notification-indicator", {
-        detail: { uuid: perspectiveUuid },
+        detail: { uuid: channelId },
         bubbles: true,
       });
       mainRef?.dispatchEvent(event);
@@ -61,7 +69,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
     if (isMessageFromSelf) {
       scrollToBottom();
       const event = new CustomEvent("hide-notification-indicator", {
-        detail: { uuid: perspectiveUuid },
+        detail: { uuid: channelId },
         bubbles: true,
       });
       mainRef?.dispatchEvent(event);
@@ -71,7 +79,7 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
   useEffect(() => {
     if (atBottom) {
       const event = new CustomEvent("hide-notification-indicator", {
-        detail: { uuid: perspectiveUuid },
+        detail: { uuid: channelId },
         bubbles: true,
       });
       mainRef?.dispatchEvent(event);
@@ -123,28 +131,72 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
 
   async function onEmojiClick(e: any) {
     const unicode = e.detail.unicode;
+    const utf = unicode.codePointAt(0).toString(16);
+
     const index = e.target.getAttribute("message-index");
     const message = messages[parseInt(index)];
 
     const me = await getMe();
 
     const alreadyMadeReaction = message.reactions.find((reaction: Reaction) => {
-      return reaction.author === me.did && reaction.data.target === unicode;
+      return reaction.author === me.did && reaction.content === utf;
     });
 
     if (alreadyMadeReaction) {
-      removeReaction(alreadyMadeReaction);
+      removeReaction({
+        author: alreadyMadeReaction.author,
+        data: {
+          predicate: REACTION,
+          target: alreadyMadeReaction.content,
+          source: message.id,
+        },
+        proof: {
+          invalid: false,
+          key: "",
+          signature: "",
+          valid: true,
+        },
+        timestamp: alreadyMadeReaction.timestamp,
+      });
     } else {
-      addReaction(message.url, unicode);
+      addReaction(message.id, utf);
     }
   }
 
-  const rangeChanged = ({ startIndex }) => {
+  const rangeChanged = ({ startIndex, endIndex }) => {
     if (typeof startIndex === "number" && initialScroll) {
       saveScrollPos(startIndex);
-      setIsMessageFromSelf(false)
+      setIsMessageFromSelf(false);
     }
   };
+
+
+  useEffect(() => {
+    const doc = document.querySelector(`perspective-view[perspective-uuid="${perspectiveUuid}"][channel="${channelId}"]`)
+      let options = {
+        root: document.querySelector('.sidebar-layout__main'),
+        rootMargin: '0px',
+        threshold: 1.0
+      }
+      
+      let observer = new IntersectionObserver(() => {
+        if (atBottom) {
+          const event = new CustomEvent("hide-notification-indicator", {
+            detail: { uuid: channelId },
+            bubbles: true,
+          });
+          mainRef?.dispatchEvent(event);
+        }
+      }, options);
+
+      if (doc) {
+        observer.observe(doc)
+      }
+
+    return () => {
+      observer.disconnect();
+    }
+  }, [atBottom, perspectiveUuid, channelId, mainRef])
 
   return (
     <main class={styles.main}>
@@ -159,42 +211,47 @@ export default function MessageList({ perspectiveUuid, mainRef }) {
       )}
       <Virtuoso
         components={{
-          Header: () => (
-            showLoadMore ? (<j-box py="500">
-              <j-flex a="center" j="center">
-                {isFetchingMessages ? (
-                  <j-flex a="center" gap="300">
-                    <span>Loading</span>
-                    <j-spinner size="xxs"></j-spinner>
-                  </j-flex>
-                ) : (
-                  <j-button size="sm" onClick={loadMore} variant="subtle">
-                    Load more
-                  </j-button>
-                )}
-              </j-flex>
-            </j-box>) : (
-            <j-box py="500">
-              <j-flex a="center" j="center">
-                <j-text>You have reached the end...</j-text>
-              </j-flex>
-            </j-box>)
-          ),
+          Header: () =>
+            showLoadMore ? (
+              <j-box py="500">
+                <j-flex a="center" j="center">
+                  {isFetchingMessages ? (
+                    <j-flex a="center" gap="300">
+                      <span>Loading</span>
+                      <j-spinner size="xxs"></j-spinner>
+                    </j-flex>
+                  ) : (
+                    <j-button size="sm" onClick={loadMore} variant="subtle">
+                      Load more
+                    </j-button>
+                  )}
+                </j-flex>
+              </j-box>
+            ) : (
+              <j-box py="500">
+                <j-flex a="center" j="center">
+                  <j-text>You have reached the end...</j-text>
+                </j-flex>
+              </j-box>
+            ),
         }}
         ref={scroller}
         alignToBottom
         startReached={() => console.log("start reached")}
-        atBottomStateChange={(atBottom) => {
-          if (atBottom) {
+        atBottomStateChange={(bool) => {
+          if (atBottom === bool) {
+            return;
+          }
+          if (bool) {
             setHasNewMessage(false);
           }
-          setAtBottom(atBottom);
+          setAtBottom(bool);
         }}
         style={{ height: "100%" }}
         overscan={20}
         totalCount={messages.length}
         rangeChanged={rangeChanged}
-        initialTopMostItemIndex={scrollPosition}
+        initialTopMostItemIndex={scrollPosition || 0}
         itemContent={(index) => {
           return (
             <MessageItem

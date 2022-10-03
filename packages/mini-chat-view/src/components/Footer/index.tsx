@@ -28,7 +28,7 @@ export default function Footer() {
 
     if (escapedMessage) {
       if (currentReplyMessage) {
-        sendReply(value, currentReplyMessage.url);
+        sendReply(value, currentReplyMessage.id);
       } else {
         sendMessage(value);
       }
@@ -50,19 +50,11 @@ export default function Footer() {
 
   const mentionChannels = useMemo(() => {
     return Object.values(channels).map((channel: any) => {
-      if (channel.url === (sourceUrl || url)) {
-        return {
-          label: "Home",
-          id: channel.url,
-          trigger: "#",
-        };
-      } else {
-        return {
-          label: channel.name,
-          id: channel.url,
-          trigger: "#",
-        };
-      }
+      return {
+        label: channel.name,
+        id: channel.id,
+        trigger: "#",
+      };
     });
   }, [channels]);
 

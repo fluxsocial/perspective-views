@@ -1,21 +1,36 @@
 import { Ad4mClient } from "@perspect3vism/ad4m";
-import { ApolloClient, ApolloLink, InMemoryCache } from "@apollo/client";
-import { WebSocketLink } from "@apollo/client/link/ws";
+import {
+  ApolloClient,
+  InMemoryCache,
+} from "@apollo/client";
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { createClient } from 'graphql-ws';
 
-const PORT = parseInt(window.location.search.slice(6))
+export function buildAd4mClient() {
+  const wsLink = new GraphQLWsLink(
+    createClient({
+        url: localStorage.getItem('ad4minURL')!,
+        connectionParams: () => {
+            return {
+                headers: {
+                    authorization: localStorage.getItem("ad4minToken") || ""
+                }
+            }
+        },
+    }));
 
-const apolloClient = new ApolloClient({
-  link: new WebSocketLink({
-    uri: `ws://localhost:${PORT}/graphql`,
-    options: {
-      reconnect: true,
+  const apolloClient = new ApolloClient({
+    link: wsLink,
+    cache: new InMemoryCache({ resultCaching: false, addTypename: false }),
+    defaultOptions: {
+      watchQuery: { fetchPolicy: "no-cache" },
+      query: { fetchPolicy: "no-cache" },
     },
-  }),
-  cache: new InMemoryCache({ resultCaching: false, addTypename: false }),
-  defaultOptions: {
-    watchQuery: { fetchPolicy: "no-cache" },
-    query: { fetchPolicy: "no-cache" },
-  },
-});
+  });
 
-export default new Ad4mClient(apolloClient);
+  return new Ad4mClient(apolloClient);    
+}
+
+const ad4mClient = buildAd4mClient();
+
+export default ad4mClient;
