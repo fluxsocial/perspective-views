@@ -56,7 +56,7 @@ export default async function ({
         const langs = await getMetaFromLinks(languageLinks);
 
         const perspectives = await ad4mClient.perspective.all();
-        const perspectiveUuid = perspectives.find(e => e.sharedUrl === neighbourhood).uuid;
+        const perspectiveUuid = perspectives.find(e => e.sharedUrl === neighbourhood)?.uuid;
 
         hoods.push({
           type: 'neighbourhood',
