@@ -49,7 +49,8 @@
     user-select: text !important;
     margin-top: 0;
 
-    & > span[data-mention*="agent-mention"] {
+    & > span[data-mention*="agent-mention"],
+    & > span[data-neighbourhood=""] {
       cursor: pointer;
       padding: 2px var(--j-space-200);
       border-radius: var(--j-border-radius);
@@ -70,7 +71,8 @@
     user-select: text !important;
     margin-bottom: 0;
 
-    & > span[data-mention*="agent-mention"] {
+    & > span[data-mention*="agent-mention"],
+    & > span[data-neighbourhood=""] {
       cursor: pointer;
       padding: 2px var(--j-space-200);
       border-radius: var(--j-border-radius);
