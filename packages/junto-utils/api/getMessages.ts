@@ -30,7 +30,7 @@ export default async function ({
         if (typeof message.Reactions !== "string") {
           if (message.Reactions.head) {
             reactions.push({
-              content: message.Reactions.head.args[0],
+              content: message.Reactions.head.args[0].replace('emoji://', ''),
               timestamp: new Date(message.Reactions.head.args[1].args[0]),
               author: message.Reactions.head.args[1].args[1],
             });
@@ -38,7 +38,7 @@ export default async function ({
           let tail = message.Reactions.tail;
           while (typeof tail !== "string") {
             reactions.push({
-              content: tail.head.args[0],
+              content: tail.head.args[0].replace('emoji://', ''),
               timestamp: new Date(tail.head.args[1].args[0]),
               author: tail.head.args[1].args[1],
             });

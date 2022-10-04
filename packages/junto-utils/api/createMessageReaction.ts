@@ -18,7 +18,7 @@ export default async function ({
       perspectiveUuid,
       new Link({
         source: messageUrl,
-        target: reaction,
+        target: `emoji://${reaction}`,
         predicate: REACTION,
       })
     );

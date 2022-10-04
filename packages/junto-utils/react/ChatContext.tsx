@@ -227,7 +227,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
                   ...message.reactions,
                   {
                     author: link.author,
-                    content: link.data.target,
+                    content: link.data.target.replace('emoji://', ''),
                     timestamp: link.timestamp,
                   },
                 ],
