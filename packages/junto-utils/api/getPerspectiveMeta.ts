@@ -17,7 +17,7 @@ export default async function getPerspectiveMeta(uuid: string) {
   
   return {
     name: links.find(findLink.name).data.target,
-    description: links.find(findLink.description).data.target,
+    description: links.find(findLink.description)?.data?.target,
     languages: keyedLanguages(langs),
     url: perspective?.sharedUrl || "",
     dateCreated: links.find(findLink.dateCreated).data.target,

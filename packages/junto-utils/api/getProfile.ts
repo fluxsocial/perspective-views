@@ -40,14 +40,14 @@ async function getImage(expUrl: string): Promise<string> {
 }
 
 export default async function getProfile(did: string): Promise<any | null> {
-  const agentPerspective = await ad4mClient.agent.byDID(did);
+  const cleanedDid = did.replace('did://', '');
+  const agentPerspective = await ad4mClient.agent.byDID(cleanedDid);
   const links = agentPerspective!.perspective!.links;
-
   var communityId = window.location.pathname.split('/')[2];
 
   const dexie = new DexieProfile(`${communityId}://profile`, 1);
 
-  let cachedProfile = await dexie.get(did);
+  let cachedProfile = await dexie.get(cleanedDid);
 
   if (cachedProfile) {
     return cachedProfile as Profile;
@@ -62,7 +62,7 @@ export default async function getProfile(did: string): Promise<any | null> {
     thumbnailPicture: "",
     givenName: "",
     familyName: "",
-    did,
+    did: cleanedDid,
   };
 
   for (const link of links.filter((e) => e.data.source === FLUX_PROFILE)) {
@@ -95,7 +95,7 @@ export default async function getProfile(did: string): Promise<any | null> {
     }
   }
 
-  dexie.save(did, profile);
+  dexie.save(cleanedDid, profile);
 
   return profile;
 }
