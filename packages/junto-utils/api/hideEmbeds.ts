@@ -1,6 +1,6 @@
 import ad4mClient from "./client";
 import { LinkQuery, Link } from "@perspect3vism/ad4m";
-import { CARD_HIDDEN } from "../constants/ad4m";
+import { CARD_HIDDEN, OMIT } from "../constants/ad4m";
 
 export interface Payload {
   perspectiveUuid: string;
@@ -16,7 +16,7 @@ export default async function ({
       perspectiveUuid,
       new Link({
         source: messageUrl,
-        target: "-",
+        target: OMIT,
         predicate: CARD_HIDDEN,
       })
     );

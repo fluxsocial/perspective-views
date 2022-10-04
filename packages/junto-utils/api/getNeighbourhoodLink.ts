@@ -53,9 +53,6 @@ export default async function ({
         const exp = await ad4mClient.expression.get(neighbourhood);
         const links = JSON.parse(exp.data).meta.links;
 
-        const languageLinks = links.filter(findLink.language);
-        const langs = await getMetaFromLinks(languageLinks);
-
         const perspectives = await ad4mClient.perspective.all();
         const perspectiveUuid = perspectives.find(e => e.sharedUrl === neighbourhood)?.uuid;
 
@@ -63,7 +60,6 @@ export default async function ({
           type: 'neighbourhood',
           name: links.find(findLink.name).data.target,
           description: links.find(findLink.description).data.target,
-          languages: keyedLanguages(langs),
           url: neighbourhood || "",
           perspectiveUuid
         })

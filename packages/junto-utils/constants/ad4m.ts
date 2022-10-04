@@ -15,3 +15,5 @@ export const REACTION = "flux://has_reaction";
 export const MEMBER = "sioc://has_member";
 
 export const CARD_HIDDEN = "flux://is_card_hidden";
+
+export const OMIT = "flux://null";
