@@ -1,6 +1,6 @@
 {
   "name": "@junto-foundation/chat-view",
-  "version": "0.1.29",
+  "version": "0.1.30",
   "description": "",
   "main": "./dist/main.js",
   "module": "./dist/main.js",
@@ -16,8 +16,8 @@
   "scripts": {
     "prepare": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "NODE_ENV=prod node esbuild.js",
-    "dev": "NODE_ENV=dev run-p dev:**",
+    "build": "node esbuild.js",
+    "dev": "run-p dev:**",
     "dev:build": "node esbuild.js",
     "dev:serve": "npx live-server --cors",
     "release": "np --no-tests"
@@ -26,6 +26,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@perspect3vism/ad4m": "^0.1.37",
     "@tiptap/core": "^2.0.0-beta.66",
     "@tiptap/extension-bold": "^2.0.0-beta.13",
     "@tiptap/extension-bullet-list": "^2.0.0-beta.14",
