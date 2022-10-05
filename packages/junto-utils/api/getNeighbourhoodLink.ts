@@ -64,23 +64,6 @@ export default async function ({
           perspectiveUuid
         })
       }
-
-      // for (const url of urls) {
-      //   const response = await fetch(url, {mode: "no-cors"});
-      //   const html = await response.text();
-      //   console.log('wiw', html)
-      //   const data = await getOGData(url, html)
-
-      //   console.log(data)
-        
-      //   hoods.push({
-      //     type: 'link',
-      //     name: data.title,
-      //     description: data.description,
-      //     image: data.image || data.logo,
-      //     url
-      //   })
-      // }
     }
 
     return hoods;
