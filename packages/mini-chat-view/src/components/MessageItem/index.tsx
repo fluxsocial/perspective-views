@@ -159,25 +159,15 @@ export default function MessageItem({
   }
 
   function onLinkClick(link: any) {
-    if (link.type === 'link') {
-      const event = new CustomEvent("url-click", {
-        detail: {
-          url: link.url,
-        },
-        bubbles: true,
-      });
-      mainRef?.dispatchEvent(event);
-    } else {
-      const event = new CustomEvent("perspective-click", {
-        detail: {
-          uuid: link.perspectiveUuid,
-          channel: "Home",
-          link
-        },
-        bubbles: true,
-      });
-      mainRef?.dispatchEvent(event);
-    }
+    const event = new CustomEvent("perspective-click", {
+      detail: {
+        uuid: link.perspectiveUuid,
+        channel: "Home",
+        link
+      },
+      bubbles: true,
+    });
+    mainRef?.dispatchEvent(event);
   }
 
   useEffect(() => {
@@ -302,7 +292,7 @@ export default function MessageItem({
             {
               neighbourhoodCards.map(e => (
                 <div class={styles.neighbourhoodCards} size="300" onClick={() => onLinkClick(e)}>
-                  <j-text variant="footnote">{e.type === 'neighbourhood' ? "Neighbourhood" : "Link"}</j-text>
+                  <j-text variant="footnote">Neighbourhood</j-text>
                   <j-text>{e.name}</j-text>
                   {(e.description && e.description !== '-') && (<j-text>{e.description}</j-text>)}
                 </div>
