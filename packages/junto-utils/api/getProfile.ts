@@ -41,18 +41,6 @@ async function getImage(expUrl: string): Promise<string> {
 
 export default async function getProfile(did: string): Promise<any | null> {
   const cleanedDid = did.replace('did://', '');
-  const agentPerspective = await ad4mClient.agent.byDID(cleanedDid);
-  const links = agentPerspective!.perspective!.links;
-  var communityId = window.location.pathname.split('/')[2];
-
-  const dexie = new DexieProfile(`${communityId}://profile`, 1);
-
-  let cachedProfile = await dexie.get(cleanedDid);
-
-  if (cachedProfile) {
-    return cachedProfile as Profile;
-  }
-
   const profile: any = {
     username: "",
     bio: "",
@@ -65,37 +53,52 @@ export default async function getProfile(did: string): Promise<any | null> {
     did: cleanedDid,
   };
 
-  for (const link of links.filter((e) => e.data.source === FLUX_PROFILE)) {
-    let expUrl;
-    let image;
+  const agentPerspective = await ad4mClient.agent.byDID(cleanedDid);
 
-    switch (link.data.predicate) {
-      case USERNAME:
-        profile!.username = link.data.target;
-        break;
-      case BIO:
-        profile!.username = link.data.target;
-        break;
-      case GIVEN_NAME:
-        profile!.givenName = link.data.target;
-        break;
-      case FAMILY_NAME:
-        profile!.familyName = link.data.target;
-        break;
-      case PROFILE_THUMBNNAIL_IMAGE:
-        expUrl = link.data.target;
-        profile!.thumbnailPicture = await getImage(expUrl);
-
-        break;
-      case EMAIL:
-        profile!.email = link.data.target;
-        break;
-      default:
-        break;
+  if (agentPerspective) {
+    const links = agentPerspective!.perspective!.links;
+    var communityId = window.location.pathname.split('/')[2];
+  
+    const dexie = new DexieProfile(`${communityId}://profile`, 1);
+  
+    let cachedProfile = await dexie.get(cleanedDid);
+  
+    if (cachedProfile) {
+      return cachedProfile as Profile;
     }
+  
+    for (const link of links.filter((e) => e.data.source === FLUX_PROFILE)) {
+      let expUrl;
+      let image;
+  
+      switch (link.data.predicate) {
+        case USERNAME:
+          profile!.username = link.data.target;
+          break;
+        case BIO:
+          profile!.username = link.data.target;
+          break;
+        case GIVEN_NAME:
+          profile!.givenName = link.data.target;
+          break;
+        case FAMILY_NAME:
+          profile!.familyName = link.data.target;
+          break;
+        case PROFILE_THUMBNNAIL_IMAGE:
+          expUrl = link.data.target;
+          profile!.thumbnailPicture = await getImage(expUrl);
+  
+          break;
+        case EMAIL:
+          profile!.email = link.data.target;
+          break;
+        default:
+          break;
+      }
+    }
+  
+    dexie.save(cleanedDid, profile);
   }
-
-  dexie.save(cleanedDid, profile);
 
   return profile;
 }
