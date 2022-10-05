@@ -19,7 +19,7 @@ export default async function ({
   try {
     const expressionLinks = await ad4mClient.perspective.queryProlog(
       perspectiveUuid,
-      `limit(200, order_by([desc(Timestamp)], flux_message("${channelId}", MessageExpr, Timestamp, Author, Reactions, Replies))).`
+      `limit(200, order_by([desc(Timestamp)], flux_message("${channelId}", MessageExpr, Timestamp, Author, Reactions, Replies, AllCardHidden))).`
     );
     let cleanedLinks = [];
 
@@ -68,6 +68,8 @@ export default async function ({
           }
         }
 
+        let isNeighbourhoodCardHidden = typeof message.AllCardHidden != "string";
+
         cleanedLinks.push({
           id: message.MessageExpr,
           author: message.Author,
@@ -75,6 +77,7 @@ export default async function ({
           timestamp: new Date(message.Timestamp),
           reactions: reactions,
           replies: replies,
+          isNeighbourhoodCardHidden
         });
       }
     }

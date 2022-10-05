@@ -14,6 +14,7 @@ import { sortExpressionsByTimestamp } from "../helpers/expressionHelpers";
 import getMe from "../api/getMe";
 import { SHORT_FORM_EXPRESSION } from "../helpers/languageHelpers";
 import { DexieMessages, DexieUI } from "../helpers/storageHelpers";
+import { getNeighbourhoodCardHidden } from "../api/getNeighbourhoodLink";
 import { DIRECTLY_SUCCEEDED_BY, REACTION } from "../constants/ad4m";
 import ad4mClient from "../api/client";
 
@@ -150,7 +151,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       hasNewMessage: true,
       keyedMessages: {
         ...oldState.keyedMessages,
-        [message.id]: { ...message },
+        [message.id]: { ...message, isNeighbourhoodCardHidden: false },
       },
     };
     return newState;
@@ -163,6 +164,30 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
       keyedMessages: {
         ...oldState.keyedMessages,
         [messageId]: { ...oldState.keyedMessages[messageId], reactions },
+      },
+    };
+    return newState;
+  }
+
+  function addHiddenToMessageToState(oldState, messageId, isNeighbourhoodCardHidden) {
+    const newState = {
+      ...oldState,
+      hasNewMessage: false,
+      keyedMessages: {
+        ...oldState.keyedMessages,
+        [messageId]: { ...oldState.keyedMessages[messageId], isNeighbourhoodCardHidden },
+      },
+    };
+    return newState;
+  }
+
+  function addReplyToState(oldState, messageId, replyUrl) {
+    const newState = {
+      ...oldState,
+      hasNewMessage: false,
+      keyedMessages: {
+        ...oldState.keyedMessages,
+        [messageId]: { ...oldState.keyedMessages[messageId], replyUrl },
       },
     };
     return newState;
@@ -199,6 +224,15 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
           ...oldState,
           isMessageFromSelf: link.author === agent.did,
         }));
+
+        const isHidden = await getNeighbourhoodCardHidden({
+          perspectiveUuid,
+          messageUrl: link.data.target
+        });
+
+        setState((oldState) =>
+          addHiddenToMessageToState(oldState, message.id, isHidden)
+        );
       }
     }
 
@@ -238,6 +272,14 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
 
         return oldState;
       });
+    }
+
+    if (linkIs.hideNeighbourhoodCard(link)) {
+      const id = link.data.source;
+
+      setState((oldState) =>
+        addHiddenToMessageToState(oldState, id, true)
+      );
     }
   }
 
