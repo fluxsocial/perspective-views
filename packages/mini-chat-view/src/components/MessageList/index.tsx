@@ -105,10 +105,10 @@ export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
       return previousMessage.author !== message.author
         ? true
         : previousMessage.author === message.author &&
-            differenceInMinutes(
-              parseISO(message.timestamp),
-              parseISO(previousMessage.timestamp)
-            ) >= 2;
+        differenceInMinutes(
+          parseISO(message.timestamp),
+          parseISO(previousMessage.timestamp)
+        ) >= 2;
     }
   }
 
@@ -170,15 +170,14 @@ export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
     }
   };
 
-
   useEffect(() => {
-    const doc = document.querySelector(`perspective-view[perspective-uuid="${perspectiveUuid}"][channel="${channelId}"]`)
+    if (mainRef && perspectiveUuid && channelId) {
       let options = {
         root: document.querySelector('.sidebar-layout__main'),
         rootMargin: '0px',
         threshold: 1.0
       }
-      
+
       let observer = new IntersectionObserver(() => {
         if (atBottom) {
           const event = new CustomEvent("hide-notification-indicator", {
@@ -189,14 +188,11 @@ export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
         }
       }, options);
 
-      if (doc) {
-        observer.observe(doc)
+      if (mainRef) {
+        observer.observe(mainRef)
       }
-
-    return () => {
-      observer.disconnect();
     }
-  }, [atBottom, perspectiveUuid, channelId, mainRef])
+  }, [atBottom, mainRef, channelId, perspectiveUuid])
 
   return (
     <main class={styles.main}>
