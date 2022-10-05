@@ -7,6 +7,7 @@ import { findLink, linkIs } from "../helpers/linkHelpers";
 import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
 import getPerspectiveProfile from "../api/getProfile";
 import ad4mClient from "../api/client";
+import { Literal } from "@perspect3vism/ad4m";
 
 type State = {
   name: string;
@@ -78,8 +79,9 @@ export function PerspectiveProvider({ perspectiveUuid, children }: any) {
     console.log("handle link added", link);
 
     if (linkIs.channel(link)) {
+      const literal = Literal.fromUrl(link.data.target).get();
       const channelObj = {
-        name: link.data.target,
+        name: literal.data,
         description: '',
         id: link.data.target,
       };

@@ -1,4 +1,4 @@
-import { LinkExpression } from "@perspect3vism/ad4m";
+import { LinkExpression, Literal } from "@perspect3vism/ad4m";
 import { CHANNEL, SELF } from "../constants/ad4m";
 import ad4mClient from "./client";
 
@@ -14,10 +14,10 @@ export default async function ({ perspectiveUuid, neighbourhoodUrl }: Payload) {
 
     if (expressionLinks) {
       for (const channel of expressionLinks as LinkExpression[]) {
-        const name = channel.C;
-        channels[name] = {
-          id: name,
-          name,
+        const literal = Literal.fromUrl(channel.C).get();
+        channels[literal.data] = {
+          id: literal.data,
+          name: literal.data,
           creatorDid: channel.A,
         }
       }

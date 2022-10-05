@@ -1,25 +1,23 @@
-import { Link } from "@perspect3vism/ad4m";
-import { REACTION } from "../constants/ad4m";
 import ad4mClient from "./client";
+import { LinkQuery, Link } from "@perspect3vism/ad4m";
+import { CARD_HIDDEN, OMIT } from "../constants/ad4m";
 
 export interface Payload {
   perspectiveUuid: string;
-  reaction: string;
   messageUrl: string;
 }
 
 export default async function ({
   perspectiveUuid,
   messageUrl,
-  reaction,
 }: Payload) {
   try {
     await ad4mClient.perspective.addLink(
       perspectiveUuid,
       new Link({
         source: messageUrl,
-        target: `emoji://${reaction}`,
-        predicate: REACTION,
+        target: OMIT,
+        predicate: CARD_HIDDEN,
       })
     );
   } catch (e: any) {

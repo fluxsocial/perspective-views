@@ -259,6 +259,7 @@ export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
               showAvatar={showAvatar(index)}
               index={index}
               mainRef={mainRef}
+              perspectiveUuid={perspectiveUuid}
             />
           );
         }}

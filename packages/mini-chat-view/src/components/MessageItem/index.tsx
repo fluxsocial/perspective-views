@@ -1,11 +1,11 @@
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
-import { ChatContext, PerspectiveContext } from "junto-utils/react";
-import { Message, Reaction } from "junto-utils/types";
+import { AgentContext, ChatContext, PerspectiveContext } from "junto-utils/react";
 import getMe from "junto-utils/api/getMe";
+import getNeighbourhoodLink from "junto-utils/api/getNeighbourhoodLink";
+import hideEmbeds from "junto-utils/api/hideEmbeds";
 
 import MessageToolbar from "./MessageToolbar";
 import MessageReactions from "./MessageReactions";
-import { getRelativeTime } from "./getRelativeTime";
 import UIContext from "../../context/UIContext";
 import styles from "./index.scss";
 import { format, formatRelative } from "date-fns/esm";
@@ -34,6 +34,7 @@ export default function MessageItem({
   showAvatar,
   onOpenEmojiPicker,
   mainRef,
+  perspectiveUuid
 }) {
   const [showToolbar, setShowToolbar] = useState(false);
   const messageRef = useRef<any>(null);
@@ -44,13 +45,24 @@ export default function MessageItem({
     state: { messages, keyedMessages },
     methods: { addReaction, removeReaction },
   } = useContext(ChatContext);
+  const [neighbourhoodCards, setNeighbourhoodCards] = useState<any[]>([]);
 
   const {
     state: { currentReply },
     methods: { setCurrentReply },
   } = useContext(UIContext);
 
-  const message: Message = messages[index];
+  const { state: agentState } = useContext(AgentContext);
+
+  const message = messages[index] || {
+    id: "unknown",
+    url: "",
+    author: "",
+    reactions: [],
+    timestamp: "'1995-12-17T03:24:00'",
+    content: "",
+    replyUrl: "",
+  };
 
   function onReplyClick() {
     setCurrentReply(message.id);
@@ -118,7 +130,7 @@ export default function MessageItem({
         if (mention.innerText.startsWith("#")) {
           const event = new CustomEvent("perspective-click", {
             detail: {
-              uuid: mention.dataset["id"],
+              channel: mention.dataset["id"],
             },
             bubbles: true,
           });
@@ -145,6 +157,34 @@ export default function MessageItem({
     });
     mainRef?.dispatchEvent(event);
   }
+
+  function onLinkClick(link: any) {
+    const event = new CustomEvent("perspective-click", {
+      detail: {
+        uuid: link.perspectiveUuid,
+        channel: "Home",
+        link
+      },
+      bubbles: true,
+    });
+    mainRef?.dispatchEvent(event);
+  }
+
+  useEffect(() => {
+    getNeighbourhoodCards()
+  }, [message]);
+
+  useEffect(() => {
+    getNeighbourhoodCards()
+  }, [message.isNeighbourhoodCardHidden]);
+
+
+  const getNeighbourhoodCards = async () => {
+    const links = await getNeighbourhoodLink({perspectiveUuid, messageUrl: message.id, message: message.content, isHidden: message.isNeighbourhoodCardHidden });
+
+    setNeighbourhoodCards(links);
+  };
+
 
   const author = members[message.author] || {};
   const replyAuthor = members[message?.replies[0]?.author] || {};
@@ -246,6 +286,24 @@ export default function MessageItem({
               reactions={message.reactions}
             />
           </j-box>
+        )}
+        {neighbourhoodCards.length > 0 && (
+          <div style={{position: 'relative'}}>
+            {
+              neighbourhoodCards.map(e => (
+                <div class={styles.neighbourhoodCards} size="300" onClick={() => onLinkClick(e)}>
+                  <j-text variant="footnote">Neighbourhood</j-text>
+                  <j-text>{e.name}</j-text>
+                  {(e.description && e.description !== '-') && (<j-text>{e.description}</j-text>)}
+                </div>
+              ))
+            }
+            {agentState.did === message.author && (
+            <div class={styles.neighbourhoodCardsClose} onClick={() => hideEmbeds({perspectiveUuid, messageUrl: message.id})}>
+              <j-icon name="x"></j-icon>
+            </div>)}
+          </div>
+
         )}
       </div>
       <div>
