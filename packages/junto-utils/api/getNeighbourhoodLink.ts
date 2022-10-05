@@ -1,10 +1,7 @@
 import ad4mClient from "./client";
 import retry from "../helpers/retry";
-import { LinkQuery, Link } from "@perspect3vism/ad4m";
+import { LinkQuery, Literal } from "@perspect3vism/ad4m";
 import { findLink } from "../helpers/linkHelpers";
-import { getMetaFromLinks, keyedLanguages } from "../helpers/languageHelpers";
-import { fetch as openFetch } from 'fetch-opengraph';
-import getOGData from '../helpers/getOGData'
 import { CARD_HIDDEN } from "../constants/ad4m";
 
 
@@ -44,7 +41,7 @@ export default async function ({
 }: Payload) {
   try {
     // @ts-ignore
-    const [neighbourhoods, urls] = findNeighbourhood(message);
+    const [neighbourhoods] = findNeighbourhood(message);
 
     const hoods = []
 
@@ -58,8 +55,8 @@ export default async function ({
 
         hoods.push({
           type: 'neighbourhood',
-          name: links.find(findLink.name).data.target,
-          description: links.find(findLink.description).data.target,
+          name: Literal.fromUrl(links.find(findLink.name)?.data.target).get().data,
+          description: links.find(findLink.description) ? Literal.fromUrl(links.find(findLink.description)?.data.target).get().data : '',
           url: neighbourhood || "",
           perspectiveUuid
         })
