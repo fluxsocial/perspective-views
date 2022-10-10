@@ -53,7 +53,7 @@ export class DexieProfile {
     const item = await this.db.profile.get(url);
     const now = new Date();
 
-    if (item && differenceInMinutes(now, item.timestamp) <= 5) {
+    if (item && differenceInMinutes(now, item.timestamp) <= 1) {
       return item.expression;
     } else {
       return undefined;
