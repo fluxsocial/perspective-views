@@ -266,7 +266,7 @@ export default function MessageItem({
               data-rh
               data-timestamp={format(
                 new Date(message.timestamp),
-                "EEEE, MMMM d, yyyy, HH:MM"
+                "EEEE, MMMM d, yyyy, hh:mm b"
               )}
             >
               {formatRelative(new Date(message.timestamp), new Date())}
