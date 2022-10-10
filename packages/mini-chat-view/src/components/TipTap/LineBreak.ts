@@ -42,7 +42,7 @@ export default Node.create({
         const { state, editor } = props;
         const listNodeType = getNodeType("listItem", state.schema);
 
-        return props.commands.first([
+        const executedCommand = props.commands.first([
           () => props.commands.exitCode(),
           () => {
             if (state.selection.$anchor.node().textContent.length <= 0) {
@@ -60,13 +60,14 @@ export default Node.create({
           },
           () => props.commands.insertContent({ type: this.name }),
         ]);
+
+        return executedCommand
       },
     };
   },
   addKeyboardShortcuts() {
     return {
       "Mod-Enter": () => this.editor.commands.setHardBreak(),
-      "Shift-Enter": () => this.editor.commands.setHardBreak(),
     };
   },
 });
