@@ -17,6 +17,7 @@ import { DexieMessages, DexieUI } from "../helpers/storageHelpers";
 import { getNeighbourhoodCardHidden } from "../api/getNeighbourhoodLink";
 import { DIRECTLY_SUCCEEDED_BY, REACTION } from "../constants/ad4m";
 import ad4mClient from "../api/client";
+import hideEmbeds from "../api/hideEmbeds";
 
 type State = {
   isFetchingMessages: boolean;
@@ -38,6 +39,7 @@ type ContextProps = {
     saveScrollPos: (pos?: number) => void;
     setHasNewMessage: (value: boolean) => void;
     setIsMessageFromSelf: (value: boolean) => void;
+    hideMessageEmbeds: (messageUrl: string) => void;
   };
 };
 
@@ -59,6 +61,7 @@ const initialState: ContextProps = {
     saveScrollPos: () => null,
     setHasNewMessage: () => null,
     setIsMessageFromSelf: () => null,
+    hideMessageEmbeds: () => null,
   },
 };
 
@@ -157,16 +160,72 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     return newState;
   }
 
-  function addReactionToState(oldState, messageId, reactions) {
-    const newState = {
-      ...oldState,
-      hasNewMessage: false,
-      keyedMessages: {
-        ...oldState.keyedMessages,
-        [messageId]: { ...oldState.keyedMessages[messageId], reactions },
-      },
-    };
-    return newState;
+  function addReactionToState(link) {
+    const id = link.data.source;
+
+    setState((oldState) => {
+      const message: Message = oldState.keyedMessages[id];
+
+      if (message) {
+        const linkFound = message.reactions.find(
+          (e) => e.content === link.data.target && e.author === link.author
+        );
+
+        console.log({ linkFound, link, message });
+
+        if (linkFound) return oldState;
+
+        return {
+          ...oldState,
+          keyedMessages: {
+            ...oldState.keyedMessages,
+            [id]: {
+              ...message,
+              reactions: [
+                ...message.reactions,
+                {
+                  author: link.author,
+                  content: link.data.target.replace('emoji://', ''),
+                  timestamp: link.timestamp,
+                },
+              ],
+            },
+          },
+        };
+      }
+
+      return oldState;
+    });
+  }
+
+  function removeReactionFromState(link) {
+    const id = link.data.source;
+
+    setState((oldState) => {
+      const message: Message = oldState.keyedMessages[id];
+
+      if (!message) return oldState;
+
+      function filterReactions(reaction, link) {
+        const isSameAuthor = reaction.author === link.author;
+        const isSameAuthorAndContent =
+          isSameAuthor && reaction.content === link.data.target.replace('emoji://', '');
+        return isSameAuthorAndContent ? false : true;
+      }
+
+      return {
+        ...oldState,
+        keyedMessages: {
+          ...oldState.keyedMessages,
+          [id]: {
+            ...message,
+            reactions: message.reactions.filter((e) =>
+              filterReactions(e, link)
+            ),
+          },
+        },
+      };
+    });
   }
 
   function addHiddenToMessageToState(oldState, messageId, isNeighbourhoodCardHidden) {
@@ -195,91 +254,53 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
 
   async function handleLinkAdded(link) {
     console.log("Got message link", link);
+
     const agent = await getMe();
 
-    if (linkIs.message(link)) {
-      const isSameChannel = await ad4mClient.perspective.queryProlog(perspectiveUuid, `triple("${channelId}", "${DIRECTLY_SUCCEEDED_BY}", "${link.data.target}").`);
-      if (isSameChannel) {
-        const message = getMessage(link);
+    const isMessageFromSelf = link.author === agent.did;
+    if (!isMessageFromSelf) {
+      if (linkIs.message(link)) {
+        const isSameChannel = await ad4mClient.perspective.queryProlog(perspectiveUuid, `triple("${channelId}", "${DIRECTLY_SUCCEEDED_BY}", "${link.data.target}").`);
+        if (isSameChannel) {
+          const message = getMessage(link);
+  
+          if (message) {
+            setState((oldState) => addMessage(oldState, message));
+  
+            setState((oldState) => ({
+              ...oldState,
+              isMessageFromSelf: false,
+            }));
+          }
+        }
+      }
 
-        if (message) {
+      if (linkIs.reaction(link)) {
+        addReactionToState(link);
+      }
+
+      if (linkIs.reply(link)) {
+        const isSameChannel = await ad4mClient.perspective.queryProlog(perspectiveUuid, `triple("${channelId}", "${DIRECTLY_SUCCEEDED_BY}", "${link.data.source}").`);
+  
+        if (isSameChannel) {
+          const message = getMessage(link);
+  
           setState((oldState) => addMessage(oldState, message));
-
+    
           setState((oldState) => ({
             ...oldState,
-            isMessageFromSelf: link.author === agent.did,
+            isMessageFromSelf: false,
           }));
         }
       }
-    }
 
-    if (linkIs.reply(link)) {
-      const isSameChannel = await ad4mClient.perspective.queryProlog(perspectiveUuid, `triple("${channelId}", "${DIRECTLY_SUCCEEDED_BY}", "${link.data.source}").`);
-      if (isSameChannel) {
-        const message = getMessage(link);
-
-        setState((oldState) => addMessage(oldState, message));
+      if (linkIs.hideNeighbourhoodCard(link)) {
+        const id = link.data.source;
   
-        setState((oldState) => ({
-          ...oldState,
-          isMessageFromSelf: link.author === agent.did,
-        }));
-
-        const isHidden = await getNeighbourhoodCardHidden({
-          perspectiveUuid,
-          messageUrl: link.data.target
-        });
-
         setState((oldState) =>
-          addHiddenToMessageToState(oldState, message.id, isHidden)
+          addHiddenToMessageToState(oldState, id, true)
         );
       }
-    }
-
-    if (linkIs.reaction(link)) {
-      const id = link.data.source;
-
-      setState((oldState) => {
-        const message: Message = oldState.keyedMessages[id];
-
-        if (message) {
-          const linkFound = message.reactions.find(
-            (e) => e.content === link.data.target && e.author === link.author
-          );
-
-          console.log({ linkFound, link, message });
-
-          if (linkFound) return oldState;
-
-          return {
-            ...oldState,
-            keyedMessages: {
-              ...oldState.keyedMessages,
-              [id]: {
-                ...message,
-                reactions: [
-                  ...message.reactions,
-                  {
-                    author: link.author,
-                    content: link.data.target.replace('emoji://', ''),
-                    timestamp: link.timestamp,
-                  },
-                ],
-              },
-            },
-          };
-        }
-
-        return oldState;
-      });
-    }
-
-    if (linkIs.hideNeighbourhoodCard(link)) {
-      const id = link.data.source;
-
-      setState((oldState) =>
-        addHiddenToMessageToState(oldState, id, true)
-      );
     }
   }
 
@@ -287,33 +308,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
     //TODO: link.proof.valid === false when we recive
     // the remove link somehow. Ad4m bug?
     if (link.data.predicate === REACTION) {
-      const id = link.data.source;
-
-      setState((oldState) => {
-        const message: Message = oldState.keyedMessages[id];
-
-        if (!message) return oldState;
-
-        function filterReactions(reaction, link) {
-          const isSameAuthor = reaction.author === link.author;
-          const isSameAuthorAndContent =
-            isSameAuthor && reaction.content === link.data.target;
-          return isSameAuthorAndContent ? false : true;
-        }
-
-        return {
-          ...oldState,
-          keyedMessages: {
-            ...oldState.keyedMessages,
-            [id]: {
-              ...message,
-              reactions: message.reactions.filter((e) =>
-                filterReactions(e, link)
-              ),
-            },
-          },
-        };
-      });
+      removeReactionFromState(link);
     }
   }
 
@@ -361,29 +356,47 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
   }
 
   async function sendMessage(value) {
-    createMessage({
+    const message = await createMessage({
       perspectiveUuid,
       lastMessage: channelId,
       message: value,
     });
+
+    setState((oldState) => addMessage(oldState, message));
   }
 
   async function sendReply(message: string, replyUrl: string) {
-    return createReply({
+    const link = await createReply({
       perspectiveUuid: perspectiveUuid,
       message: message,
       replyUrl,
       channelId,
     });
+
+    setState((oldState) => addMessage(oldState, link));
+  }
+
+  async function hideMessageEmbeds(messageUrl: string) {
+    const link = await hideEmbeds({
+      perspectiveUuid,
+      messageUrl,
+    });
+
+    const id = link.data.source;
+
+    setState((oldState) => addHiddenToMessageToState(oldState, id, true));
   }
 
   async function addReaction(messageUrl: string, reaction: string) {
     console.log("addReaction");
-    createMessageReaction({
+
+    const link = await createMessageReaction({
       perspectiveUuid,
       messageUrl,
       reaction,
     });
+
+    addReactionToState(link);
   }
 
   function setIsMessageFromSelf(isMessageFromSelf: boolean) {
@@ -395,10 +408,12 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
 
   async function removeReaction(linkExpression: LinkExpression) {
     console.log("removeReaction", linkExpression);
-    return deleteMessageReaction({
+    await deleteMessageReaction({
       perspectiveUuid,
       linkExpression,
     });
+
+    removeReactionFromState(linkExpression)
   }
 
   async function loadMore() {
@@ -437,6 +452,7 @@ export function ChatProvider({ perspectiveUuid, children, channelId }: any) {
           saveScrollPos,
           setHasNewMessage,
           setIsMessageFromSelf,
+          hideMessageEmbeds
         },
       }}
     >

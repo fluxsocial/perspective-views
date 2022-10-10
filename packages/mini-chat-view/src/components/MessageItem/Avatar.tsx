@@ -5,9 +5,10 @@ import styles from "./index.scss";
 type AvatarProps = {
     author: any;
     onProfileClick?: (did: string) => void;
+    size?: 'large' | 'small'
 }
 
-export const Avatar = ({ author, onProfileClick }: AvatarProps) => {
+export const Avatar = ({ author, onProfileClick, size = 'large' }: AvatarProps) => {
     const [img, setImage] = useState(null);
 
     useEffect(() => {
@@ -24,6 +25,7 @@ export const Avatar = ({ author, onProfileClick }: AvatarProps) => {
             src={img}
             hash={author?.did}
             onClick={() => onProfileClick(author?.did)}
+            style={`--j-avatar-size: ${size === 'large' ? 42 : 20}px`}
         ></j-avatar>
     )
 }

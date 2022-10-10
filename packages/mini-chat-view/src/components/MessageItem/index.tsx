@@ -2,8 +2,6 @@ import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import { AgentContext, ChatContext, PerspectiveContext } from "junto-utils/react";
 import getMe from "junto-utils/api/getMe";
 import getNeighbourhoodLink from "junto-utils/api/getNeighbourhoodLink";
-import hideEmbeds from "junto-utils/api/hideEmbeds";
-
 import MessageToolbar from "./MessageToolbar";
 import MessageReactions from "./MessageReactions";
 import UIContext from "../../context/UIContext";
@@ -44,7 +42,7 @@ export default function MessageItem({
   } = useContext(PerspectiveContext);
   const {
     state: { messages, keyedMessages },
-    methods: { addReaction, removeReaction },
+    methods: { addReaction, removeReaction, hideMessageEmbeds },
   } = useContext(ChatContext);
   const [neighbourhoodCards, setNeighbourhoodCards] = useState<any[]>([]);
 
@@ -83,7 +81,7 @@ export default function MessageItem({
         author: alreadyMadeReaction.author,
         data: {
           predicate: REACTION,
-          target: alreadyMadeReaction.content,
+          target:`emoji://${alreadyMadeReaction.content}`,
           source: message.id,
         },
         proof: {
@@ -208,7 +206,7 @@ export default function MessageItem({
               class={styles.messageFlex}
               onClick={() => onProfileClick(replyAuthor?.did)}
             >
-              {replyAuthor?.did ? <Avatar author={replyAuthor} /> : <Skeleton variant="circle" width={20} height={20} />}
+              {replyAuthor?.did ? <Avatar author={replyAuthor} size="small" /> : <Skeleton variant="circle" width={20} height={20} />}
               {replyAuthor.username ? <div class={styles.messageUsernameNoMargin}>
                 {replyAuthor?.username}
               </div> : <div style={{marginBottom: 5}}>
@@ -293,7 +291,7 @@ export default function MessageItem({
               ))
             }
             {agentState.did === message.author && (
-            <div class={styles.neighbourhoodCardsClose} onClick={() => hideEmbeds({perspectiveUuid, messageUrl: message.id})}>
+            <div class={styles.neighbourhoodCardsClose} onClick={() => hideMessageEmbeds(message.id)}>
               <j-icon name="x"></j-icon>
             </div>)}
           </div>

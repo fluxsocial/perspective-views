@@ -14,7 +14,7 @@ export default async function ({
   reaction,
 }: Payload) {
   try {
-    await ad4mClient.perspective.addLink(
+    const link = await ad4mClient.perspective.addLink(
       perspectiveUuid,
       new Link({
         source: messageUrl,
@@ -22,6 +22,8 @@ export default async function ({
         predicate: REACTION,
       })
     );
+
+    return link;
   } catch (e: any) {
     throw new Error(e);
   }

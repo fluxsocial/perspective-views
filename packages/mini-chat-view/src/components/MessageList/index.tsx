@@ -141,13 +141,13 @@ export default function MessageList({ perspectiveUuid, mainRef, channelId }) {
     const alreadyMadeReaction = message.reactions.find((reaction: Reaction) => {
       return reaction.author === me.did && reaction.content === utf;
     });
-
+    
     if (alreadyMadeReaction) {
       removeReaction({
         author: alreadyMadeReaction.author,
         data: {
           predicate: REACTION,
-          target: alreadyMadeReaction.content,
+          target: `emoji://${alreadyMadeReaction.content}`,
           source: message.id,
         },
         proof: {

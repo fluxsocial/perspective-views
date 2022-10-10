@@ -1,6 +1,7 @@
 import { Link } from "@perspect3vism/ad4m";
 import { REPLY_TO, DIRECTLY_SUCCEEDED_BY } from "../constants/ad4m";
 import ad4mClient from "./client";
+import getMessage from "./getMessage";
 
 export interface Payload {
   perspectiveUuid: string;
@@ -26,7 +27,7 @@ export default async function ({
         predicate: DIRECTLY_SUCCEEDED_BY,
       })
     );
-    await ad4mClient.perspective.addLink(
+    const link = await ad4mClient.perspective.addLink(
       perspectiveUuid,
       new Link({
         source: replyUrl,
@@ -34,6 +35,10 @@ export default async function ({
         predicate: REPLY_TO,
       })
     );
+
+    const messageParsed = getMessage(link);
+
+    return messageParsed; 
   } catch (e: any) {
     throw new Error(e);
   }
