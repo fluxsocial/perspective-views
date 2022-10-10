@@ -12,7 +12,7 @@ export default async function ({
   messageUrl,
 }: Payload) {
   try {
-    await ad4mClient.perspective.addLink(
+    const link = await ad4mClient.perspective.addLink(
       perspectiveUuid,
       new Link({
         source: messageUrl,
@@ -20,6 +20,8 @@ export default async function ({
         predicate: CARD_HIDDEN,
       })
     );
+
+    return link;
   } catch (e: any) {
     throw new Error(e);
   }

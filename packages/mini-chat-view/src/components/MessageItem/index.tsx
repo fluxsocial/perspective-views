@@ -2,8 +2,6 @@ import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import { AgentContext, ChatContext, PerspectiveContext } from "junto-utils/react";
 import getMe from "junto-utils/api/getMe";
 import getNeighbourhoodLink from "junto-utils/api/getNeighbourhoodLink";
-import hideEmbeds from "junto-utils/api/hideEmbeds";
-
 import MessageToolbar from "./MessageToolbar";
 import MessageReactions from "./MessageReactions";
 import UIContext from "../../context/UIContext";
@@ -11,6 +9,7 @@ import styles from "./index.scss";
 import { format, formatRelative } from "date-fns/esm";
 import { REACTION } from "junto-utils/constants/ad4m";
 import Skeleton from "../Skeleton";
+import { Avatar } from "./Avatar";
 
 type timeOptions = {
   dateStyle?: string;
@@ -43,7 +42,7 @@ export default function MessageItem({
   } = useContext(PerspectiveContext);
   const {
     state: { messages, keyedMessages },
-    methods: { addReaction, removeReaction },
+    methods: { addReaction, removeReaction, hideMessageEmbeds },
   } = useContext(ChatContext);
   const [neighbourhoodCards, setNeighbourhoodCards] = useState<any[]>([]);
 
@@ -82,7 +81,7 @@ export default function MessageItem({
         author: alreadyMadeReaction.author,
         data: {
           predicate: REACTION,
-          target: alreadyMadeReaction.content,
+          target:`emoji://${alreadyMadeReaction.content}`,
           source: message.id,
         },
         proof: {
@@ -207,12 +206,7 @@ export default function MessageItem({
               class={styles.messageFlex}
               onClick={() => onProfileClick(replyAuthor?.did)}
             >
-              {replyAuthor?.did ? <j-avatar
-                class={styles.messageAvatar}
-                style="--j-avatar-size: 20px"
-                src={replyAuthor?.thumbnailPicture}
-                hash={replyAuthor?.did}
-              ></j-avatar> : <Skeleton variant="circle" width={20} height={20} />}
+              {replyAuthor?.did ? <Avatar author={replyAuthor} size="small" /> : <Skeleton variant="circle" width={20} height={20} />}
               {replyAuthor.username ? <div class={styles.messageUsernameNoMargin}>
                 {replyAuthor?.username}
               </div> : <div style={{marginBottom: 5}}>
@@ -229,12 +223,10 @@ export default function MessageItem({
       <div>
         {replyMessage || showAvatar ? (
           <j-flex>
-            {author?.did ? <j-avatar
-              class={styles.messageAvatar}
-              src={author?.thumbnailPicture}
-              hash={author?.did}
-              onClick={() => onProfileClick(author?.did)}
-            ></j-avatar> : <Skeleton variant="circle" width={42} height={42} />}
+            {author?.did ? <Avatar
+              author={author}
+              onProfileClick={onProfileClick}
+            ></Avatar> : <Skeleton variant="circle" width={42} height={42} />}
           </j-flex>
         ) : (
           <small
@@ -266,7 +258,7 @@ export default function MessageItem({
               data-rh
               data-timestamp={format(
                 new Date(message.timestamp),
-                "EEEE, MMMM d, yyyy, HH:MM"
+                "EEEE, MMMM d, yyyy, hh:mm b"
               )}
             >
               {formatRelative(new Date(message.timestamp), new Date())}
@@ -299,7 +291,7 @@ export default function MessageItem({
               ))
             }
             {agentState.did === message.author && (
-            <div class={styles.neighbourhoodCardsClose} onClick={() => hideEmbeds({perspectiveUuid, messageUrl: message.id})}>
+            <div class={styles.neighbourhoodCardsClose} onClick={() => hideMessageEmbeds(message.id)}>
               <j-icon name="x"></j-icon>
             </div>)}
           </div>

@@ -18,7 +18,7 @@ export interface Payload {
   perspectiveUuid: string;
 }
 
-async function getImage(expUrl: string): Promise<string> {
+export async function getImage(expUrl: string): Promise<string> {
   return new Promise(async (resolve, reject) => {
     setTimeout(() => {
       resolve("");
@@ -57,9 +57,8 @@ export default async function getProfile(did: string): Promise<any | null> {
 
   if (agentPerspective) {
     const links = agentPerspective!.perspective!.links;
-    var communityId = window.location.pathname.split('/')[2];
-  
-    const dexie = new DexieProfile(`${communityId}://profile`, 1);
+
+    const dexie = new DexieProfile(`flux://profile`, 1);
   
     let cachedProfile = await dexie.get(cleanedDid);
   
@@ -67,10 +66,7 @@ export default async function getProfile(did: string): Promise<any | null> {
       return cachedProfile as Profile;
     }
   
-    for (const link of links.filter((e) => e.data.source === FLUX_PROFILE)) {
-      let expUrl;
-      let image;
-  
+    for (const link of links.filter((e) => e.data.source === FLUX_PROFILE)) {  
       switch (link.data.predicate) {
         case USERNAME:
           profile!.username = link.data.target;
@@ -85,9 +81,7 @@ export default async function getProfile(did: string): Promise<any | null> {
           profile!.familyName = link.data.target;
           break;
         case PROFILE_THUMBNNAIL_IMAGE:
-          expUrl = link.data.target;
-          profile!.thumbnailPicture = await getImage(expUrl);
-  
+          profile!.thumbnailPicture = link.data.target;
           break;
         case EMAIL:
           profile!.email = link.data.target;
