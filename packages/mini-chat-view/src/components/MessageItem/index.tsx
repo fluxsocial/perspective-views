@@ -11,6 +11,7 @@ import styles from "./index.scss";
 import { format, formatRelative } from "date-fns/esm";
 import { REACTION } from "junto-utils/constants/ad4m";
 import Skeleton from "../Skeleton";
+import { Avatar } from "./Avatar";
 
 type timeOptions = {
   dateStyle?: string;
@@ -207,12 +208,7 @@ export default function MessageItem({
               class={styles.messageFlex}
               onClick={() => onProfileClick(replyAuthor?.did)}
             >
-              {replyAuthor?.did ? <j-avatar
-                class={styles.messageAvatar}
-                style="--j-avatar-size: 20px"
-                src={replyAuthor?.thumbnailPicture}
-                hash={replyAuthor?.did}
-              ></j-avatar> : <Skeleton variant="circle" width={20} height={20} />}
+              {replyAuthor?.did ? <Avatar author={replyAuthor} /> : <Skeleton variant="circle" width={20} height={20} />}
               {replyAuthor.username ? <div class={styles.messageUsernameNoMargin}>
                 {replyAuthor?.username}
               </div> : <div style={{marginBottom: 5}}>
@@ -229,12 +225,10 @@ export default function MessageItem({
       <div>
         {replyMessage || showAvatar ? (
           <j-flex>
-            {author?.did ? <j-avatar
-              class={styles.messageAvatar}
-              src={author?.thumbnailPicture}
-              hash={author?.did}
-              onClick={() => onProfileClick(author?.did)}
-            ></j-avatar> : <Skeleton variant="circle" width={42} height={42} />}
+            {author?.did ? <Avatar
+              author={author}
+              onProfileClick={onProfileClick}
+            ></Avatar> : <Skeleton variant="circle" width={42} height={42} />}
           </j-flex>
         ) : (
           <small
